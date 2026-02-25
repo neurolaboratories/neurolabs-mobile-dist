@@ -57,20 +57,20 @@ jobs:
         id: sync_asset
         env:
           DIST_REPO_PAT: ${{ secrets.DIST_REPO_PAT }}
-          SOURCE_DOWNLOAD_TOKEN: ${{ secrets.SOURCE_RELEASE_PAT }}
         run: |
           set -euo pipefail
           mkdir -p incoming
           ASSET_NAME="${{ steps.payload.outputs.asset_name }}"
           SRC_URL="${{ steps.payload.outputs.source_asset_url }}"
           DEST="incoming/${ASSET_NAME}"
-          DOWNLOAD_TOKEN="${DIST_REPO_PAT:-${SOURCE_DOWNLOAD_TOKEN:-}}"
+          DOWNLOAD_TOKEN="${DIST_REPO_PAT:-}"
 
-          if [[ -n "${DOWNLOAD_TOKEN:-}" ]]; then
-            curl -fL -H "Authorization: Bearer ${DOWNLOAD_TOKEN}" "$SRC_URL" -o "$DEST"
-          else
-            curl -fL "$SRC_URL" -o "$DEST"
+          if [[ -z "${DOWNLOAD_TOKEN:-}" ]]; then
+            echo "Error: DIST_REPO_PAT secret is required to download source artifacts" >&2
+            exit 1
           fi
+
+          curl -fL -H "Authorization: Bearer ${DOWNLOAD_TOKEN}" "$SRC_URL" -o "$DEST"
 
           ACTUAL=$(sha256sum "$DEST" | awk '{print $1}')
           EXPECTED="${{ steps.payload.outputs.checksum }}"
