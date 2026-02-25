@@ -1,0 +1,184 @@
+name: Dist Release Orchestrator
+
+on:
+  repository_dispatch:
+    types:
+      - ios_ready
+      - android_ready
+      - cordova_ready
+
+permissions:
+  contents: write
+
+jobs:
+  update-release-state:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout dist repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read payload
+        id: payload
+        env:
+          CLIENT_PAYLOAD: ${{ toJson(github.event.client_payload) }}
+        run: |
+          set -euo pipefail
+          echo "$CLIENT_PAYLOAD" > payload.json
+          VERSION=$(jq -r '.version' payload.json)
+          PLATFORM=$(jq -r '.platform' payload.json)
+          SOURCE_ASSET_URL=$(jq -r '.asset_url' payload.json)
+          CHECKSUM=$(jq -r '.checksum_sha256' payload.json)
+          ASSET_NAME=$(jq -r '.asset_name // empty' payload.json)
+
+          test -n "$VERSION" && test "$VERSION" != "null"
+          test -n "$PLATFORM" && test "$PLATFORM" != "null"
+          test -n "$SOURCE_ASSET_URL" && test "$SOURCE_ASSET_URL" != "null"
+          test -n "$CHECKSUM" && test "$CHECKSUM" != "null"
+          test -n "$ASSET_NAME" && test "$ASSET_NAME" != "null"
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "platform=$PLATFORM" >> "$GITHUB_OUTPUT"
+          echo "source_asset_url=$SOURCE_ASSET_URL" >> "$GITHUB_OUTPUT"
+          echo "checksum=$CHECKSUM" >> "$GITHUB_OUTPUT"
+          echo "asset_name=$ASSET_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure dist release exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.payload.outputs.version }}"
+          gh release view "$VERSION" >/dev/null 2>&1 \
+            || gh release create "$VERSION" --title "Release $VERSION" --notes "Release in progress. Artifacts are being synchronized."
+
+      - name: Download source artifact and verify checksum
+        id: sync_asset
+        env:
+          SOURCE_DOWNLOAD_TOKEN: ${{ secrets.SOURCE_RELEASE_PAT }}
+        run: |
+          set -euo pipefail
+          mkdir -p incoming
+          ASSET_NAME="${{ steps.payload.outputs.asset_name }}"
+          SRC_URL="${{ steps.payload.outputs.source_asset_url }}"
+          DEST="incoming/${ASSET_NAME}"
+
+          if [[ -n "${SOURCE_DOWNLOAD_TOKEN:-}" ]]; then
+            curl -fL -H "Authorization: Bearer ${SOURCE_DOWNLOAD_TOKEN}" "$SRC_URL" -o "$DEST"
+          else
+            curl -fL "$SRC_URL" -o "$DEST"
+          fi
+
+          ACTUAL=$(sha256sum "$DEST" | awk '{print $1}')
+          EXPECTED="${{ steps.payload.outputs.checksum }}"
+          if [[ "$ACTUAL" != "$EXPECTED" ]]; then
+            echo "Checksum mismatch for $ASSET_NAME" >&2
+            echo "expected=$EXPECTED" >&2
+            echo "actual=$ACTUAL" >&2
+            exit 1
+          fi
+
+          echo "local_path=$DEST" >> "$GITHUB_OUTPUT"
+          DIST_ASSET_URL="https://github.com/${{ github.repository }}/releases/download/${{ steps.payload.outputs.version }}/${ASSET_NAME}"
+          echo "dist_asset_url=$DIST_ASSET_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifact to dist release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release upload "${{ steps.payload.outputs.version }}" "${{ steps.sync_asset.outputs.local_path }}" --clobber
+
+      - name: Merge version state
+        run: |
+          python3 scripts/merge_release_state.py \
+            manifests/release-state \
+            "${{ steps.payload.outputs.version }}" \
+            "${{ steps.payload.outputs.platform }}" \
+            "${{ steps.sync_asset.outputs.dist_asset_url }}" \
+            "${{ steps.payload.outputs.checksum }}"
+
+      - name: Update platform manifest
+        run: |
+          set -euo pipefail
+          PLATFORM="${{ steps.payload.outputs.platform }}"
+          VERSION="${{ steps.payload.outputs.version }}"
+          ASSET_URL="${{ steps.sync_asset.outputs.dist_asset_url }}"
+          CHECKSUM="${{ steps.payload.outputs.checksum }}"
+          ASSET_NAME="${{ steps.payload.outputs.asset_name }}"
+
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          platform = os.environ["PLATFORM"]
+          manifest = Path(f"manifests/{platform}.json")
+          data = json.loads(manifest.read_text())
+          latest = data.setdefault("latest", {})
+          latest["version"] = os.environ["VERSION"]
+          latest["asset_url"] = os.environ["ASSET_URL"]
+          latest["checksum_sha256"] = os.environ["CHECKSUM"]
+          latest["asset_name"] = os.environ["ASSET_NAME"]
+          manifest.write_text(json.dumps(data, indent=2) + "\n")
+          PY
+        env:
+          PLATFORM: ${{ steps.payload.outputs.platform }}
+          VERSION: ${{ steps.payload.outputs.version }}
+          ASSET_URL: ${{ steps.sync_asset.outputs.dist_asset_url }}
+          CHECKSUM: ${{ steps.payload.outputs.checksum }}
+          ASSET_NAME: ${{ steps.payload.outputs.asset_name }}
+
+      - name: Update SPM manifest (iOS only)
+        if: steps.payload.outputs.platform == 'ios'
+        run: |
+          python3 scripts/update_spm_manifest.py \
+            Package.swift \
+            "${{ steps.sync_asset.outputs.dist_asset_url }}" \
+            "${{ steps.payload.outputs.checksum }}"
+
+      - name: Commit manifest changes
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Package.swift manifests/*.json manifests/release-state/*.json
+          git commit -m "chore(dist): update ${{ steps.payload.outputs.platform }} for ${{ steps.payload.outputs.version }}" || exit 0
+          git push
+
+      - name: Check release readiness
+        id: ready
+        run: |
+          set +e
+          python3 scripts/validate_release_ready.py "manifests/release-state/${{ steps.payload.outputs.version }}.json"
+          CODE=$?
+          set -e
+          if [ "$CODE" -eq 0 ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create or update aggregated release notes
+        if: steps.ready.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.payload.outputs.version }}"
+          STATE_FILE="manifests/release-state/${VERSION}.json"
+          IOS_URL=$(jq -r '.artifacts.ios.asset_url' "$STATE_FILE")
+          ANDROID_URL=$(jq -r '.artifacts.android.asset_url' "$STATE_FILE")
+          CORDOVA_URL=$(jq -r '.artifacts.cordova.asset_url' "$STATE_FILE")
+          cat > release-notes.md <<EOF2
+          Coordinated mobile distribution release ${VERSION}
+
+          Assets (dist URLs):
+          - iOS XCFramework: ${IOS_URL}
+          - Android SDK: ${ANDROID_URL}
+          - Cordova plugin: ${CORDOVA_URL}
+
+          Partner entry points:
+          - iOS SwiftPM: add this repo and select \`NeurolabsSDK\`
+          - Android/Cordova: use the assets and manifests in this release
+          EOF2
+          gh release edit "$VERSION" --notes-file release-notes.md

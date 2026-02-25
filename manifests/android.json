@@ -1,0 +1,12 @@
+{
+  "platform": "android",
+  "product": "neurolabs-android-sdk",
+  "distribution": "github_release_asset",
+  "latest": {
+    "version": "v0.0.0",
+    "asset_name": "neurolabs-android-sdk-v0.0.0.aar",
+    "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v0.0.0/neurolabs-android-sdk-v0.0.0.aar",
+    "checksum_sha256": "REPLACE_WITH_CHECKSUM",
+    "gradle_example": "implementation(files(\"libs/neurolabs-android-sdk-v0.0.0.aar\"))"
+  }
+}

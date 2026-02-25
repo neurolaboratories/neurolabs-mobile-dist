@@ -1,0 +1,60 @@
+name: Manual Dist Promote
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release tag (e.g. v1.2.3)
+        required: true
+      ios_asset_url:
+        description: iOS XCFramework zip URL
+        required: false
+      ios_checksum_sha256:
+        description: iOS SwiftPM checksum
+        required: false
+      android_asset_url:
+        description: Android AAR/zip URL
+        required: false
+      android_checksum_sha256:
+        description: Android SHA256 checksum
+        required: false
+      cordova_asset_url:
+        description: Cordova package URL
+        required: false
+      cordova_checksum_sha256:
+        description: Cordova SHA256 checksum
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply provided platform metadata
+        run: |
+          set -euo pipefail
+          VERSION="${{ inputs.version }}"
+          for P in ios android cordova; do
+            URL_VAR="${P}_asset_url"
+            CS_VAR="${P}_checksum_sha256"
+            URL="${!URL_VAR:-}"
+            CS="${!CS_VAR:-}"
+            if [ -n "$URL" ] && [ -n "$CS" ]; then
+              python3 scripts/merge_release_state.py manifests/release-state "$VERSION" "$P" "$URL" "$CS"
+            fi
+          done
+        env:
+          ios_asset_url: ${{ inputs.ios_asset_url }}
+          ios_checksum_sha256: ${{ inputs.ios_checksum_sha256 }}
+          android_asset_url: ${{ inputs.android_asset_url }}
+          android_checksum_sha256: ${{ inputs.android_checksum_sha256 }}
+          cordova_asset_url: ${{ inputs.cordova_asset_url }}
+          cordova_checksum_sha256: ${{ inputs.cordova_checksum_sha256 }}
+
+      - name: Validate ready
+        run: |
+          python3 scripts/validate_release_ready.py "manifests/release-state/${{ inputs.version }}.json"
