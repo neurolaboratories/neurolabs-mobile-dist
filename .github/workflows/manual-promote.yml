@@ -18,6 +18,24 @@ on:
       android_checksum_sha256:
         description: Android SHA256 checksum
         required: false
+      android_maven_repository_url:
+        description: Android Maven repository URL (optional)
+        required: false
+      android_maven_group_id:
+        description: Android Maven groupId (optional)
+        required: false
+      android_maven_artifact_id:
+        description: Android Maven artifactId (optional)
+        required: false
+      android_maven_version:
+        description: Android Maven version (optional)
+        required: false
+      android_maven_packaging:
+        description: Android Maven packaging (optional, default aar)
+        required: false
+      android_maven_pom_url:
+        description: Android Maven POM URL (optional)
+        required: false
       cordova_asset_url:
         description: Cordova package URL
         required: false
@@ -38,13 +56,43 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="${{ inputs.version }}"
+          ANDROID_MAVEN_METADATA_JSON=""
+          if [[ -n "${android_maven_repository_url:-}" || -n "${android_maven_group_id:-}" || -n "${android_maven_artifact_id:-}" || -n "${android_maven_version:-}" || -n "${android_maven_pom_url:-}" ]]; then
+            test -n "${android_maven_repository_url:-}"
+            test -n "${android_maven_group_id:-}"
+            test -n "${android_maven_artifact_id:-}"
+            test -n "${android_maven_version:-}"
+            ANDROID_MAVEN_METADATA_JSON=$(jq -nc \
+              --arg repository_url "${android_maven_repository_url}" \
+              --arg group_id "${android_maven_group_id}" \
+              --arg artifact_id "${android_maven_artifact_id}" \
+              --arg version "${android_maven_version}" \
+              --arg packaging "${android_maven_packaging:-aar}" \
+              --arg pom_url "${android_maven_pom_url:-}" \
+              '{
+                maven: (
+                  {
+                    repository_url: $repository_url,
+                    group_id: $group_id,
+                    artifact_id: $artifact_id,
+                    version: $version,
+                    packaging: $packaging
+                  }
+                  + (if $pom_url != "" then {pom_url: $pom_url} else {} end)
+                )
+              }')
+          fi
           for P in ios android cordova; do
             URL_VAR="${P}_asset_url"
             CS_VAR="${P}_checksum_sha256"
             URL="${!URL_VAR:-}"
             CS="${!CS_VAR:-}"
             if [ -n "$URL" ] && [ -n "$CS" ]; then
-              python3 scripts/merge_release_state.py manifests/release-state "$VERSION" "$P" "$URL" "$CS"
+              if [[ "$P" == "android" && -n "$ANDROID_MAVEN_METADATA_JSON" ]]; then
+                python3 scripts/merge_release_state.py manifests/release-state "$VERSION" "$P" "$URL" "$CS" "$ANDROID_MAVEN_METADATA_JSON"
+              else
+                python3 scripts/merge_release_state.py manifests/release-state "$VERSION" "$P" "$URL" "$CS"
+              fi
             fi
           done
         env:
@@ -52,6 +100,12 @@ jobs:
           ios_checksum_sha256: ${{ inputs.ios_checksum_sha256 }}
           android_asset_url: ${{ inputs.android_asset_url }}
           android_checksum_sha256: ${{ inputs.android_checksum_sha256 }}
+          android_maven_repository_url: ${{ inputs.android_maven_repository_url }}
+          android_maven_group_id: ${{ inputs.android_maven_group_id }}
+          android_maven_artifact_id: ${{ inputs.android_maven_artifact_id }}
+          android_maven_version: ${{ inputs.android_maven_version }}
+          android_maven_packaging: ${{ inputs.android_maven_packaging }}
+          android_maven_pom_url: ${{ inputs.android_maven_pom_url }}
           cordova_asset_url: ${{ inputs.cordova_asset_url }}
           cordova_checksum_sha256: ${{ inputs.cordova_checksum_sha256 }}
 

@@ -5,9 +5,9 @@ import sys
 
 
 def main() -> int:
-    if len(sys.argv) != 6:
+    if len(sys.argv) not in (6, 7):
         print(
-            "Usage: merge_release_state.py <state-dir> <version> <platform> <asset-url> <checksum>",
+            "Usage: merge_release_state.py <state-dir> <version> <platform> <asset-url> <checksum> [metadata-json]",
             file=sys.stderr,
         )
         return 1
@@ -17,6 +17,12 @@ def main() -> int:
     platform = sys.argv[3]
     asset_url = sys.argv[4]
     checksum = sys.argv[5]
+    metadata = {}
+    if len(sys.argv) == 7 and sys.argv[6]:
+        metadata = json.loads(sys.argv[6])
+        if not isinstance(metadata, dict):
+            print("metadata-json must decode to an object", file=sys.stderr)
+            return 1
 
     state_dir.mkdir(parents=True, exist_ok=True)
     state_file = state_dir / f"{version}.json"
@@ -26,10 +32,12 @@ def main() -> int:
     else:
         state = {"version": version, "artifacts": {}}
 
-    state["artifacts"][platform] = {
+    artifact_state = {
         "asset_url": asset_url,
         "checksum_sha256": checksum,
     }
+    artifact_state.update(metadata)
+    state["artifacts"][platform] = artifact_state
 
     state_file.write_text(json.dumps(state, indent=2) + "\n")
     return 0

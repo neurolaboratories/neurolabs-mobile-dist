@@ -40,6 +40,7 @@ import NeurolabsSDK
 ## Android
 
 Android artifacts are published as release assets in this repository (for example `.aar` files).
+This repo also supports Android Maven metadata in `android_ready` dispatch payloads and persists it in `manifests/android.json` (repository URL + coordinates) while still mirroring the AAR into this dist release.
 
 ### Typical integration (local AAR)
 
@@ -61,7 +62,10 @@ dependencies {
 }
 ```
 
-Refer to `manifests/android.json` for the latest published artifact URL and checksum.
+Refer to `manifests/android.json` for:
+- mirrored AAR release asset URL + checksum
+- optional Maven repository/coordinates (`latest.maven`)
+- Gradle Maven snippets (`gradle_maven_repository_example`, `gradle_maven_dependency_example`)
 
 ## Cordova
 

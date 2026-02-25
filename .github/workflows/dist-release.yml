@@ -31,6 +31,12 @@ jobs:
           SOURCE_ASSET_URL=$(jq -r '.asset_url' payload.json)
           CHECKSUM=$(jq -r '.checksum_sha256' payload.json)
           ASSET_NAME=$(jq -r '.asset_name // empty' payload.json)
+          MAVEN_REPOSITORY_URL=$(jq -r '.maven.repository_url // .maven_repository_url // empty' payload.json)
+          MAVEN_GROUP_ID=$(jq -r '.maven.group_id // .maven_group_id // empty' payload.json)
+          MAVEN_ARTIFACT_ID=$(jq -r '.maven.artifact_id // .maven_artifact_id // empty' payload.json)
+          MAVEN_VERSION=$(jq -r '.maven.version // .maven_version // empty' payload.json)
+          MAVEN_PACKAGING=$(jq -r '.maven.packaging // .maven_packaging // "aar"' payload.json)
+          MAVEN_POM_URL=$(jq -r '.maven.pom_url // .maven_pom_url // empty' payload.json)
 
           test -n "$VERSION" && test "$VERSION" != "null"
           test -n "$PLATFORM" && test "$PLATFORM" != "null"
@@ -38,11 +44,51 @@ jobs:
           test -n "$CHECKSUM" && test "$CHECKSUM" != "null"
           test -n "$ASSET_NAME" && test "$ASSET_NAME" != "null"
 
+          HAS_ANDROID_MAVEN=false
+          if [[ "$PLATFORM" == "android" ]]; then
+            if [[ -n "$MAVEN_REPOSITORY_URL" || -n "$MAVEN_GROUP_ID" || -n "$MAVEN_ARTIFACT_ID" || -n "$MAVEN_VERSION" || -n "$MAVEN_POM_URL" ]]; then
+              test -n "$MAVEN_REPOSITORY_URL"
+              test -n "$MAVEN_GROUP_ID"
+              test -n "$MAVEN_ARTIFACT_ID"
+              test -n "$MAVEN_VERSION"
+              HAS_ANDROID_MAVEN=true
+            fi
+          fi
+
+          ANDROID_MAVEN_METADATA_JSON=""
+          if [[ "$HAS_ANDROID_MAVEN" == "true" ]]; then
+            ANDROID_MAVEN_METADATA_JSON=$(jq -nc \
+              --arg repository_url "$MAVEN_REPOSITORY_URL" \
+              --arg group_id "$MAVEN_GROUP_ID" \
+              --arg artifact_id "$MAVEN_ARTIFACT_ID" \
+              --arg version "$MAVEN_VERSION" \
+              --arg packaging "$MAVEN_PACKAGING" \
+              --arg pom_url "$MAVEN_POM_URL" \
+              '{
+                maven: (
+                  {
+                    repository_url: $repository_url,
+                    group_id: $group_id,
+                    artifact_id: $artifact_id,
+                    version: $version,
+                    packaging: $packaging
+                  }
+                  + (if $pom_url != "" then {pom_url: $pom_url} else {} end)
+                )
+              }')
+          fi
+
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "platform=$PLATFORM" >> "$GITHUB_OUTPUT"
           echo "source_asset_url=$SOURCE_ASSET_URL" >> "$GITHUB_OUTPUT"
           echo "checksum=$CHECKSUM" >> "$GITHUB_OUTPUT"
           echo "asset_name=$ASSET_NAME" >> "$GITHUB_OUTPUT"
+          echo "has_android_maven=$HAS_ANDROID_MAVEN" >> "$GITHUB_OUTPUT"
+          {
+            echo "android_maven_metadata_json<<EOF"
+            echo "$ANDROID_MAVEN_METADATA_JSON"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Ensure dist release exists
         env:
@@ -107,12 +153,24 @@ jobs:
 
       - name: Merge version state
         run: |
-          python3 scripts/merge_release_state.py \
-            manifests/release-state \
-            "${{ steps.payload.outputs.version }}" \
-            "${{ steps.payload.outputs.platform }}" \
-            "${{ steps.sync_asset.outputs.dist_asset_url }}" \
-            "${{ steps.payload.outputs.checksum }}"
+          set -euo pipefail
+          EXTRA_METADATA='${{ steps.payload.outputs.android_maven_metadata_json }}'
+          if [[ -n "$EXTRA_METADATA" ]]; then
+            python3 scripts/merge_release_state.py \
+              manifests/release-state \
+              "${{ steps.payload.outputs.version }}" \
+              "${{ steps.payload.outputs.platform }}" \
+              "${{ steps.sync_asset.outputs.dist_asset_url }}" \
+              "${{ steps.payload.outputs.checksum }}" \
+              "$EXTRA_METADATA"
+          else
+            python3 scripts/merge_release_state.py \
+              manifests/release-state \
+              "${{ steps.payload.outputs.version }}" \
+              "${{ steps.payload.outputs.platform }}" \
+              "${{ steps.sync_asset.outputs.dist_asset_url }}" \
+              "${{ steps.payload.outputs.checksum }}"
+          fi
 
       - name: Update platform manifest
         run: |
@@ -122,6 +180,7 @@ jobs:
           ASSET_URL="${{ steps.sync_asset.outputs.dist_asset_url }}"
           CHECKSUM="${{ steps.payload.outputs.checksum }}"
           ASSET_NAME="${{ steps.payload.outputs.asset_name }}"
+          ANDROID_MAVEN_METADATA_JSON='${{ steps.payload.outputs.android_maven_metadata_json }}'
 
           python3 - <<'PY'
           import json, os
@@ -134,6 +193,20 @@ jobs:
           latest["asset_url"] = os.environ["ASSET_URL"]
           latest["checksum_sha256"] = os.environ["CHECKSUM"]
           latest["asset_name"] = os.environ["ASSET_NAME"]
+          if platform == "android":
+              metadata_raw = os.environ.get("ANDROID_MAVEN_METADATA_JSON", "")
+              if metadata_raw:
+                  metadata = json.loads(metadata_raw)
+                  latest["maven"] = metadata.get("maven", {})
+                  maven = latest["maven"]
+                  if maven.get("group_id") and maven.get("artifact_id") and maven.get("version"):
+                      if maven.get("repository_url"):
+                          latest["gradle_maven_repository_example"] = f'maven {{ url = uri("{maven["repository_url"]}") }}'
+                      latest["gradle_maven_dependency_example"] = f'implementation("{maven["group_id"]}:{maven["artifact_id"]}:{maven["version"]}")'
+              else:
+                  latest.pop("maven", None)
+                  latest.pop("gradle_maven_repository_example", None)
+                  latest.pop("gradle_maven_dependency_example", None)
           manifest.write_text(json.dumps(data, indent=2) + "\n")
           PY
         env:
@@ -142,6 +215,7 @@ jobs:
           ASSET_URL: ${{ steps.sync_asset.outputs.dist_asset_url }}
           CHECKSUM: ${{ steps.payload.outputs.checksum }}
           ASSET_NAME: ${{ steps.payload.outputs.asset_name }}
+          ANDROID_MAVEN_METADATA_JSON: ${{ steps.payload.outputs.android_maven_metadata_json }}
 
       - name: Update SPM manifest (iOS only)
         if: steps.payload.outputs.platform == 'ios'
@@ -184,6 +258,21 @@ jobs:
           IOS_URL=$(jq -r '.artifacts.ios.asset_url' "$STATE_FILE")
           ANDROID_URL=$(jq -r '.artifacts.android.asset_url' "$STATE_FILE")
           CORDOVA_URL=$(jq -r '.artifacts.cordova.asset_url' "$STATE_FILE")
+          ANDROID_MAVEN_REPO=$(jq -r '.artifacts.android.maven.repository_url // empty' "$STATE_FILE")
+          ANDROID_MAVEN_GROUP=$(jq -r '.artifacts.android.maven.group_id // empty' "$STATE_FILE")
+          ANDROID_MAVEN_ARTIFACT=$(jq -r '.artifacts.android.maven.artifact_id // empty' "$STATE_FILE")
+          ANDROID_MAVEN_VERSION=$(jq -r '.artifacts.android.maven.version // empty' "$STATE_FILE")
+          ANDROID_MAVEN_PACKAGING=$(jq -r '.artifacts.android.maven.packaging // empty' "$STATE_FILE")
+          ANDROID_MAVEN_NOTE=""
+          if [[ -n "$ANDROID_MAVEN_REPO" && -n "$ANDROID_MAVEN_GROUP" && -n "$ANDROID_MAVEN_ARTIFACT" && -n "$ANDROID_MAVEN_VERSION" ]]; then
+            ANDROID_MAVEN_NOTE=$(cat <<EOF3
+          Android Gradle (Maven):
+          - Repository: ${ANDROID_MAVEN_REPO}
+          - Dependency: ${ANDROID_MAVEN_GROUP}:${ANDROID_MAVEN_ARTIFACT}:${ANDROID_MAVEN_VERSION}
+          - Packaging: ${ANDROID_MAVEN_PACKAGING:-aar}
+          EOF3
+          )
+          fi
           cat > release-notes.md <<EOF2
           Coordinated mobile distribution release ${VERSION}
 
@@ -195,5 +284,7 @@ jobs:
           Partner entry points:
           - iOS SwiftPM: add this repo and select \`NeurolabsSDK\`
           - Android/Cordova: use the assets and manifests in this release
+
+          ${ANDROID_MAVEN_NOTE}
           EOF2
           gh release edit "$VERSION" --notes-file release-notes.md
