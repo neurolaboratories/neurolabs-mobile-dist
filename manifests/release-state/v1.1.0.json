@@ -8,6 +8,10 @@
     "android": {
       "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.1.0/neurolabs-android-sdk-v1.1.0.aar",
       "checksum_sha256": "928daa3c0dfcba04b4d24ee26d89577cf12a025c00b23928fb2ca8a597fe733c"
+    },
+    "cordova": {
+      "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.1.0/neurolabs-cordova-sdk-v1.1.0.tgz",
+      "checksum_sha256": "9419c625e0f8ef59581b893b77b4a9a40e24e0db6ffd12c77dc6888c40e86df5"
     }
   }
 }
