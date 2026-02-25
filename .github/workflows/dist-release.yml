@@ -56,6 +56,7 @@ jobs:
       - name: Download source artifact and verify checksum
         id: sync_asset
         env:
+          DIST_REPO_PAT: ${{ secrets.DIST_REPO_PAT }}
           SOURCE_DOWNLOAD_TOKEN: ${{ secrets.SOURCE_RELEASE_PAT }}
         run: |
           set -euo pipefail
@@ -63,9 +64,10 @@ jobs:
           ASSET_NAME="${{ steps.payload.outputs.asset_name }}"
           SRC_URL="${{ steps.payload.outputs.source_asset_url }}"
           DEST="incoming/${ASSET_NAME}"
+          DOWNLOAD_TOKEN="${DIST_REPO_PAT:-${SOURCE_DOWNLOAD_TOKEN:-}}"
 
-          if [[ -n "${SOURCE_DOWNLOAD_TOKEN:-}" ]]; then
-            curl -fL -H "Authorization: Bearer ${SOURCE_DOWNLOAD_TOKEN}" "$SRC_URL" -o "$DEST"
+          if [[ -n "${DOWNLOAD_TOKEN:-}" ]]; then
+            curl -fL -H "Authorization: Bearer ${DOWNLOAD_TOKEN}" "$SRC_URL" -o "$DEST"
           else
             curl -fL "$SRC_URL" -o "$DEST"
           fi
