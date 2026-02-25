@@ -53,37 +53,6 @@ jobs:
           gh release view "$VERSION" >/dev/null 2>&1 \
             || gh release create "$VERSION" --title "Release $VERSION" --notes "Release in progress. Artifacts are being synchronized."
 
-      - name: Debug source token and release asset visibility
-        env:
-          DIST_REPO_PAT: ${{ secrets.DIST_REPO_PAT }}
-        run: |
-          set -euo pipefail
-          echo "DIST_REPO_PAT present: ${DIST_REPO_PAT:+yes}"
-          if [[ -z "${DIST_REPO_PAT:-}" ]]; then
-            echo "DIST_REPO_PAT is missing in this workflow context" >&2
-            exit 1
-          fi
-
-          export SRC_URL="${{ steps.payload.outputs.source_asset_url }}"
-          SOURCE_REPO=$(python3 - <<'PY'
-          import os
-          from urllib.parse import urlparse
-          p = urlparse(os.environ["SRC_URL"])
-          parts = [x for x in p.path.split("/") if x]
-          # /owner/repo/releases/download/tag/asset
-          print("/".join(parts[:2]))
-          PY
-          )
-          VERSION="${{ steps.payload.outputs.version }}"
-          ASSET_NAME="${{ steps.payload.outputs.asset_name }}"
-
-          echo "Source repo: ${SOURCE_REPO}"
-          echo "Version: ${VERSION}"
-          echo "Asset: ${ASSET_NAME}"
-          GH_TOKEN="${DIST_REPO_PAT}" gh api "repos/${SOURCE_REPO}" --jq .full_name
-          GH_TOKEN="${DIST_REPO_PAT}" gh api "repos/${SOURCE_REPO}/releases/tags/${VERSION}" --jq '.assets[].name'
-          curl -I -L -H "Authorization: Bearer ${DIST_REPO_PAT}" "${SRC_URL}" | sed -n '1,12p'
-
       - name: Download source artifact and verify checksum
         id: sync_asset
         env:
@@ -101,7 +70,20 @@ jobs:
             exit 1
           fi
 
-          curl -fL -H "Authorization: Bearer ${DOWNLOAD_TOKEN}" "$SRC_URL" -o "$DEST"
+          SOURCE_PATH="${SRC_URL#https://github.com/}"
+          SOURCE_REPO="$(echo "$SOURCE_PATH" | cut -d/ -f1-2)"
+          SOURCE_TAG="$(echo "$SOURCE_PATH" | cut -d/ -f5)"
+
+          if [[ -z "$SOURCE_REPO" || -z "$SOURCE_TAG" ]]; then
+            echo "Unable to parse source repo/tag from asset URL: $SRC_URL" >&2
+            exit 1
+          fi
+
+          rm -f "$DEST"
+          GH_TOKEN="$DOWNLOAD_TOKEN" gh release download "$SOURCE_TAG" \
+            --repo "$SOURCE_REPO" \
+            --pattern "$ASSET_NAME" \
+            --dir incoming
 
           ACTUAL=$(sha256sum "$DEST" | awk '{print $1}')
           EXPECTED="${{ steps.payload.outputs.checksum }}"
