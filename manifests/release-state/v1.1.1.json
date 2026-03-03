@@ -3,7 +3,7 @@
   "artifacts": {
     "cordova": {
       "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.1.1/neurolabs-cordova-sdk-v1.1.1.tgz",
-      "checksum_sha256": "f4fb9b64f9a42f39f11609eaec182d58cc261fb60009fbb8d6601f8e91cecb30"
+      "checksum_sha256": "c085fbc4ab01c6407246869696fb873fb888ccca82a1b44395699c08635d9506"
     },
     "android": {
       "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.1.1/neurolabs-android-sdk-v1.1.1.aar",
