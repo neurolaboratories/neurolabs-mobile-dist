@@ -10,7 +10,7 @@ let package = Package(
         .iOS(.v17)
     ],
     products: [
-        .library(name: "NeurolabsSDK", type: .dynamic, targets: ["NeurolabsSDK"])
+        .library(name: "NeurolabsSDK", targets: ["NeurolabsSDK"])
     ],
     targets: [
         .binaryTarget(
