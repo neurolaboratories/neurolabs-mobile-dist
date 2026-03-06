@@ -22,7 +22,7 @@ This repository is the single release entry point for:
 1. `File` -> `Add Package Dependencies...`
 2. Use this repository URL:
    - `https://github.com/neurolaboratories/neurolabs-mobile-dist`
-3. Select the version/tag you need (for example `v1.0.0`)
+3. Select the version/tag you need (for example `v1.1.0`)
 4. Add product:
    - `NeurolabsSDK`
 
