@@ -41,6 +41,7 @@ import NeurolabsSDK
 
 Android artifacts are published as release assets in this repository (for example `.aar` files).
 This repo also supports Android Maven metadata in `android_ready` dispatch payloads and persists it in `manifests/android.json` (repository URL + coordinates) while still mirroring the AAR into this dist release.
+Maven registry publishing is currently disabled in the release automation for this repo. Any `latest.maven` coordinates and Gradle Maven snippets are informational metadata only and are not guaranteed to be resolvable from GitHub Packages.
 
 ### Typical integration (local AAR)
 
