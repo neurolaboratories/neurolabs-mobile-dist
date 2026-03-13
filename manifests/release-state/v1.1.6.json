@@ -4,6 +4,17 @@
     "cordova": {
       "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.1.6/neurolabs-cordova-sdk-v1.1.6.tgz",
       "checksum_sha256": "de8071a00c13a50621a919013638ee56ed76cda70c114bca5e447c147637c479"
+    },
+    "android": {
+      "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.1.6/neurolabs-android-sdk-v1.1.6.aar",
+      "checksum_sha256": "888a41f7dcf073205b834e5a2f0dad3fcac670656aa49851602c02f8ad315760",
+      "maven": {
+        "repository_url": "https://maven.pkg.github.com/neurolaboratories/neurolabs-mobile-dist",
+        "group_id": "ai.neurolabs",
+        "artifact_id": "neurolabs-android-sdk",
+        "version": "1.1.6",
+        "packaging": "aar"
+      }
     }
   }
 }
