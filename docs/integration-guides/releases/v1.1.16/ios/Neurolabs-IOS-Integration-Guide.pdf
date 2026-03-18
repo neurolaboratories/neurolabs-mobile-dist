@@ -1,0 +1,225 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+4 0 obj
+<< /Length 3394 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs ? Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK ? Page 1) Tj ET
+BT /F2 24.00 Tf 1 0 0 1 56.69 771.89 Tm (Neurolabs iOS SDK Integration Guide) Tj ET
+BT /F2 14.00 Tf 1 0 0 1 56.69 743.89 Tm (Technical Integration Specification) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 719.89 Tm (Document ID: NLB-IOS-INTEGRATION-GUIDE) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 705.89 Tm (Version: v1.1.16) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 691.89 Tm (Date: 2026-03-17) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 677.89 Tm (Status: Partner integration reference) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 663.89 Tm (Owner: Neurolabs) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 639.89 Tm (1. Scope) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 617.89 Tm (This guide is for partner iOS apps integrating `NeurolabsSDK` through Swift Package) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 603.89 Tm (Manager.) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 583.89 Tm (2. Changes Since v1.1.3) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 561.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 561.89 Tm (No iOS SDK public API integration changes were introduced after `v1.1.3` in this) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 547.89 Tm (repository.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 529.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 529.89 Tm (Existing integration steps remain valid.) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 511.89 Tm (3. Requirements) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 489.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 489.89 Tm (iOS 15+) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 471.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 471.89 Tm (Xcode 15+) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 453.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 453.89 Tm (Swift 5.9+) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 435.89 Tm (4. Install \(SPM\)) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 413.89 Tm (Add package dependency \(mobile-dist or direct distribution manifest\) and link) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 399.89 Tm (`NeurolabsSDK`.) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 379.89 Tm (5. SDK Initialization + Warmup) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 184.89 481.89 183.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 345.89 Tm (import NeurolabsSDK) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 334.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 323.89 Tm (final class CaptureCoordinator {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 312.89 Tm (let sdk = NeurolabsSDKCore\(configuration: .init\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 301.89 Tm (apiKey: "<API_KEY>",) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 290.89 Tm (apiBaseURL: URL\(string: "https://api.neurolabs.ai"\)!,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 279.89 Tm (demoIRTaskUUID: "<DEFAULT_TASK_UUID>",) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 268.89 Tm (debugLogging: true) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 257.89 Tm (\)\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 246.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 235.89 Tm (func prepare\(\) {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 224.89 Tm (// SDK starts image pipeline preparation during init.) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 213.89 Tm (// Optional: observe loading progress through delegate.) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 202.89 Tm (}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 191.89 Tm (}) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 176.89 Tm (6. Queue Management) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 10 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 4567 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs ? Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK ? Page 2) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 620.89 481.89 161.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 759.89 Tm (Task {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 748.89 Tm (await sdk.setAutoSyncEnabled\(true\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 737.89 Tm (await sdk.setWifiOnlyUploadsEnabled\(false\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 726.89 Tm (await sdk.setDeletePhotosOnUploadSuccess\(true\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 715.89 Tm (await sdk.setMaxQueueSize\(200\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 704.89 Tm (await sdk.setUploadRetryCount\(5\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 693.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 682.89 Tm (let status = await sdk.getQueueStatus\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 671.89 Tm (print\("pending=\\\(status.pendingCount\) failed=\\\(status.failedCount\)"\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 660.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 649.89 Tm (await sdk.flushQueue\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 638.89 Tm (await sdk.retryFailedUploads\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 627.89 Tm (}) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 612.89 Tm (7. Open Custom Camera) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 87.89 481.89 513.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 578.89 Tm (import UIKit) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 567.89 Tm (import NeurolabsSDK) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 556.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 545.89 Tm (var capture = NLCaptureConfiguration\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 534.89 Tm (capture.confidenceThreshold = 0.25) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 523.89 Tm (capture.iouThreshold = 0.45) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 512.89 Tm (capture.maxCaptures = 1) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 501.89 Tm (capture.guidanceMode = .strict) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 490.89 Tm (capture.showDetectionOverlays = false) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 479.89 Tm (capture.showCapturedRegions = false) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 468.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 457.89 Tm (let config = NLCameraConfiguration\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 446.89 Tm (capture: capture,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 435.89 Tm (enableValidation: true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 424.89 Tm (showAlignmentGuidance: true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 413.89 Tm (enableARDetections: false,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 402.89 Tm (liveQualityEnabled: true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 391.89 Tm (liveQualityFPS: 6,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 380.89 Tm (showCapturePreview: true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 369.89 Tm (requiredCaptureCount: 1,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 358.89 Tm (autoCloseAfterCapture: true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 347.89 Tm (sendDetectionsMetadata: true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 336.89 Tm (enablePreviewCropping: true) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 325.89 Tm (\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 314.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 303.89 Tm (let handlers = NLCustomCameraHandlers\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 292.89 Tm (onSave: { capture in) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 281.89 Tm (// Custom post-processing hook for each accepted capture) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 270.89 Tm (// return .performDefault -> SDK also enqueues upload) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 259.89 Tm (// return .skipDefault -> app takes full ownership) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 248.89 Tm (return .performDefault) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 237.89 Tm (},) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 226.89 Tm (onSaveAll: { captures in) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 215.89 Tm (// Batch hook \(multi-capture flow\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 204.89 Tm (return .performDefault) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 193.89 Tm (}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 182.89 Tm (\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 171.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 160.89 Tm (sdk.openCustomCameraUI\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 149.89 Tm (configuration: config,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 138.89 Tm (handlers: handlers,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 127.89 Tm (onClose: {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 116.89 Tm (print\("Camera closed"\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 105.89 Tm (}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 94.89 Tm (\)) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 10 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 3724 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs ? Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK ? Page 3) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (Recommended capture payload notes:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 751.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 751.89 Tm (`liveQualityEnabled: true` is the key for pill/rotation/warning/error guidance) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 737.89 Tm (behavior in the custom camera.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 719.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 719.89 Tm (Keep shelf capture mode with strict guidance and overlays disabled for the) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 705.89 Tm (custom-camera guidance UI path.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 687.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 687.89 Tm (Use `autoCloseAfterCapture: true` with `requiredCaptureCount: 1` for the current) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 673.89 Tm (parity flow.) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 655.89 Tm (8. Post-Processing Hooks) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 633.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 633.89 Tm (`onSave` receives each approved capture.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 615.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 615.89 Tm (`onSaveAll` receives final batch in multi-capture mode.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 597.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 597.89 Tm (`onUploadRequested` exists but default queueing is done in `onSave` / `onSaveAll`) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 583.89 Tm (path.) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 491.89 481.89 84.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 553.89 Tm (let handlers = NLCustomCameraHandlers\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 542.89 Tm (onSave: { capture in) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 531.89 Tm (MyPostProcessor.shared.enqueue\(capture\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 520.89 Tm (return .skipDefault) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 509.89 Tm (}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 498.89 Tm (\)) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 483.89 Tm (9. Delegate/Event Callbacks) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 332.89 481.89 139.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 449.89 Tm (final class SDKDelegate: NeurolabsSDKDelegate {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 438.89 Tm (func neurolabsSDK\(_ sdk: NeurolabsSDKCore, didProduceCaptureResult result:) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 427.89 Tm (NLNativeCaptureResult, for captureId: String, sessionId: String\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 416.89 Tm (func neurolabsSDK\(_ sdk: NeurolabsSDKCore, didEncounterError error: NLError, sessionId:) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 405.89 Tm (String?, messageId: String?\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 394.89 Tm (func neurolabsSDK\(_ sdk: NeurolabsSDKCore, didChangeQueueStatus status: NLQueueStatus\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 383.89 Tm (func neurolabsSDK\(_ sdk: NeurolabsSDKCore, didUpdateLoadingProgress progress:) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 372.89 Tm (NLLoadingProgress\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 361.89 Tm (}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 350.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 339.89 Tm (sdk.delegate = SDKDelegate\(\)) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 324.89 Tm (10. Notes) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 302.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 302.89 Tm (Per-session routing is supported via native capture config task UUID overrides.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 284.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 284.89 Tm (Ensure `NSCameraUsageDescription` is present in app `Info.plist`.) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 10 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R] /Count 3 >>
+endobj
+11 0 obj
+<< /Type /Catalog /Pages 10 0 R >>
+endobj
+xref
+0 12
+0000000000 65535 f 
+0000000015 00000 n 
+0000000085 00000 n 
+0000000160 00000 n 
+0000000228 00000 n 
+0000003674 00000 n 
+0000003827 00000 n 
+0000008446 00000 n 
+0000008599 00000 n 
+0000012375 00000 n 
+0000012528 00000 n 
+0000012598 00000 n 
+trailer
+<< /Size 12 /Root 11 0 R >>
+startxref
+12649
+%%EOF

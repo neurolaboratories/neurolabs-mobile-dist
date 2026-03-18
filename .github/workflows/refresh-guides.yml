@@ -1,0 +1,53 @@
+name: Refresh Integration Guides
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release tag to stamp into generated guide PDFs (for example v1.1.16)
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-guides:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout dist repo
+        uses: actions/checkout@v4
+
+      - name: Checkout Cordova SDK repo
+        uses: actions/checkout@v4
+        with:
+          repository: neurolaboratories/neurolabs-cordova-sdk
+          path: external/neurolabs-cordova-sdk
+
+      - name: Checkout Android SDK repo
+        uses: actions/checkout@v4
+        with:
+          repository: neurolaboratories/neurolabs-android-sdk
+          path: external/neurolabs-android-sdk
+
+      - name: Checkout iOS SDK repo
+        uses: actions/checkout@v4
+        with:
+          repository: neurolaboratories/neurolabs-ios-sdk
+          path: external/neurolabs-ios-sdk
+
+      - name: Generate latest and versioned guide PDFs
+        run: |
+          set -euo pipefail
+          python3 scripts/sync_integration_guides.py \
+            --dist-root . \
+            --workspace-root ./external \
+            --version "${{ inputs.version }}"
+
+      - name: Commit refreshed guides
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/integration-guides manifests/guides.json
+          git commit -m "docs(dist): refresh integration guides for ${{ inputs.version }}" || exit 0
+          git push

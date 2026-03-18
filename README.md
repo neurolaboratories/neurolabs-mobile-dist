@@ -7,6 +7,7 @@ This repository is the single release entry point for:
 - iOS (`NeurolabsSDK`) via Swift Package Manager binary package
 - Android SDK artifacts (AAR/zip) via GitHub Release assets
 - Cordova plugin package (`.tgz`) via GitHub Release assets
+- Integration guide markdown/PDF snapshots for iOS, Android, and Cordova
 
 ## Release Policy
 
@@ -107,6 +108,32 @@ cordova plugin add https://github.com/neurolaboratories/neurolabs-mobile-dist/re
 
 Refer to `manifests/cordova.json` for the latest package URL and checksum.
 
+## Integration Guides
+
+Generated guide snapshots live under:
+
+- `docs/integration-guides/latest/<platform>/`
+- `docs/integration-guides/releases/vX.Y.Z/<platform>/`
+
+Guide metadata and PDF checksums are tracked in:
+
+- `manifests/guides.json`
+
+Before publishing a new coordinated mobile-dist release, refresh the guides from the SDK source repos:
+
+```bash
+python3 scripts/sync_integration_guides.py \
+  --dist-root . \
+  --workspace-root .. \
+  --version vX.Y.Z \
+  --fail-if-pdf-stale
+```
+
+Notes:
+- This copies the source markdown + PDF rules from `neurolabs-cordova-sdk`, `neurolabs-android-sdk`, and `neurolabs-ios-sdk`.
+- It then generates deterministic PDFs with the built-in `scripts/generate_markdown_pdf.py` helper, so refresh does not depend on `pandoc` or third-party Python packages.
+- CI automation for the same step is available in `.github/workflows/refresh-guides.yml`.
+
 ## Machine-Readable Manifests
 
 This repo includes metadata files for automation and partner tooling:
@@ -114,6 +141,7 @@ This repo includes metadata files for automation and partner tooling:
 - `manifests/ios.json`
 - `manifests/android.json`
 - `manifests/cordova.json`
+- `manifests/guides.json`
 
 These files track the latest known version, release asset URL, and SHA256 checksum for each platform.
 

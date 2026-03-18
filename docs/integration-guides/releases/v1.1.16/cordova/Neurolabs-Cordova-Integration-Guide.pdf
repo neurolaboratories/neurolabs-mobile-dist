@@ -1,0 +1,205 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+4 0 obj
+<< /Length 3455 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs ? Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK ? Page 1) Tj ET
+BT /F2 24.00 Tf 1 0 0 1 56.69 771.89 Tm (Neurolabs Cordova SDK Integration Guide) Tj ET
+BT /F2 14.00 Tf 1 0 0 1 56.69 743.89 Tm (Technical Integration Specification) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 719.89 Tm (Document ID: NLB-CORDOVA-INTEGRATION-GUIDE) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 705.89 Tm (Version: v1.1.16) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 691.89 Tm (Date: 2026-03-17) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 677.89 Tm (Status: Partner integration reference) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 663.89 Tm (Owner: Neurolabs) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 639.89 Tm (1. Scope) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 617.89 Tm (This guide is for partner hybrid apps integrating `neurolabs-cordova-sdk`.) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 597.89 Tm (2. Changes Since v1.1.3) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 575.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 575.89 Tm (Native detector/model warmup is enforced in `init` and guarded in `openCamera`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 557.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 557.89 Tm (`openCamera` can return `MODEL_INIT_FAILED` when native model initialization fails.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 539.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 539.89 Tm (`autoCloseAfterCapture=true` now keeps preview enabled and closes after Save) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 525.89 Tm (confirmation.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 507.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 507.89 Tm (`cameraClosed` event now includes `message`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 489.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 489.89 Tm (`captureQueued` events are deferred while camera is open and flushed after) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 475.89 Tm (`cameraClosed`.) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 457.89 Tm (3. Install) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 416.89 481.89 29.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 423.89 Tm (cordova plugin add /path/to/neurolabs-cordova-sdk) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 408.89 Tm (4. SDK Initialization + Warmup) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 290.89 481.89 106.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 374.89 Tm (const Neurolabs = cordova.require\('neurolabs-cordova-sdk.neurolabs'\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 363.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 352.89 Tm (await Neurolabs.init\({) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 341.89 Tm (apiKey: '<API_KEY>',) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 330.89 Tm (apiBaseUrl: 'https://api.neurolabs.ai/v2',) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 319.89 Tm (demoIRTaskUUID: '<DEFAULT_TASK_UUID>',) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 308.89 Tm (allowBase64PhotoExport: false) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 297.89 Tm (}\);) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 282.89 Tm (Warmup is native-side; monitor progress through `loadingProgress` event.) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 221.89 481.89 51.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 250.89 Tm (Neurolabs.addListener\('loadingProgress', \(payload\) => {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 239.89 Tm (console.log\('loading', payload\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 228.89 Tm (}\);) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 213.89 Tm (5. Queue Management) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 10 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 3988 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs ? Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK ? Page 2) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 620.89 481.89 161.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 759.89 Tm (await Neurolabs.setAutoSyncEnabled\(true\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 748.89 Tm (await Neurolabs.setWifiOnlyUploadsEnabled\(false\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 737.89 Tm (await Neurolabs.setDeletePhotosOnUploadSuccess\(true\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 726.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 715.89 Tm (await Neurolabs.pauseQueue\(\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 704.89 Tm (await Neurolabs.resumeQueue\(\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 693.89 Tm (await Neurolabs.setRetryPolicy\({ retryCount: 5 }\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 682.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 671.89 Tm (const status = await Neurolabs.getQueueStatus\(\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 660.89 Tm (console.log\('queue status', status\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 649.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 638.89 Tm (await Neurolabs.flushQueue\(\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 627.89 Tm (await Neurolabs.retryFailedUploads\(\);) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 612.89 Tm (6. Open Custom Camera) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 197.89 481.89 403.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 578.89 Tm (await Neurolabs.openCamera\({) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 567.89 Tm (sessionId: crypto.randomUUID\(\),) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 556.89 Tm (type: 'shelf',) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 545.89 Tm (guidanceMode: 'strict',) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 534.89 Tm (validationPreset: 'ios_parity',) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 523.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 512.89 Tm (confidenceThreshold: 0.25,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 501.89 Tm (iouThreshold: 0.45,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 490.89 Tm (maxCaptures: 1,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 479.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 468.89 Tm (showAlignmentGuidance: true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 457.89 Tm (enableValidation: true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 446.89 Tm (liveQualityChecksEnabled: true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 435.89 Tm (liveQualityTargetFps: 6,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 424.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 413.89 Tm (// keep custom-camera guidance UI path) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 402.89 Tm (showDetections: false,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 391.89 Tm (showCapturedRegions: false,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 380.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 369.89 Tm (// optional metadata/cropping) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 358.89 Tm (sendDetectionsMetadata: true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 347.89 Tm (enablePreviewCropping: true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 336.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 325.89 Tm (// now defaults to true if omitted, but explicit is clearer) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 314.89 Tm (autoCloseAfterCapture: true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 303.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 292.89 Tm (// per-session routing override) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 281.89 Tm (taskUUID: 'bfc85982-b955-4f65-9f32-b6dbed85f364',) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 270.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 259.89 Tm (// image size constraints) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 248.89 Tm (maxImageDimension: 1920,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 237.89 Tm (maxImageWidth: 1920,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 226.89 Tm (maxImageHeight: 1920,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 215.89 Tm (imageCompressionQuality: 0.85) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 204.89 Tm (}\);) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 189.89 Tm (7. Post-Processing + Lifecycle Events) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 10 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 3216 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs ? Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK ? Page 3) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 609.89 481.89 172.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 759.89 Tm (Neurolabs.addListener\('captureResult', \(payload\) => {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 748.89 Tm (// Camera result payload from native side) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 737.89 Tm (console.log\('captureResult', payload\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 726.89 Tm (}\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 715.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 704.89 Tm (Neurolabs.addListener\('cameraClosed', \({ sessionId, cancelled, captureCount, message }\) => {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 693.89 Tm (console.log\('cameraClosed', sessionId, cancelled, captureCount, message\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 682.89 Tm (}\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 671.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 660.89 Tm (Neurolabs.addListener\('captureQueued', \(item\) => console.log\('queued', item\)\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 649.89 Tm (Neurolabs.addListener\('uploadSucceeded', \(item\) => console.log\('uploaded', item\)\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 638.89 Tm (Neurolabs.addListener\('uploadFailed', \(payload\) => console.warn\('uploadFailed', payload\)\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 627.89 Tm (Neurolabs.addListener\('queueStatusChanged', \(status\) => console.log\('queueStatusChanged',) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 616.89 Tm (status\)\);) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 601.89 Tm (8. Notes) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 579.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 579.89 Tm (`openCamera` is the custom native camera entrypoint.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 561.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 561.89 Tm (Use the strict shelf payload above for full shelf guidance checks and auto-close) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 547.89 Tm (after a validated save.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 529.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 529.89 Tm (`liveQualityChecksEnabled=true` is required for pill/rotation/warning/error guidance) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 515.89 Tm (behavior.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 497.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 497.89 Tm (Keep `type: 'shelf'`, `guidanceMode: 'strict'`, `showDetections: false`, and) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 483.89 Tm (`showCapturedRegions: false` for the custom-camera guidance UI path.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 465.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 465.89 Tm (`autoCloseAfterCapture=true` closes after Save from preview/review flow.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 447.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 447.89 Tm (`captureQueued` may arrive after `cameraClosed` when capture queueing happens while) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 433.89 Tm (camera is still active.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 415.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 415.89 Tm (Keep base64 transport disabled unless explicitly needed.) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 10 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R] /Count 3 >>
+endobj
+11 0 obj
+<< /Type /Catalog /Pages 10 0 R >>
+endobj
+xref
+0 12
+0000000000 65535 f 
+0000000015 00000 n 
+0000000085 00000 n 
+0000000160 00000 n 
+0000000228 00000 n 
+0000003735 00000 n 
+0000003888 00000 n 
+0000007928 00000 n 
+0000008081 00000 n 
+0000011349 00000 n 
+0000011502 00000 n 
+0000011572 00000 n 
+trailer
+<< /Size 12 /Root 11 0 R >>
+startxref
+11623
+%%EOF

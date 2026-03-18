@@ -46,11 +46,17 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: dist-release-${{ inputs.version }}
+  cancel-in-progress: false
+
 jobs:
   promote:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Apply provided platform metadata
         run: |
@@ -109,6 +115,232 @@ jobs:
           cordova_asset_url: ${{ inputs.cordova_asset_url }}
           cordova_checksum_sha256: ${{ inputs.cordova_checksum_sha256 }}
 
-      - name: Validate ready
+      - name: Ensure dist release exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
+          VERSION="${{ inputs.version }}"
+          gh release view "$VERSION" >/dev/null 2>&1 \
+            || gh release create "$VERSION" --title "Release $VERSION" --notes "Release in progress (manual promote)."
+
+      - name: Download and re-upload assets to dist release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DIST_REPO_PAT: ${{ secrets.DIST_REPO_PAT }}
+          ios_asset_url: ${{ inputs.ios_asset_url }}
+          android_asset_url: ${{ inputs.android_asset_url }}
+          cordova_asset_url: ${{ inputs.cordova_asset_url }}
+        run: |
+          set -euo pipefail
+          VERSION="${{ inputs.version }}"
+          mkdir -p incoming
+          for P in ios android cordova; do
+            URL_VAR="${P}_asset_url"
+            URL="${!URL_VAR:-}"
+            if [ -z "$URL" ]; then continue; fi
+            ASSET_NAME=$(basename "$URL")
+            DOWNLOAD_TOKEN="${DIST_REPO_PAT:-$GH_TOKEN}"
+            SOURCE_PATH="${URL#https://github.com/}"
+            SOURCE_REPO="$(echo "$SOURCE_PATH" | cut -d/ -f1-2)"
+            SOURCE_TAG="$(echo "$SOURCE_PATH" | cut -d/ -f5)"
+            if [[ -n "$SOURCE_REPO" && -n "$SOURCE_TAG" ]]; then
+              rm -f "incoming/${ASSET_NAME}"
+              GH_TOKEN="$DOWNLOAD_TOKEN" gh release download "$SOURCE_TAG" \
+                --repo "$SOURCE_REPO" \
+                --pattern "$ASSET_NAME" \
+                --dir incoming || { echo "Warning: could not download $ASSET_NAME from $SOURCE_REPO"; continue; }
+              if [ -f "incoming/${ASSET_NAME}" ]; then
+                gh release upload "$VERSION" "incoming/${ASSET_NAME}" --clobber
+              fi
+            fi
+          done
+
+      - name: Update platform manifests
+        run: |
+          set -euo pipefail
+          VERSION="${{ inputs.version }}"
+
+          ANDROID_MAVEN_METADATA_JSON=""
+          if [[ -n "${android_maven_repository_url:-}" && -n "${android_maven_group_id:-}" && -n "${android_maven_artifact_id:-}" && -n "${android_maven_version:-}" ]]; then
+            ANDROID_MAVEN_METADATA_JSON=$(jq -nc \
+              --arg repository_url "${android_maven_repository_url}" \
+              --arg group_id "${android_maven_group_id}" \
+              --arg artifact_id "${android_maven_artifact_id}" \
+              --arg version "${android_maven_version}" \
+              --arg packaging "${android_maven_packaging:-aar}" \
+              --arg pom_url "${android_maven_pom_url:-}" \
+              '{
+                maven: (
+                  {repository_url: $repository_url, group_id: $group_id, artifact_id: $artifact_id, version: $version, packaging: $packaging}
+                  + (if $pom_url != "" then {pom_url: $pom_url} else {} end)
+                )
+              }')
+          fi
+
+          for P in ios android cordova; do
+            URL_VAR="${P}_asset_url"
+            CS_VAR="${P}_checksum_sha256"
+            URL="${!URL_VAR:-}"
+            CS="${!CS_VAR:-}"
+            if [ -z "$URL" ] || [ -z "$CS" ]; then continue; fi
+            ASSET_NAME=$(basename "$URL")
+            DIST_URL="https://github.com/${{ github.repository }}/releases/download/${VERSION}/${ASSET_NAME}"
+            PLATFORM="$P" VERSION="$VERSION" ASSET_URL="$DIST_URL" CHECKSUM="$CS" \
+              ASSET_NAME="$ASSET_NAME" ANDROID_MAVEN_METADATA_JSON="$ANDROID_MAVEN_METADATA_JSON" \
+              python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          platform = os.environ["PLATFORM"]
+          manifest = Path(f"manifests/{platform}.json")
+          data = json.loads(manifest.read_text())
+          latest = data.setdefault("latest", {})
+          latest["version"] = os.environ["VERSION"]
+          latest["asset_url"] = os.environ["ASSET_URL"]
+          latest["checksum_sha256"] = os.environ["CHECKSUM"]
+          latest["asset_name"] = os.environ["ASSET_NAME"]
+          if platform == "android":
+              metadata_raw = os.environ.get("ANDROID_MAVEN_METADATA_JSON", "")
+              if metadata_raw:
+                  metadata = json.loads(metadata_raw)
+                  latest["maven"] = metadata.get("maven", {})
+                  maven = latest["maven"]
+                  if maven.get("group_id") and maven.get("artifact_id") and maven.get("version"):
+                      if maven.get("repository_url"):
+                          latest["gradle_maven_repository_example"] = f'maven {{ url = uri("{maven["repository_url"]}") }}'
+                      latest["gradle_maven_dependency_example"] = f'implementation("{maven["group_id"]}:{maven["artifact_id"]}:{maven["version"]}")'
+              else:
+                  latest.pop("maven", None)
+                  latest.pop("gradle_maven_repository_example", None)
+                  latest.pop("gradle_maven_dependency_example", None)
+          manifest.write_text(json.dumps(data, indent=2) + "\n")
+          PY
+          done
+        env:
+          ios_asset_url: ${{ inputs.ios_asset_url }}
+          ios_checksum_sha256: ${{ inputs.ios_checksum_sha256 }}
+          android_asset_url: ${{ inputs.android_asset_url }}
+          android_checksum_sha256: ${{ inputs.android_checksum_sha256 }}
+          android_maven_repository_url: ${{ inputs.android_maven_repository_url }}
+          android_maven_group_id: ${{ inputs.android_maven_group_id }}
+          android_maven_artifact_id: ${{ inputs.android_maven_artifact_id }}
+          android_maven_version: ${{ inputs.android_maven_version }}
+          android_maven_packaging: ${{ inputs.android_maven_packaging }}
+          android_maven_pom_url: ${{ inputs.android_maven_pom_url }}
+          cordova_asset_url: ${{ inputs.cordova_asset_url }}
+          cordova_checksum_sha256: ${{ inputs.cordova_checksum_sha256 }}
+
+      - name: Update SPM manifest (if iOS provided)
+        if: inputs.ios_asset_url != '' && inputs.ios_checksum_sha256 != ''
+        run: |
+          DIST_ASSET_URL="https://github.com/${{ github.repository }}/releases/download/${{ inputs.version }}/$(basename "${{ inputs.ios_asset_url }}")"
+          python3 scripts/update_spm_manifest.py \
+            Package.swift \
+            "$DIST_ASSET_URL" \
+            "${{ inputs.ios_checksum_sha256 }}"
+
+      - name: Commit manifest changes
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Package.swift manifests/*.json manifests/release-state/*.json
+          git diff --cached --quiet && exit 0
+          git commit -m "chore(dist): manual promote for ${{ inputs.version }}"
+          git push
+
+      - name: Check release readiness
+        id: ready
+        run: |
+          set +e
           python3 scripts/validate_release_ready.py "manifests/release-state/${{ inputs.version }}.json"
+          CODE=$?
+          set -e
+          if [ "$CODE" -eq 0 ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout Cordova SDK repo
+        if: steps.ready.outputs.ready == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: neurolaboratories/neurolabs-cordova-sdk
+          path: external/neurolabs-cordova-sdk
+          token: ${{ secrets.DIST_REPO_PAT }}
+
+      - name: Checkout Android SDK repo
+        if: steps.ready.outputs.ready == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: neurolaboratories/neurolabs-android-sdk
+          path: external/neurolabs-android-sdk
+          token: ${{ secrets.DIST_REPO_PAT }}
+
+      - name: Checkout iOS SDK repo
+        if: steps.ready.outputs.ready == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: neurolaboratories/neurolabs-ios-sdk
+          path: external/neurolabs-ios-sdk
+          token: ${{ secrets.DIST_REPO_PAT }}
+
+      - name: Refresh integration guides
+        if: steps.ready.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          python3 scripts/sync_integration_guides.py \
+            --dist-root . \
+            --workspace-root ./external \
+            --version "${{ inputs.version }}"
+
+      - name: Commit refreshed guides
+        if: steps.ready.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/integration-guides manifests/guides.json
+          git diff --cached --quiet && exit 0
+          git commit -m "docs(dist): refresh integration guides for ${{ inputs.version }}"
+          git push
+
+      - name: Update release notes
+        if: steps.ready.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          VERSION="${{ inputs.version }}"
+          STATE_FILE="manifests/release-state/${VERSION}.json"
+          IOS_URL=$(jq -r '.artifacts.ios.asset_url // "N/A"' "$STATE_FILE")
+          ANDROID_URL=$(jq -r '.artifacts.android.asset_url // "N/A"' "$STATE_FILE")
+          CORDOVA_URL=$(jq -r '.artifacts.cordova.asset_url // "N/A"' "$STATE_FILE")
+          ANDROID_MAVEN_NOTE=""
+          ANDROID_MAVEN_REPO=$(jq -r '.artifacts.android.maven.repository_url // empty' "$STATE_FILE")
+          ANDROID_MAVEN_GROUP=$(jq -r '.artifacts.android.maven.group_id // empty' "$STATE_FILE")
+          ANDROID_MAVEN_ARTIFACT=$(jq -r '.artifacts.android.maven.artifact_id // empty' "$STATE_FILE")
+          ANDROID_MAVEN_VERSION=$(jq -r '.artifacts.android.maven.version // empty' "$STATE_FILE")
+          if [[ -n "$ANDROID_MAVEN_REPO" && -n "$ANDROID_MAVEN_GROUP" && -n "$ANDROID_MAVEN_ARTIFACT" && -n "$ANDROID_MAVEN_VERSION" ]]; then
+            ANDROID_MAVEN_NOTE="
+**Android Gradle (Maven):**
+- Repository: \`${ANDROID_MAVEN_REPO}\`
+- Dependency: \`${ANDROID_MAVEN_GROUP}:${ANDROID_MAVEN_ARTIFACT}:${ANDROID_MAVEN_VERSION}\`"
+          fi
+          cat > release-notes.md <<EOF
+## Release ${VERSION}
+
+### Assets
+| Platform | URL |
+|----------|-----|
+| iOS XCFramework | ${IOS_URL} |
+| Android SDK | ${ANDROID_URL} |
+| Cordova plugin | ${CORDOVA_URL} |
+
+### Integration
+- **iOS SwiftPM:** add this repo and select \`NeurolabsSDK\`
+- **Android/Cordova:** use the assets and manifests in this release
+${ANDROID_MAVEN_NOTE}
+EOF
+          gh release edit "$VERSION" --notes-file release-notes.md

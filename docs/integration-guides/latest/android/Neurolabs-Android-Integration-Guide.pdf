@@ -1,0 +1,266 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+4 0 obj
+<< /Length 3123 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs ? Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK ? Page 1) Tj ET
+BT /F2 24.00 Tf 1 0 0 1 56.69 771.89 Tm (Neurolabs Android SDK Integration Guide) Tj ET
+BT /F2 14.00 Tf 1 0 0 1 56.69 743.89 Tm (Technical Integration Specification) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 719.89 Tm (Document ID: NLB-ANDROID-INTEGRATION-GUIDE) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 705.89 Tm (Version: v1.1.16) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 691.89 Tm (Date: 2026-03-17) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 677.89 Tm (Status: Partner integration reference) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 663.89 Tm (Owner: Neurolabs) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 639.89 Tm (1. Scope) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 617.89 Tm (This guide is for partner Android apps integrating `neurolabs-android-sdk` directly.) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 597.89 Tm (2. Changes Since v1.1.3) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 575.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 575.89 Tm (No public API contract break.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 557.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 557.89 Tm (Capture UI now runs edge-to-edge with immersive navigation bar handling.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 539.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 539.89 Tm (Guidance state transitions were stabilized \(hysteresis tuning\) to reduce flicker.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 521.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 521.89 Tm (Alignment hint is now shown only when additional captures are still required.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 503.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 503.89 Tm (Transient in-camera banners are cleared before auto-close to avoid close-time) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 489.89 Tm (flashes.) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 471.89 Tm (3. Requirements) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 449.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 449.89 Tm (`minSdk 26`) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 431.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 431.89 Tm (JDK 17) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 413.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 413.89 Tm (Kotlin 2.x) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 395.89 Tm (4. Install) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 321.89 481.89 62.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 361.89 Tm (// app/build.gradle.kts) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 350.89 Tm (dependencies {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 339.89 Tm (implementation\(files\("libs/neurolabs-android-sdk-v1.1.x.aar"\)\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 328.89 Tm (}) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 313.89 Tm (If you consume a local `.aar`, include required runtime deps) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 299.89 Tm (\(Compose/CameraX/serialization/etc.\) or use the provided integration gradle script) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 285.89 Tm (from the Cordova plugin setup.) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 265.89 Tm (5. SDK Initialization + Warmup) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 3534 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs ? Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK ? Page 2) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 477.89 481.89 304.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 759.89 Tm (import ai.neurolabs.sdk.core.*) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 748.89 Tm (import kotlinx.coroutines.launch) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 737.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 726.89 Tm (class MainApp : Application\(\) {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 715.89 Tm (override fun onCreate\(\) {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 704.89 Tm (super.onCreate\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 693.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 682.89 Tm (val config = NLConfiguration.production\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 671.89 Tm (apiKey = BuildConfig.NL_API_KEY,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 660.89 Tm (taskUUID = BuildConfig.NL_TASK_UUID,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 649.89 Tm (debugLogging = BuildConfig.DEBUG) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 638.89 Tm (\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 627.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 616.89 Tm (NeurolabsSDKCore.configure\(this, config\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 605.89 Tm (}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 594.89 Tm (}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 583.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 572.89 Tm (// e.g. in first Activity/VM) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 561.89 Tm (val sdk = NeurolabsSDKCore.shared ?: return) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 550.89 Tm (lifecycleScope.launch {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 539.89 Tm (sdk.initialize\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 528.89 Tm (modelFileName = "weights_litert.tflite",) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 517.89 Tm (labelsFileName = "labels.json") Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 506.89 Tm (\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 495.89 Tm (sdk.waitForFullyLoaded\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 484.89 Tm (}) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 469.89 Tm (6. Queue Management) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 252.89 481.89 205.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 435.89 Tm (val sdk = NeurolabsSDKCore.shared ?: return) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 424.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 413.89 Tm (// runtime queue behavior) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 402.89 Tm (sdk.setAutoSyncEnabled\(true\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 391.89 Tm (sdk.setWifiOnlyUploadsEnabled\(false\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 380.89 Tm (sdk.setDeletePhotosOnUploadSuccess\(true\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 369.89 Tm (sdk.setMaxQueueSize\(200\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 358.89 Tm (sdk.setUploadRetryCount\(5\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 347.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 336.89 Tm (// lifecycle actions) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 325.89 Tm (lifecycleScope.launch {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 314.89 Tm (sdk.flushQueue\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 303.89 Tm (sdk.retryFailedUploads\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 292.89 Tm (}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 281.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 270.89 Tm (val status = sdk.getQueueStatus\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 259.89 Tm (println\("pending=${status.pendingCount} failed=${status.failedCount}"\)) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 244.89 Tm (7. Open Custom Camera \(Native Capture UI\)) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 3824 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs ? Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK ? Page 3) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 378.89 481.89 403.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 759.89 Tm (import ai.neurolabs.sdk.models.*) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 748.89 Tm (import ai.neurolabs.sdk.ui.openNativeCaptureUI) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 737.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 726.89 Tm (val sessionId = UUID.randomUUID\(\).toString\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 715.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 704.89 Tm (val config = NLNativeCaptureConfig\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 693.89 Tm (guidanceMode = NLCaptureGuidanceMode.STRICT,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 682.89 Tm (validationPreset = NLValidationPreset.IOS_PARITY,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 671.89 Tm (confidenceThreshold = 0.25f,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 660.89 Tm (iouThreshold = 0.45f,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 649.89 Tm (maxCaptures = 1,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 638.89 Tm (showAlignmentGuidance = true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 627.89 Tm (enableValidation = true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 616.89 Tm (autoCloseAfterCapture = true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 605.89 Tm (showDetections = false,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 594.89 Tm (showCapturedRegions = false,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 583.89 Tm (liveQualityChecksEnabled = true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 572.89 Tm (liveQualityTargetFps = 6) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 561.89 Tm (\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 550.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 539.89 Tm (val options = NLNativeCaptureOptions\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 528.89 Tm (type = NLShelfType.SHELF,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 517.89 Tm (taskUUID = "<TASK_UUID_FOR_THIS_SESSION>",) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 506.89 Tm (sendDetectionsMetadata = true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 495.89 Tm (enablePreviewCropping = true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 484.89 Tm (maxImageDimension = 1920,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 473.89 Tm (imageCompressionQuality = 0.85f) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 462.89 Tm (\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 451.89 Tm () Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 440.89 Tm (sdk.openNativeCaptureUI\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 429.89 Tm (context = this,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 418.89 Tm (sessionId = sessionId,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 407.89 Tm (config = config,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 396.89 Tm (options = options) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 385.89 Tm (\)) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 370.89 Tm (Recommended capture payload notes:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 350.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 350.89 Tm (`liveQualityChecksEnabled = true` is the key for pill/rotation/warning/error) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 336.89 Tm (guidance behavior.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 318.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 318.89 Tm (Keep `type = NLShelfType.SHELF` and `guidanceMode = NLCaptureGuidanceMode.STRICT`) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 304.89 Tm (for full shelf guidance checks.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 286.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 286.89 Tm (Keep `showDetections = false` and `showCapturedRegions = false` to stay on the) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 272.89 Tm (custom-camera guidance UI path.) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 254.89 Tm (8. Post-Processing Hooks) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 232.89 Tm (Use Activity Result API and process captures when camera returns.) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Length 3654 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs ? Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK ? Page 4) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 576.89 481.89 205.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 759.89 Tm (private val captureLauncher = registerForActivityResult\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 748.89 Tm (NLCaptureActivity.Contract\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 737.89 Tm (\) { result ->) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 726.89 Tm (when \(result\) {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 715.89 Tm (is NLCaptureActivityResult.Success -> {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 704.89 Tm (// capture metadata is in result.payload) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 693.89 Tm (val count = result.payload.captures.size) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 682.89 Tm (Log.d\("NLB", "camera returned with $count captures"\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 671.89 Tm (}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 660.89 Tm (is NLCaptureActivityResult.Cancelled -> {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 649.89 Tm (Log.d\("NLB", "camera cancelled"\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 638.89 Tm (}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 627.89 Tm (is NLCaptureActivityResult.Error -> {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 616.89 Tm (Log.e\("NLB", "camera error: ${result.error.message}"\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 605.89 Tm (}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 594.89 Tm (}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 583.89 Tm (}) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 568.89 Tm (9. Delegate/Event Callbacks) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 428.89 481.89 128.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 534.89 Tm (sdk.delegate = object : NeurolabsSDKDelegate {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 523.89 Tm (override fun onCaptureResult\(result: NLNativeCaptureResult, captureId: String, sessionId:) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 512.89 Tm (String\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 501.89 Tm (override fun onError\(error: NLError, sessionId: String?, messageId: String?\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 490.89 Tm (override fun onQueueStatusChange\(status: NLQueueStatus\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 479.89 Tm (override fun onLoadingProgress\(progress: NLLoadingProgress\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 468.89 Tm (override fun onQueueItemEnqueued\(item: NLQueuedItem\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 457.89 Tm (override fun onUploadSucceeded\(item: NLQueuedItem\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 446.89 Tm (override fun onUploadFailed\(item: NLQueuedItem, error: NLError\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 435.89 Tm (}) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 420.89 Tm (10. Notes) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 398.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 398.89 Tm (Per-session upload routing is supported with `options.taskUUID`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 380.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 380.89 Tm (`autoCloseAfterCapture=true` closes after Save from preview/review flow.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 362.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 362.89 Tm (For open-ended shelf scanning today, prefer `maxCaptures = 1` with auto-close and) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 348.89 Tm (reopen per accepted image; Android currently derives the shelf "Done" threshold from) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 334.89 Tm (`maxCaptures`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 316.89 Tm (?) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 316.89 Tm (For partner apps, avoid passing base64 images across process boundaries.) Tj ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 10 0 R >>
+endobj
+12 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R 11 0 R] /Count 4 >>
+endobj
+13 0 obj
+<< /Type /Catalog /Pages 12 0 R >>
+endobj
+xref
+0 14
+0000000000 65535 f 
+0000000015 00000 n 
+0000000085 00000 n 
+0000000160 00000 n 
+0000000228 00000 n 
+0000003403 00000 n 
+0000003556 00000 n 
+0000007142 00000 n 
+0000007295 00000 n 
+0000011171 00000 n 
+0000011324 00000 n 
+0000015031 00000 n 
+0000015186 00000 n 
+0000015263 00000 n 
+trailer
+<< /Size 14 /Root 13 0 R >>
+startxref
+15314
+%%EOF

@@ -10,6 +10,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: dist-release-${{ github.event.client_payload.version }}
+  cancel-in-progress: false
+
 jobs:
   update-release-state:
     runs-on: ubuntu-latest
@@ -246,6 +250,49 @@ jobs:
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Checkout Cordova SDK repo for guide refresh
+        if: steps.ready.outputs.ready == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: neurolaboratories/neurolabs-cordova-sdk
+          path: external/neurolabs-cordova-sdk
+          token: ${{ secrets.DIST_REPO_PAT }}
+
+      - name: Checkout Android SDK repo for guide refresh
+        if: steps.ready.outputs.ready == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: neurolaboratories/neurolabs-android-sdk
+          path: external/neurolabs-android-sdk
+          token: ${{ secrets.DIST_REPO_PAT }}
+
+      - name: Checkout iOS SDK repo for guide refresh
+        if: steps.ready.outputs.ready == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: neurolaboratories/neurolabs-ios-sdk
+          path: external/neurolabs-ios-sdk
+          token: ${{ secrets.DIST_REPO_PAT }}
+
+      - name: Refresh integration guides
+        if: steps.ready.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          python3 scripts/sync_integration_guides.py \
+            --dist-root . \
+            --workspace-root ./external \
+            --version "${{ steps.payload.outputs.version }}"
+
+      - name: Commit refreshed guides
+        if: steps.ready.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/integration-guides manifests/guides.json
+          git commit -m "docs(dist): refresh integration guides for ${{ steps.payload.outputs.version }}" || exit 0
+          git push
 
       - name: Create or update aggregated release notes
         if: steps.ready.outputs.ready == 'true'
