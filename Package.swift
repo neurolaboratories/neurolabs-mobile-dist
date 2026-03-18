@@ -16,7 +16,7 @@ let package = Package(
         .binaryTarget(
             name: "NeurolabsSDK",
             url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.1.7/NeurolabsSDK.xcframework-v1.1.7.zip",
-            checksum: "2298be6008cca6bb60823fac4fd85399183ba4a0cafb3cb6f76654deefe7afac"
+            checksum: "c6e4a7e68b11ea423b0b3354c7ee575b1458bb69bed8c8dcd91fba98a18f5ebf"
         )
     ]
 )
