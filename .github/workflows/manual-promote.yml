@@ -323,24 +323,26 @@ jobs:
           ANDROID_MAVEN_ARTIFACT=$(jq -r '.artifacts.android.maven.artifact_id // empty' "$STATE_FILE")
           ANDROID_MAVEN_VERSION=$(jq -r '.artifacts.android.maven.version // empty' "$STATE_FILE")
           if [[ -n "$ANDROID_MAVEN_REPO" && -n "$ANDROID_MAVEN_GROUP" && -n "$ANDROID_MAVEN_ARTIFACT" && -n "$ANDROID_MAVEN_VERSION" ]]; then
-            ANDROID_MAVEN_NOTE="
-**Android Gradle (Maven):**
-- Repository: \`${ANDROID_MAVEN_REPO}\`
-- Dependency: \`${ANDROID_MAVEN_GROUP}:${ANDROID_MAVEN_ARTIFACT}:${ANDROID_MAVEN_VERSION}\`"
+            ANDROID_MAVEN_NOTE=$(
+              printf '%s\n%s\n%s' \
+                '**Android Gradle (Maven):**' \
+                "- Repository: \`${ANDROID_MAVEN_REPO}\`" \
+                "- Dependency: \`${ANDROID_MAVEN_GROUP}:${ANDROID_MAVEN_ARTIFACT}:${ANDROID_MAVEN_VERSION}\`"
+            )
           fi
-          cat > release-notes.md <<EOF
-## Release ${VERSION}
-
-### Assets
-| Platform | URL |
-|----------|-----|
-| iOS XCFramework | ${IOS_URL} |
-| Android SDK | ${ANDROID_URL} |
-| Cordova plugin | ${CORDOVA_URL} |
-
-### Integration
-- **iOS SwiftPM:** add this repo and select \`NeurolabsSDK\`
-- **Android/Cordova:** use the assets and manifests in this release
-${ANDROID_MAVEN_NOTE}
-EOF
+          {
+            printf '## Release %s\n\n' "$VERSION"
+            printf '### Assets\n'
+            printf '| Platform | URL |\n'
+            printf '|----------|-----|\n'
+            printf '| iOS XCFramework | %s |\n' "$IOS_URL"
+            printf '| Android SDK | %s |\n' "$ANDROID_URL"
+            printf '| Cordova plugin | %s |\n\n' "$CORDOVA_URL"
+            printf '### Integration\n'
+            printf -- '- **iOS SwiftPM:** add this repo and select `NeurolabsSDK`\n'
+            printf -- '- **Android/Cordova:** use the assets and manifests in this release\n'
+            if [[ -n "$ANDROID_MAVEN_NOTE" ]]; then
+              printf '%s\n' "$ANDROID_MAVEN_NOTE"
+            fi
+          } > release-notes.md
           gh release edit "$VERSION" --notes-file release-notes.md
