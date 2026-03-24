@@ -8,6 +8,17 @@
     "ios": {
       "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.1.9/NeurolabsSDK.xcframework-v1.1.9.zip",
       "checksum_sha256": "bd206c75c84909e7bf9c370deb6fe5d6831b8209d7a1fc228d445928c8244305"
+    },
+    "android": {
+      "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.1.9/neurolabs-android-sdk-v1.1.9.aar",
+      "checksum_sha256": "a29a8314b1a5bec1112514a325674f77d5b892f2058d6b18643bb0496f5fb06f",
+      "maven": {
+        "repository_url": "https://maven.pkg.github.com/neurolaboratories/neurolabs-mobile-dist",
+        "group_id": "ai.neurolabs",
+        "artifact_id": "neurolabs-android-sdk",
+        "version": "1.1.9",
+        "packaging": "aar"
+      }
     }
   }
 }
