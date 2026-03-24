@@ -103,7 +103,10 @@ def main() -> int:
         copy_file(source_markdown, release_markdown)
         copy_file(source_rules, release_rules)
 
-        for output_pdf, markdown in ((latest_pdf, latest_markdown), (release_pdf, release_markdown)):
+        for output_pdf, markdown, rules in (
+            (latest_pdf, latest_markdown, latest_rules),
+            (release_pdf, release_markdown, release_rules),
+        ):
             subprocess.run(
                 [
                     "python3",
@@ -112,6 +115,8 @@ def main() -> int:
                     str(markdown),
                     "--output",
                     str(output_pdf),
+                    "--rules",
+                    str(rules),
                     "--title",
                     config["title"],
                     "--document-id",

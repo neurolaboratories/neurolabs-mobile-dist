@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import argparse
 import math
+import re
+import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -19,15 +21,51 @@ BODY_LINE_HEIGHT = 14
 PRIMARY_ORANGE = (0.929412, 0.333333, 0.0)
 
 
+def sanitize_text(value: str) -> str:
+    normalized = (
+        value.replace("•", "-")
+        .replace("–", "-")
+        .replace("—", "-")
+        .replace("‘", "'")
+        .replace("’", "'")
+        .replace("“", '"')
+        .replace("”", '"')
+        .replace("…", "...")
+        .replace("\u00a0", " ")
+    )
+    normalized = unicodedata.normalize("NFKD", normalized)
+    ascii_text = normalized.encode("ascii", "ignore").decode("ascii")
+    return ascii_text
+
+
 def pdf_escape(value: str) -> str:
+    value = sanitize_text(value)
     return value.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
 
 
-def wrap_text(text: str, max_width: float, font_size: float, mono: bool = False) -> list[str]:
+def wrap_text(
+    text: str,
+    max_width: float,
+    font_size: float,
+    mono: bool = False,
+    preserve_whitespace: bool = False,
+) -> list[str]:
+    text = sanitize_text(text)
     if not text:
         return [""]
     avg_width = font_size * (0.60 if mono else 0.53)
     max_chars = max(10, int(max_width / avg_width))
+    if preserve_whitespace:
+        text = text.replace("\t", "    ")
+        if len(text) <= max_chars:
+            return [text]
+        lines: list[str] = []
+        remaining = text
+        while len(remaining) > max_chars:
+            lines.append(remaining[:max_chars])
+            remaining = remaining[max_chars:]
+        lines.append(remaining)
+        return lines
     words = text.split()
     if not words:
         return [""]
@@ -47,6 +85,139 @@ def wrap_text(text: str, max_width: float, font_size: float, mono: bool = False)
 @dataclass
 class Page:
     commands: list[str]
+
+
+@dataclass
+class RenderProfile:
+    left: float = LEFT
+    right: float = RIGHT
+    top_start: float = TOP_START
+    bottom_guard: float = BOTTOM_GUARD
+    body_line_height: float = BODY_LINE_HEIGHT
+    primary_orange: tuple[float, float, float] = PRIMARY_ORANGE
+    title_font: str = "F2"
+    title_size: float = 24.0
+    subtitle_font: str = "F2"
+    subtitle_size: float = 14.0
+    heading_font: str = "F2"
+    heading_size: float = 13.0
+    body_font: str = "F1"
+    body_size: float = 10.5
+    code_font: str = "F3"
+    code_size: float = 8.2
+    footer_font: str = "F1"
+    footer_size: float = 9.0
+    footer_left_text: str = "Neurolabs - Confidential Partner Documentation"
+    footer_right_prefix: str = "Neurolabs SDK - Page "
+    bullet_glyph: str = "-"
+    heading_height: float = 22.0
+    heading_gap: float = 4.0
+    paragraph_gap: float = 6.0
+    bullet_gap: float = 4.0
+    post_code_gap: float = 12.0
+    post_code_heading_extra_gap: float = 12.0
+
+
+def _font_token_from_name(name: str, fallback: str) -> str:
+    lowered = name.lower()
+    if "courier" in lowered:
+        return "F3"
+    if "bold" in lowered:
+        return "F2"
+    if "helvetica" in lowered:
+        return "F1"
+    return fallback
+
+
+def _extract_float(text: str, pattern: str) -> float | None:
+    match = re.search(pattern, text, flags=re.IGNORECASE)
+    if not match:
+        return None
+    try:
+        return float(match.group(1))
+    except ValueError:
+        return None
+
+
+def _extract_text(text: str, pattern: str) -> str | None:
+    match = re.search(pattern, text, flags=re.IGNORECASE)
+    if not match:
+        return None
+    return match.group(1).strip()
+
+
+def parse_rules_profile(rules_path: Path | None) -> RenderProfile:
+    profile = RenderProfile()
+    if rules_path is None or not rules_path.exists():
+        return profile
+
+    rules = rules_path.read_text()
+
+    profile.left = _extract_float(rules, r"Left margin:\s*`([0-9.]+)`") or profile.left
+    profile.right = _extract_float(rules, r"Right margin:\s*`([0-9.]+)`") or profile.right
+    top_expr = _extract_text(rules, r"Top content start:\s*`([^`]+)`")
+    if top_expr:
+        expr = top_expr.strip()
+        m = re.search(r"PAGE_HEIGHT\s*-\s*([0-9.]+)", expr, flags=re.IGNORECASE)
+        if m:
+            profile.top_start = PAGE_HEIGHT - float(m.group(1))
+        else:
+            numeric = _extract_float(expr, r"([0-9.]+)")
+            if numeric is not None:
+                profile.top_start = numeric
+    profile.bottom_guard = _extract_float(rules, r"Bottom guard area:\s*`([0-9.]+)`") or profile.bottom_guard
+    profile.body_line_height = _extract_float(rules, r"Body line height:\s*`([0-9.]+)`") or profile.body_line_height
+
+    title_font_name = _extract_text(rules, r"Title font:\s*`([^`]+)`")
+    subtitle_font_name = _extract_text(rules, r"Subtitle font:\s*`([^`]+)`")
+    heading_font_name = _extract_text(rules, r"Section heading font.*:\s*`([^`]+)`")
+    body_font_name = _extract_text(rules, r"Body font:\s*`([^`]+)`")
+    code_font_name = _extract_text(rules, r"Code font:\s*`([^`]+)`")
+    footer_font_name = _extract_text(rules, r"Footer font:\s*`([^`]+)`")
+
+    if title_font_name:
+        profile.title_font = _font_token_from_name(title_font_name, profile.title_font)
+    if subtitle_font_name:
+        profile.subtitle_font = _font_token_from_name(subtitle_font_name, profile.subtitle_font)
+    if heading_font_name:
+        profile.heading_font = _font_token_from_name(heading_font_name, profile.heading_font)
+    if body_font_name:
+        profile.body_font = _font_token_from_name(body_font_name, profile.body_font)
+    if code_font_name:
+        profile.code_font = _font_token_from_name(code_font_name, profile.code_font)
+    if footer_font_name:
+        profile.footer_font = _font_token_from_name(footer_font_name, profile.footer_font)
+
+    profile.title_size = _extract_float(rules, r"Title font:.*size\s*`([0-9.]+)`") or profile.title_size
+    profile.subtitle_size = _extract_float(rules, r"Subtitle font:.*size\s*`([0-9.]+)`") or profile.subtitle_size
+    profile.heading_size = _extract_float(rules, r"Section heading font.*size\s*`([0-9.]+)`") or profile.heading_size
+    profile.body_size = _extract_float(rules, r"Body font:.*size\s*`([0-9.]+)`") or profile.body_size
+    profile.code_size = _extract_float(rules, r"Code font:.*size\s*`([0-9.]+)`") or profile.code_size
+    profile.footer_size = _extract_float(rules, r"Footer font:.*size\s*`([0-9.]+)`") or profile.footer_size
+    profile.post_code_gap = _extract_float(rules, r"Space after code block before next content:\s*`([0-9.]+)`") or profile.post_code_gap
+    profile.post_code_heading_extra_gap = (
+        _extract_float(rules, r"Extra space when code block is followed by heading:\s*`([0-9.]+)`")
+        or profile.post_code_heading_extra_gap
+    )
+
+    rgb = re.search(r"RGB float:\s*`\(([0-9.]+)\s*,\s*([0-9.]+)\s*,\s*([0-9.]+)\)`", rules, flags=re.IGNORECASE)
+    if rgb:
+        profile.primary_orange = (float(rgb.group(1)), float(rgb.group(2)), float(rgb.group(3)))
+
+    left_footer = _extract_text(rules, r"Left footer text:\s*`([^`]+)`")
+    right_footer = _extract_text(rules, r"Right footer text:\s*`([^`]+)`")
+    if left_footer:
+        profile.footer_left_text = left_footer
+    if right_footer:
+        # Rules include a concrete placeholder like "... Page N"; convert to a prefix
+        # without destroying legitimate "N" characters in words.
+        cleaned = re.sub(r"\s*N\s*$", "", right_footer).rstrip()
+        if not cleaned:
+            cleaned = "Neurolabs SDK - Page"
+        if not cleaned.endswith(" "):
+            cleaned += " "
+        profile.footer_right_prefix = cleaned
+    return profile
 
 
 class PDFBuilder:
@@ -179,24 +350,71 @@ def parse_blocks(markdown: str) -> list[tuple[str, object]]:
     return blocks
 
 
-def draw_footer(builder: PDFBuilder, page_number: int) -> None:
-    builder.set_stroke(*PRIMARY_ORANGE)
-    builder.line(LEFT, 43.93701, PAGE_WIDTH - RIGHT, 43.93701)
-    builder.text(LEFT, 28, "Neurolabs • Confidential Partner Documentation", "F1", 9)
-    builder.text(PAGE_WIDTH - RIGHT - 115, 28, f"Neurolabs SDK • Page {page_number}", "F1", 9)
+def block_render_height(kind: str, payload: object, content_width: float, profile: RenderProfile) -> float:
+    if kind == "heading":
+        return profile.heading_height
+    if kind == "paragraph":
+        lines = wrap_text(str(payload), content_width, profile.body_size)
+        return len(lines) * profile.body_line_height + profile.paragraph_gap
+    if kind == "bullet":
+        lines = wrap_text(str(payload), content_width - 14, profile.body_size)
+        return len(lines) * profile.body_line_height + profile.bullet_gap
+    if kind == "code":
+        code = payload  # type: ignore[assignment]
+        code_lines = code["lines"] or [""]
+        wrapped: list[str] = []
+        for line in code_lines:
+            wrapped.extend(
+                wrap_text(
+                    line or " ",
+                    content_width - 20,
+                    profile.code_size,
+                    mono=True,
+                    preserve_whitespace=True,
+                )
+            )
+        block_height = max(1, len(wrapped)) * 11 + 18
+        return block_height + profile.post_code_gap
+    return profile.body_line_height
 
 
-def render(markdown_path: Path, output_path: Path, title: str, document_id: str, version: str, date: str) -> None:
+def draw_footer(builder: PDFBuilder, page_number: int, profile: RenderProfile) -> None:
+    builder.set_stroke(*profile.primary_orange)
+    builder.line(profile.left, 43.93701, PAGE_WIDTH - profile.right, 43.93701)
+    builder.text(profile.left, 28, profile.footer_left_text, profile.footer_font, profile.footer_size)
+    page_prefix = profile.footer_right_prefix.rstrip()
+    builder.text(
+        PAGE_WIDTH - profile.right - 115,
+        28,
+        f"{page_prefix} {page_number}",
+        profile.footer_font,
+        profile.footer_size,
+    )
+
+
+def render(
+    markdown_path: Path,
+    output_path: Path,
+    title: str,
+    document_id: str,
+    version: str,
+    date: str,
+    rules_path: Path | None = None,
+) -> None:
+    profile = parse_rules_profile(rules_path)
     builder = PDFBuilder()
 
     def start_page(page_number: int) -> float:
-        draw_footer(builder, page_number)
-        return TOP_START
+        draw_footer(builder, page_number, profile)
+        builder.set_fill(0.0, 0.0, 0.0)
+        return profile.top_start
 
     y = start_page(1)
-    builder.text(LEFT, y, title, "F2", 24)
+    builder.set_fill(*profile.primary_orange)
+    builder.text(profile.left, y, title, profile.title_font, profile.title_size)
+    builder.set_fill(0.0, 0.0, 0.0)
     y -= 28
-    builder.text(LEFT, y, "Technical Integration Specification", "F2", 14)
+    builder.text(profile.left, y, "Technical Integration Specification", profile.subtitle_font, profile.subtitle_size)
     y -= 24
     for meta in [
         f"Document ID: {document_id}",
@@ -205,55 +423,61 @@ def render(markdown_path: Path, output_path: Path, title: str, document_id: str,
         "Status: Partner integration reference",
         "Owner: Neurolabs",
     ]:
-        builder.text(LEFT, y, meta, "F1", 10.5)
-        y -= BODY_LINE_HEIGHT
+        builder.text(profile.left, y, meta, profile.body_font, profile.body_size)
+        y -= profile.body_line_height
     y -= 10
 
     page_number = 1
     blocks = parse_blocks(markdown_path.read_text())
-    content_width = PAGE_WIDTH - LEFT - RIGHT
+    content_width = PAGE_WIDTH - profile.left - profile.right
 
-    for kind, payload in blocks:
+    for index, (kind, payload) in enumerate(blocks):
         if kind == "heading":
             heading = str(payload)
-            needed = 22 + BODY_LINE_HEIGHT
-            if y - needed < BOTTOM_GUARD:
+            next_block_height = 0.0
+            if index + 1 < len(blocks):
+                next_kind, next_payload = blocks[index + 1]
+                next_block_height = block_render_height(next_kind, next_payload, content_width, profile)
+            # Keep headings with the beginning of the next block so headings are never
+            # stranded as the last line on a page.
+            needed = profile.heading_height + profile.heading_gap + next_block_height
+            if y - needed < profile.bottom_guard:
                 builder.new_page()
                 page_number += 1
                 y = start_page(page_number)
-            builder.text(LEFT, y, heading, "F2", 13)
-            y -= 22
+            builder.text(profile.left, y, heading, profile.heading_font, profile.heading_size)
+            y -= profile.heading_height
             continue
 
         if kind == "paragraph":
-            lines = wrap_text(str(payload), content_width, 10.5)
-            needed = len(lines) * BODY_LINE_HEIGHT + 6
-            if y - needed < BOTTOM_GUARD:
+            lines = wrap_text(str(payload), content_width, profile.body_size)
+            needed = len(lines) * profile.body_line_height + profile.paragraph_gap
+            if y - needed < profile.bottom_guard:
                 builder.new_page()
                 page_number += 1
                 y = start_page(page_number)
             for line in lines:
-                builder.text(LEFT, y, line, "F1", 10.5)
-                y -= BODY_LINE_HEIGHT
-            y -= 6
+                builder.text(profile.left, y, line, profile.body_font, profile.body_size)
+                y -= profile.body_line_height
+            y -= profile.paragraph_gap
             continue
 
         if kind == "bullet":
             text = str(payload)
             bullet_indent = 14
-            lines = wrap_text(text, content_width - bullet_indent, 10.5)
-            needed = len(lines) * BODY_LINE_HEIGHT + 4
-            if y - needed < BOTTOM_GUARD:
+            lines = wrap_text(text, content_width - bullet_indent, profile.body_size)
+            needed = len(lines) * profile.body_line_height + profile.bullet_gap
+            if y - needed < profile.bottom_guard:
                 builder.new_page()
                 page_number += 1
                 y = start_page(page_number)
-            builder.text(LEFT, y, "•", "F1", 10.5)
-            builder.text(LEFT + bullet_indent, y, lines[0], "F1", 10.5)
-            y -= BODY_LINE_HEIGHT
+            builder.text(profile.left, y, profile.bullet_glyph, profile.body_font, profile.body_size)
+            builder.text(profile.left + bullet_indent, y, lines[0], profile.body_font, profile.body_size)
+            y -= profile.body_line_height
             for line in lines[1:]:
-                builder.text(LEFT + bullet_indent, y, line, "F1", 10.5)
-                y -= BODY_LINE_HEIGHT
-            y -= 4
+                builder.text(profile.left + bullet_indent, y, line, profile.body_font, profile.body_size)
+                y -= profile.body_line_height
+            y -= profile.bullet_gap
             continue
 
         if kind == "code":
@@ -261,20 +485,30 @@ def render(markdown_path: Path, output_path: Path, title: str, document_id: str,
             code_lines = code["lines"] or [""]
             wrapped: list[str] = []
             for line in code_lines:
-                wrapped.extend(wrap_text(line or " ", content_width - 20, 8.2, mono=True))
+                wrapped.extend(
+                    wrap_text(
+                        line or " ",
+                        content_width - 20,
+                        profile.code_size,
+                        mono=True,
+                        preserve_whitespace=True,
+                    )
+                )
             block_height = max(1, len(wrapped)) * 11 + 18
-            if y - block_height < BOTTOM_GUARD:
+            if y - block_height < profile.bottom_guard:
                 builder.new_page()
                 page_number += 1
                 y = start_page(page_number)
             box_y = y - block_height + 10
-            builder.set_stroke(*PRIMARY_ORANGE)
-            builder.rect(LEFT, box_y, content_width, block_height)
+            builder.set_stroke(*profile.primary_orange)
+            builder.rect(profile.left, box_y, content_width, block_height)
             inner_y = y - 12
             for line in wrapped:
-                builder.text(LEFT + 10, inner_y, line, "F3", 8.2)
+                builder.text(profile.left + 10, inner_y, line, profile.code_font, profile.code_size)
                 inner_y -= 11
-            y = box_y - 8
+            next_kind = blocks[index + 1][0] if index + 1 < len(blocks) else None
+            extra_gap = profile.post_code_heading_extra_gap if next_kind == "heading" else 0.0
+            y = box_y - profile.post_code_gap - extra_gap
 
     builder.save(output_path)
 
@@ -287,6 +521,7 @@ def main() -> int:
     parser.add_argument("--document-id", required=True)
     parser.add_argument("--version", required=True)
     parser.add_argument("--date", required=True)
+    parser.add_argument("--rules", required=False)
     args = parser.parse_args()
 
     render(
@@ -296,6 +531,7 @@ def main() -> int:
         document_id=args.document_id,
         version=args.version,
         date=args.date,
+        rules_path=Path(args.rules).resolve() if args.rules else None,
     )
     return 0
 
