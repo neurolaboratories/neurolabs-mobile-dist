@@ -50,7 +50,7 @@ class MainApp : Application() {
 val sdk = NeurolabsSDKCore.shared ?: return
 lifecycleScope.launch {
     sdk.initialize(
-        modelFileName = "weights_litert.tflite",
+        modelFileName = "NLBModel.tflite",
         labelsFileName = "labels.json"
     )
     sdk.waitForFullyLoaded()
