@@ -44,7 +44,14 @@ Capture requests:
   - optional `parent_id`
   - optional `title`
   - optional `barcode`
+  - optional `container_type`
+  - optional `pack_size`
+  - optional `brand`
+  - optional `flavour`
+  - optional `container_size`
   - optional `created_at`
+  - `has_submissions` (bool)
+  - `is_blacklisted` (bool)
   - optional `status`
   - optional `thumbnail_url`
 - Metadata fields:
