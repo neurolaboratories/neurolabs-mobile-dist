@@ -24,3 +24,13 @@ Health / deprecation:
 
 Auth:
 - Bearer API key in `Authorization` header where required.
+
+Capture requests (GraphQL channel profile = `ziaCapture`):
+1. `query GetCaptureRequests(profile, limit, offset)` -> allow-list catalog page.
+2. `query GetCaptureRequestsBlackList(profile, limit, offset)` -> blacklist catalog page.
+3. `query GetCaptureRequestItemMetadataFields(profile)` -> metadata field definitions (`fieldName`, `strRegexp`).
+4. `query GetCaptureRequestsChannelId(profile)` -> channel UUID.
+5. `mutation CreateNewSubmission(channelUuid, requestUuid, fieldModifications)` with GraphQL multipart file upload:
+   - upload parts map to `fieldModifications.{index}.newValueUpload`
+   - file field variations include thumbnail, scan/video/3d outputs
+   - metadata fields (name, barcode, containerType, packSize, brand, flavour, containerSize) sent as `newValueString`
