@@ -35,6 +35,26 @@ Outlet details/creation:
 - normalized outlet identity and geo fields
 - optional subsection and thumbnail fields
 
+Capture requests:
+- Catalog page:
+  - `total`
+  - `requests[]`
+- Request item:
+  - `id`
+  - optional `parent_id`
+  - optional `title`
+  - optional `barcode`
+  - optional `created_at`
+  - optional `status`
+  - optional `thumbnail_url`
+- Metadata fields:
+  - `field_name`
+  - optional `regex`
+- Submission draft:
+  - optional `request_id`
+  - `metadata{string->string}`
+  - `files[]` with `upload_field_name`, `filename`, `mime_type`, `metadata_field_name`
+
 Validation:
 - Missing required fields => invalid response classification.
 - Unknown enum string values are preserved as raw strings (no hard failure).
