@@ -15,6 +15,10 @@
         "version": "1.2.5",
         "packaging": "aar"
       }
+    },
+    "ios": {
+      "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.2.5/NeurolabsSDK.xcframework-v1.2.5.zip",
+      "checksum_sha256": "8553c23ce8501eb24e6aff23848090455edae4bc92f30dea788f4042ef18d122"
     }
   }
 }
