@@ -53,6 +53,10 @@ The hook downloads `NeurolabsSDK.xcframework` from the matching GitHub release a
 it automatically during build. Requires `curl` (standard on macOS) or `gh` CLI. For private releases
 set `GITHUB_TOKEN`.
 
+The iOS install hook injects the `Sentry` Swift Package dependency into the generated Xcode project
+automatically during platform preparation. If Xcode still reports `unable to find module dependency:
+Sentry`, re-run `cordova prepare ios` so the package graph refreshes in the generated project.
+
 **Optional overrides** (use a pre-downloaded file or a specific URL instead of auto-download):
 
 ```bash
