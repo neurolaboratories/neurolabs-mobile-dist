@@ -22,18 +22,21 @@ jobs:
         with:
           repository: neurolaboratories/neurolabs-cordova-sdk
           path: external/neurolabs-cordova-sdk
+          token: ${{ secrets.DIST_REPO_PAT }}
 
       - name: Checkout Android SDK repo
         uses: actions/checkout@v4
         with:
           repository: neurolaboratories/neurolabs-android-sdk
           path: external/neurolabs-android-sdk
+          token: ${{ secrets.DIST_REPO_PAT }}
 
       - name: Checkout iOS SDK repo
         uses: actions/checkout@v4
         with:
           repository: neurolaboratories/neurolabs-ios-sdk
           path: external/neurolabs-ios-sdk
+          token: ${{ secrets.DIST_REPO_PAT }}
 
       - name: Generate latest and versioned guide PDFs
         run: |
