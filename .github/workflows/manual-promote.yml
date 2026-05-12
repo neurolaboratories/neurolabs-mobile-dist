@@ -213,6 +213,8 @@ jobs:
                   latest.pop("maven", None)
                   latest.pop("gradle_maven_repository_example", None)
                   latest.pop("gradle_maven_dependency_example", None)
+          elif platform == "cordova":
+              latest["install_example"] = f'cordova plugin add {os.environ["ASSET_URL"]}'
           manifest.write_text(json.dumps(data, indent=2) + "\n")
           PY
           done
