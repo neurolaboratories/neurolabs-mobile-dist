@@ -3,12 +3,98 @@
 ## 1. Scope
 This guide is for partner Android apps integrating `neurolabs-android-sdk` directly.
 
-## 2. Changes In v1.1.9
+## 2. Release History
+
+No public API contract has been broken since v1.1.9. New options have been
+added with backwards-compatible defaults; integrations on v1.1.9 keep
+working as is. Recommended defaults: strict shelf guidance with
+`validationPreset = IOS_PARITY`, `liveQualityChecksEnabled = true`,
+`autoCloseAfterCapture = true` for single-capture parity flows.
+
+### v1.3.2
+- Mixpanel ingestion endpoint now resolves via `NLAnalyticsDefaults.MIXPANEL_ENDPOINT_EU`
+  at SDK construction; events flow into the EU region project as expected.
+  The standalone `MixpanelAnalyticsTracker` class keeps the US endpoint as
+  its default so partners reusing it for their own US-region projects are
+  unaffected.
+- `CaptureViewModel.onFinishPressed` now claims `isFinishing` synchronously,
+  wraps every disk read (pending review reload, capture reload, temp-file
+  cleanup) in `withContext(Dispatchers.IO)`, and offloads `spillCaptureToDisk`
+  from `commitCapture` — the Done button stays responsive throughout
+  multi-capture sequences and shows an inline `CircularProgressIndicator`
+  while persistence is in flight.
+- Embedded custom-camera demo gained an in-app settings sheet (gear icon,
+  top-right of the camera). Sliders for detection thresholds, capture min /
+  max, live-quality FPS; switches for every boolean knob; SharedPreferences-backed
+  persistence across launches.
+
+### v1.3.1
+- Fix for an uncatchable native `SIGSEGV` in
+  `com.google.ai.edge.litert.Model.nativeLoadAsset` that triggered when the
+  TFLite asset was stored compressed in the APK, missing, or zero length.
+  `NLLiteRTYoloDetector` now probes the asset with `AssetManager.openFd`
+  first and, on failure, extracts the asset to `noBackupFilesDir` and loads
+  it via the file-path overload.
+
+### v1.3.0
+- Relaxed guidance thresholds (perspective skew floor raised, angle-off
+  warning relaxed) for less aggressive blocking during normal in-store
+  motion. Android lint passes restored.
+
+### v1.2.8
+- Onboarding flow: same-barcode relookup is allowed after a completed
+  attempt so partners can retake without restarting the session.
+
+### v1.2.7
+- Lint compatibility fix for product capture; no API change.
+
+### v1.2.6
+- Onboarding: partner-overridable operations lookup client and capture
+  debug exports (frame dump for offline review).
+- Demo: scrollable launcher on small devices, nav-bar inset respected on
+  the product-capture back button.
+
+### v1.2.5
+- `NLNativeCaptureConfig` / `NLCustomCameraView` expose
+  `showsSequenceCounterLabel` to toggle the on-screen sequence counter.
+
+### v1.2.4
+- New capture range controls: `allowManualFinish`, `minCapturesBeforeDone`,
+  and `maxCaptures` plumbed through `NLNativeCaptureConfig` for bounded
+  multi-capture flows with a Done button.
+- iOS-camera parity work: tap-to-focus, lens-switcher hardening, tightened
+  quality validation thresholds.
+
+### v1.2.3
+- `NLNativeCaptureConfig.cameraMode = AR | DEFAULT` lets partners pick
+  between the ARKit/ARCore pipeline and the AVFoundation/CameraX 0.5×/1×
+  lens-switcher path.
+- `init` accepts `analyticsEnabled`, `sentryEnabled`, `sentryDsn` so partner
+  apps can opt out of telemetry or point Sentry at their own project.
+- Default validation thresholds (blur, glare, perspective) tightened.
+
+### v1.2.2
+- Internal: Android plugin integration handling refactor; no public API
+  change.
+
+### v1.2.1
+- iOS camera-style UI parity polish, lens-switcher state machine
+  hardening, demo Sentry auto-init disabled.
+
+### v1.2.0
+- Internal scaffolding for v1.2.x: capture range controls landed in
+  v1.2.4, lens switcher in v1.2.4–v1.2.5, missions policy preset, retry +
+  idempotency conformance fixture.
+
+### v1.1.9 (baseline)
 - No public API contract break.
 - Default task routing config uses `taskUUID`.
-- Recommended custom-camera shelf payload remains strict shelf guidance with `validationPreset = IOS_PARITY`.
-- `liveQualityChecksEnabled` remains the key switch for pill/rotation/warning/error guidance behavior.
-- `autoCloseAfterCapture = true` remains the recommended parity flow for single accepted captures.
+- Recommended custom-camera shelf payload remains strict shelf guidance
+  with `validationPreset = IOS_PARITY`.
+- `liveQualityChecksEnabled` remains the key switch for pill / rotation /
+  warning / error guidance behavior.
+- `autoCloseAfterCapture = true` remains the recommended parity flow for
+  single accepted captures.
 
 ## 3. Requirements
 - `minSdk 26`

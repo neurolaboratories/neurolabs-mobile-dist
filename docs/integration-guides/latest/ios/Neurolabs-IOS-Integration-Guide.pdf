@@ -10,7 +10,7 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Courier >>
 endobj
 4 0 obj
-<< /Length 3332 >>
+<< /Length 5006 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
@@ -29,93 +29,215 @@ BT /F1 10.50 Tf 1 0 0 1 56.69 663.89 Tm (Owner: Neurolabs) Tj ET
 BT /F2 13.00 Tf 1 0 0 1 56.69 639.89 Tm (1. Scope) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 617.89 Tm (This guide is for partner iOS apps integrating `NeurolabsSDK` through Swift Package) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 603.89 Tm (Manager.) Tj ET
-BT /F2 13.00 Tf 1 0 0 1 56.69 583.89 Tm (2. Changes In v1.2.3) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 561.89 Tm (-) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 70.69 561.89 Tm (Default task routing config uses `taskUUID`.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 543.89 Tm (-) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 70.69 543.89 Tm (Recommended custom-camera parity flow remains strict shelf guidance with overlays) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 70.69 529.89 Tm (disabled.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 511.89 Tm (-) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 70.69 511.89 Tm (`liveQualityEnabled: true` remains the key switch for pill/rotation/warning/error) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 70.69 497.89 Tm (guidance behavior.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 479.89 Tm (-) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 70.69 479.89 Tm (`autoCloseAfterCapture: true` with a single required capture remains the recommended) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 70.69 465.89 Tm (parity flow.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 447.89 Tm (-) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 70.69 447.89 Tm (`NLCameraConfiguration.captureRange\(...\)` is the preferred helper for custom-camera) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 70.69 433.89 Tm (flows that need a minimum capture count and a higher maximum cap.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 415.89 Tm (-) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 70.69 415.89 Tm (`showsCapturedCountLabel` hides the `N captured` chip in custom camera and) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 70.69 401.89 Tm (multi-capture flow UIs.) Tj ET
-BT /F2 13.00 Tf 1 0 0 1 56.69 383.89 Tm (3. Requirements) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 361.89 Tm (-) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 70.69 361.89 Tm (iOS 17.0+ \(SDK package declares `.iOS\(.v17\)`\)) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 583.89 Tm (2. Release History) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 561.89 Tm (No public API contract has been broken since v1.1.9. New options have been added with) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 547.89 Tm (backwards-compatible defaults. Recommended defaults: strict shelf guidance with) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 533.89 Tm (overlays disabled, `liveQualityEnabled: true`, `autoCloseAfterCapture: true` for) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 519.89 Tm (single-capture parity flows. `NLCameraConfiguration.captureRange\(...\)` is the) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 505.89 Tm (preferred helper for custom-camera flows that need a minimum capture count and a) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 491.89 Tm (higher maximum cap. `showsCapturedCountLabel` hides the `N captured` chip in custom) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 477.89 Tm (camera and multi-capture flow UIs.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 457.89 Tm (### v1.3.2) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 437.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 437.89 Tm (Mixpanel ingestion routes to the EU region via) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 419.89 Tm (`NLAnalyticsContext.resolveMixpanelEndpoint\(fallback: .mixpanelEndpointEU\)` at SDK) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 405.89 Tm (construction; the `NLMixpanelAnalyticsTracker` default itself stays on the standard US) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 391.89 Tm (endpoint so partners reusing the class for their own US-region projects are) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 377.89 Tm (unaffected. Endpoint can be overridden via the `NLMixpanelEndpoint` Info.plist key or) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 363.89 Tm (the `NL_MIXPANEL_ENDPOINT` environment variable \(env wins over plist\).) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 343.89 Tm (-) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 70.69 343.89 Tm (Xcode 16.4+ \(release toolchain baseline\)) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 325.89 Tm (-) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 70.69 325.89 Tm (Swift 5.9+ \(Swift 6 toolchains supported\)) Tj ET
-BT /F2 13.00 Tf 1 0 0 1 56.69 307.89 Tm (4. Install \(SPM\)) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 285.89 Tm (Add package dependency \(mobile-dist or direct distribution manifest\) and link) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 271.89 Tm (`NeurolabsSDK`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 343.89 Tm (Mixpanel `time` field is now serialized as a JSON number \(epoch) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 325.89 Tm (seconds\). Previously `time` was sent as a string, which Mixpanel rejected with) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 311.89 Tm (`{"status":0,"error":"time field must be a number"}`, silently dropping every event.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 291.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 291.89 Tm (`NLCustomCameraView.saveAllCaptures` keeps the Done button responsive:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 273.89 Tm (the synchronous `FileManager.removeItem` loop for staged-capture files moved into a) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 259.89 Tm (`Task.detached\(priority: .utility\)` block, and the Done label swaps to an inline) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 245.89 Tm (`ProgressView` while `isPersistingCaptures == true`. Opacity remains at 1 during) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 231.89 Tm (persist so the indicator stays visible.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 211.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 211.89 Tm (New `NLOperationsCatalogClient` \(in `ProductAuditKit`\) for the) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 193.89 Tm (operations product catalog, with `BarcodeLookupIdentity` normalising) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 179.89 Tm (UPC-E/EAN-8/UPC-A/EAN-13 to GTIN-14 end-to-end.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 165.89 Tm (`NLOperationsCatalogError.invalidBarcode` / `.invalidSearchQuery` /) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 151.89 Tm (`.malformedResponse` are thrown rather than crashing the host with `precondition`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 131.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 131.89 Tm (`NLBDemoApp` gains an in-app settings sheet on `CustomCameraDemoView`) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 113.89 Tm (\(gear icon, top-right\). Sliders / steppers / toggles for every tunable knob, bindings) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 99.89 Tm (wired to existing `@AppStorage` properties so saved values survive across launches.) Tj ET
 endstream
 endobj
 5 0 obj
-<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 4 0 R >>
+<< /Type /Page /Parent 16 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 4 0 R >>
 endobj
 6 0 obj
-<< /Length 2704 >>
+<< /Length 4778 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
 BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 2) Tj ET
 0.000000 0.000000 0.000000 rg
-BT /F2 13.00 Tf 1 0 0 1 56.69 771.89 Tm (5. SDK Initialization + Warmup) Tj ET
-0.929412 0.333333 0.000000 RG
-56.69 576.89 481.89 183.00 re S
-BT /F3 8.20 Tf 1 0 0 1 66.69 737.89 Tm (import NeurolabsSDK) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 726.89 Tm ( ) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 715.89 Tm (final class CaptureCoordinator {) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 704.89 Tm (    let sdk = NeurolabsSDKCore\(configuration: .init\() Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 693.89 Tm (        apiKey: "<API_KEY>",) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 682.89 Tm (        apiBaseURL: URL\(string: "https://api.neurolabs.ai"\)!,) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 671.89 Tm (        taskUUID: "<DEFAULT_TASK_UUID>",) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 660.89 Tm (        debugLogging: true) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 649.89 Tm (    \)\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 638.89 Tm ( ) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 627.89 Tm (    func prepare\(\) {) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 616.89 Tm (        // SDK starts image pipeline preparation during init.) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 605.89 Tm (        // Optional: observe loading progress through delegate.) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 594.89 Tm (    }) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 583.89 Tm (}) Tj ET
-BT /F2 13.00 Tf 1 0 0 1 56.69 552.89 Tm (6. Queue Management) Tj ET
-0.929412 0.333333 0.000000 RG
-56.69 379.89 481.89 161.00 re S
-BT /F3 8.20 Tf 1 0 0 1 66.69 518.89 Tm (Task {) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 507.89 Tm (    await sdk.setAutoSyncEnabled\(true\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 496.89 Tm (    await sdk.setWifiOnlyUploadsEnabled\(false\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 485.89 Tm (    await sdk.setDeletePhotosOnUploadSuccess\(true\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 474.89 Tm (    await sdk.setMaxQueueSize\(200\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 463.89 Tm (    await sdk.setUploadRetryCount\(5\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 452.89 Tm ( ) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 441.89 Tm (    let status = await sdk.getQueueStatus\(\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 430.89 Tm (    print\("pending=\\\(status.pendingCount\) failed=\\\(status.failedCount\)"\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 419.89 Tm ( ) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 408.89 Tm (    await sdk.flushQueue\(\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 397.89 Tm (    await sdk.retryFailedUploads\(\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 386.89 Tm (}) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 771.89 Tm (Mixpanel event identity hardened: per-install distinct id persisted in) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 753.89 Tm (`UserDefaults`, `$insert_id` \(UUID4\) on every event for server-side dedup, response) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 739.89 Tm (body surfaced when `debugLogging` is true.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 719.89 Tm (### v1.3.1) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 699.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 699.89 Tm (Restrict barcode symbologies to retail formats \(EAN-13, EAN-8, UPC-A,) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 681.89 Tm (UPC-E\) so the scanner stops emitting non-product codes during capture.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 661.89 Tm (### v1.3.0) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 641.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 641.89 Tm (Angle-off warning threshold relaxed to 12 for less aggressive) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 623.89 Tm (blocking during normal in-store motion.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 603.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 603.89 Tm (Multi-capture preview deletion: persisted thumbnails are removed when) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 585.89 Tm (the matching capture is dropped.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 565.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 565.89 Tm (AVFoundation preview recovery hardened against backgrounding /) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 547.89 Tm (interruption.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 527.89 Tm (### v1.2.8) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 507.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 507.89 Tm (`ProductAuditKit` test targets added \(no public API change\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 489.89 Tm (### v1.2.6 / v1.2.7) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 469.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 469.89 Tm (Product Audit \(onboarding\) MVP: serialise `AVAssetWriter` finalize and) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 451.89 Tm (`OCRSmartRotationProvider` work via in-flight `Task`, off-actor keyframe JPEG writes,) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 437.89 Tm (completedStepIDs reflect steps that actually ran, step transitions serialised via) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 423.89 Tm (pending-transition queue.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 403.89 Tm (### v1.2.5) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 383.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 383.89 Tm (New `showsSequenceCounterLabel` option in the native capture API for) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 365.89 Tm (toggling the on-screen sequence counter.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 345.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 345.89 Tm (Persistent custom-camera tuning in the demo app \(precursor to the) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 327.89 Tm (v1.3.2 settings sheet\) - preferences survive across runs via `UserDefaults`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 307.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 307.89 Tm (AVFoundation preview recovery improved on capture failure.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 289.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 289.89 Tm (Strict-rejection preview freeze regression fixed.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 271.89 Tm (### v1.2.4) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 251.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 251.89 Tm (Release build / Swift 6 archive blockers resolved.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 233.89 Tm (### v1.2.3) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 213.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 213.89 Tm (`NLCameraConfiguration.captureRange\(...\)` helper for bounded) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 195.89 Tm (multi-capture flows.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 175.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 175.89 Tm (0.5/1 lens switcher built on AVFoundation, default camera mode) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 157.89 Tm (starts on the ultra-wide lens when available. Tap-to-focus, lens switch fallback) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 143.89 Tm (covered by unit tests.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 123.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 123.89 Tm (Custom-camera startup, lens switching, and guidance responsiveness) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 105.89 Tm (improvements; camera preview shown during warmup, capture button gated until ready.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 85.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 85.89 Tm (Default task routing config uses `taskUUID`.) Tj ET
 endstream
 endobj
 7 0 obj
-<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 6 0 R >>
+<< /Type /Page /Parent 16 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 6 0 R >>
 endobj
 8 0 obj
-<< /Length 4843 >>
+<< /Length 4166 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
 BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 3) Tj ET
+0.000000 0.000000 0.000000 rg
+BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 771.89 Tm (Recommended custom-camera parity flow remains strict shelf guidance) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 753.89 Tm (with overlays disabled, `liveQualityEnabled: true`, `autoCloseAfterCapture: true` with) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 739.89 Tm (a single required capture.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 719.89 Tm (### v1.2.2) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 699.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 699.89 Tm (Analytics tracking + opt-out, partner/device context, Mixpanel) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 681.89 Tm (defaults, Sentry integration with privacy-safe defaults.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 661.89 Tm (### v1.2.1) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 641.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 641.89 Tm (Initial lens switcher, memory fixes, bottom-bar centering and UI) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 623.89 Tm (polish.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 603.89 Tm (### v1.2.0) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 583.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 583.89 Tm (Docs aligned to v1.1.9 requirements baseline; no SDK code change.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 565.89 Tm (### v1.1.9 \(baseline\)) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 545.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 545.89 Tm (Init and per-session routing use `taskUUID`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 527.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 527.89 Tm (Native detector/model warmup enforced in `init` and guarded in) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 509.89 Tm (`openCamera`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 489.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 489.89 Tm (`autoCloseAfterCapture: true` keeps preview enabled and closes after) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 471.89 Tm (Save confirmation.) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 451.89 Tm (3. Requirements) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 429.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 429.89 Tm (iOS 17.0+ \(SDK package declares `.iOS\(.v17\)`\)) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 411.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 411.89 Tm (Xcode 16.4+ \(release toolchain baseline\)) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 393.89 Tm (-) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 70.69 393.89 Tm (Swift 5.9+ \(Swift 6 toolchains supported\)) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 375.89 Tm (4. Install \(SPM\)) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 353.89 Tm (Add package dependency \(mobile-dist or direct distribution manifest\) and link) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 339.89 Tm (`NeurolabsSDK`.) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 319.89 Tm (5. SDK Initialization + Warmup) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 124.89 481.89 183.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 285.89 Tm (import NeurolabsSDK) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 274.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 263.89 Tm (final class CaptureCoordinator {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 252.89 Tm (    let sdk = NeurolabsSDKCore\(configuration: .init\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 241.89 Tm (        apiKey: "<API_KEY>",) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 230.89 Tm (        apiBaseURL: URL\(string: "https://api.neurolabs.ai"\)!,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 219.89 Tm (        taskUUID: "<DEFAULT_TASK_UUID>",) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 208.89 Tm (        debugLogging: true) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 197.89 Tm (    \)\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 186.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 175.89 Tm (    func prepare\(\) {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 164.89 Tm (        // SDK starts image pipeline preparation during init.) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 153.89 Tm (        // Optional: observe loading progress through delegate.) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 142.89 Tm (    }) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 131.89 Tm (}) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 16 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Length 1419 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 4) Tj ET
+0.000000 0.000000 0.000000 rg
+BT /F2 13.00 Tf 1 0 0 1 56.69 771.89 Tm (6. Queue Management) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 598.89 481.89 161.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 737.89 Tm (Task {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 726.89 Tm (    await sdk.setAutoSyncEnabled\(true\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 715.89 Tm (    await sdk.setWifiOnlyUploadsEnabled\(false\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 704.89 Tm (    await sdk.setDeletePhotosOnUploadSuccess\(true\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 693.89 Tm (    await sdk.setMaxQueueSize\(200\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 682.89 Tm (    await sdk.setUploadRetryCount\(5\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 671.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 660.89 Tm (    let status = await sdk.getQueueStatus\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 649.89 Tm (    print\("pending=\\\(status.pendingCount\) failed=\\\(status.failedCount\)"\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 638.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 627.89 Tm (    await sdk.flushQueue\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 616.89 Tm (    await sdk.retryFailedUploads\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 605.89 Tm (}) Tj ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 16 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 10 0 R >>
+endobj
+12 0 obj
+<< /Length 4843 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 5) Tj ET
 0.000000 0.000000 0.000000 rg
 BT /F2 13.00 Tf 1 0 0 1 56.69 771.89 Tm (7. Open Custom Camera) Tj ET
 0.929412 0.333333 0.000000 RG
@@ -181,16 +303,16 @@ BT /F1 10.50 Tf 1 0 0 1 70.69 107.89 Tm (Use `showsCapturedCountLabel = false` t
 BT /F1 10.50 Tf 1 0 0 1 70.69 93.89 Tm (captured` shown.) Tj ET
 endstream
 endobj
-9 0 obj
-<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 8 0 R >>
+13 0 obj
+<< /Type /Page /Parent 16 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 12 0 R >>
 endobj
-10 0 obj
+14 0 obj
 << /Length 4551 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 4) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 6) Tj ET
 0.000000 0.000000 0.000000 rg
 BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 70.69 771.89 Tm (`guidanceMode: .guidance` should only be used as a temporary fallback if a partner) Tj ET
@@ -249,33 +371,37 @@ BT /F1 10.50 Tf 1 0 0 1 56.69 119.89 Tm (-) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 70.69 119.89 Tm (Ensure `NSCameraUsageDescription` is present in app `Info.plist`.) Tj ET
 endstream
 endobj
-11 0 obj
-<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 10 0 R >>
+15 0 obj
+<< /Type /Page /Parent 16 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 14 0 R >>
 endobj
-12 0 obj
-<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R 11 0 R] /Count 4 >>
+16 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R] /Count 6 >>
 endobj
-13 0 obj
-<< /Type /Catalog /Pages 12 0 R >>
+17 0 obj
+<< /Type /Catalog /Pages 16 0 R >>
 endobj
 xref
-0 14
+0 18
 0000000000 65535 f 
 0000000015 00000 n 
 0000000085 00000 n 
 0000000160 00000 n 
 0000000228 00000 n 
-0000003612 00000 n 
-0000003765 00000 n 
-0000006521 00000 n 
-0000006674 00000 n 
-0000011569 00000 n 
-0000011722 00000 n 
-0000016326 00000 n 
-0000016481 00000 n 
-0000016558 00000 n 
+0000005286 00000 n 
+0000005439 00000 n 
+0000010269 00000 n 
+0000010422 00000 n 
+0000014640 00000 n 
+0000014793 00000 n 
+0000016265 00000 n 
+0000016420 00000 n 
+0000021316 00000 n 
+0000021471 00000 n 
+0000026075 00000 n 
+0000026230 00000 n 
+0000026321 00000 n 
 trailer
-<< /Size 14 /Root 13 0 R >>
+<< /Size 18 /Root 17 0 R >>
 startxref
-16609
+26372
 %%EOF

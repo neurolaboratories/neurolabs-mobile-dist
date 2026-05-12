@@ -5,19 +5,74 @@ This guide is for partner hybrid apps integrating `neurolabs-cordova-sdk`.
 
 ## 2. Changes
 
+The Cordova plugin is a thin bridge over the native SDKs, so most changes
+listed here come from the underlying `neurolabs-android-sdk` and
+`neurolabs-ios-sdk` releases that the plugin pulls via
+`scripts/prepare-sdk.js` at install time. No public JS API has been broken
+since v1.1.9.
+
+### v1.3.2
+- Plugin pulls native SDK v1.3.2 binaries on `cordova plugin add`:
+  Android AAR + iOS xcframework refreshed via the mobile-dist manifests.
+- Native v1.3.2 highlights (no JS surface change required):
+  - Mixpanel ingestion now lands in the EU region (events were
+    previously POSTed to the US endpoint and silently dropped). iOS also
+    fixes a separate bug where Mixpanel rejected every event because
+    `time` was serialized as a string rather than a JSON number.
+  - Done button stays responsive while the SDK persists captures — disk
+    I/O moved off the main thread on both platforms, inline spinner /
+    progress indicator surfaced.
+  - Android: native `SIGSEGV` fix in
+    `com.google.ai.edge.litert.Model.nativeLoadAsset` when the TFLite
+    asset is stored compressed in the APK; the loader probes the asset
+    with `AssetManager.openFd` first and extracts to internal storage
+    when the asset is not mmap-able.
+  - Onboarding barcode pipeline normalises to GTIN-14 end-to-end and
+    propagates the scanned barcode format through every product-lookup
+    client.
+  - iOS: new `NLOperationsCatalogClient` (in `ProductAuditKit`) for the
+    operations catalog; replaces `precondition`-based validation with
+    thrown errors so a malformed barcode no longer crashes the host app.
+
+### v1.2.5
+- Native sequence-counter parity: Cordova bridge surfaces the
+  `showsSequenceCounterLabel` (and `showsCapturedCountLabel`) options to
+  match the native SDK toggles.
+- Demo SDK setup builds fixed; iOS Sentry injection timing hardened;
+  Android LiteRT dependency pinning correction; sequence-counter
+  argument plumbed through correctly.
+
 ### v1.2.3
-- `openCamera` supports `cameraMode: "ar" | "default"` — `"default"` enables the 0.5×/1× lens switcher on both iOS and Android.
-- `init` supports `analyticsEnabled`, `sentryEnabled`, `sentryDsn` for controlling SDK analytics and crash reporting.
-- Tightened default quality validation thresholds (blur, glare, perspective) across both platforms.
+- `openCamera` supports `cameraMode: "ar" | "default"` — `"default"`
+  enables the 0.5×/1× lens switcher on both iOS and Android.
+- `init` supports `analyticsEnabled`, `sentryEnabled`, `sentryDsn` for
+  controlling SDK analytics and crash reporting.
+- Tightened default quality validation thresholds (blur, glare,
+  perspective) across both platforms.
+
+### v1.2.2
+- Internal: Android plugin integration handling refactor; no public JS
+  API change.
+
+### v1.2.1
+- Cordova install hooks hardened; demo integration updated.
+
+### v1.2.0
+- Internal scaffolding for the v1.2.x line; no JS API change.
 
 ### v1.1.9
 - Init and per-session routing use `taskUUID`.
-- Native detector/model warmup is enforced in `init` and guarded in `openCamera`.
-- `openCamera` can return `MODEL_INIT_FAILED` when native model initialization fails.
-- `autoCloseAfterCapture=true` now keeps preview enabled and closes after Save confirmation.
-- Manual finish (`Done`) is available when `autoCloseAfterCapture=false` and `allowManualFinish=true`.
+- Native detector/model warmup is enforced in `init` and guarded in
+  `openCamera`.
+- `openCamera` can return `MODEL_INIT_FAILED` when native model
+  initialization fails.
+- `autoCloseAfterCapture=true` now keeps preview enabled and closes
+  after Save confirmation.
+- Manual finish (`Done`) is available when `autoCloseAfterCapture=false`
+  and `allowManualFinish=true`.
 - `cameraClosed` event now includes `message`.
-- `captureQueued` events are deferred while camera is open and flushed after `cameraClosed`.
+- `captureQueued` events are deferred while camera is open and flushed
+  after `cameraClosed`.
 
 ## 3. Install
 
