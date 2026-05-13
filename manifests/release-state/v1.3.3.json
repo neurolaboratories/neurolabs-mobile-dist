@@ -3,7 +3,7 @@
   "artifacts": {
     "android": {
       "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.3.3/neurolabs-android-sdk-v1.3.3.aar",
-      "checksum_sha256": "10a74cbca8aee9cdd974f7162948aa8ed5d5d510c27773c983a06ba8e2842989",
+      "checksum_sha256": "0261421f1755ec31148c1f2859f1f77b8d78afbb466771e81d4886a7f902f3e5",
       "maven": {
         "repository_url": "https://maven.pkg.github.com/neurolaboratories/neurolabs-mobile-dist",
         "group_id": "ai.neurolabs",
