@@ -1,0 +1,49 @@
+name: Threshold Parity Guard
+
+# Cross-checks numeric guidance / quality thresholds across the iOS and Android
+# SDK source trees. Fails if a default has drifted between platforms — the
+# Cordova plugin and partners assume the two stay in lockstep (the 1.3.2
+# audit found 1.5s vs 5.0s grace period and 0.15 vs 0.25 blur thresholds; the
+# 1.3.3 release pulled them back into parity but only a guard prevents
+# re-drift).
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/check_threshold_parity.py"
+      - ".github/workflows/threshold-parity-guard.yml"
+  schedule:
+    # Run nightly so a drift introduced on either SDK without touching the
+    # dist repo is still caught within 24h.
+    - cron: "0 5 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout dist repo
+        uses: actions/checkout@v4
+
+      - name: Checkout Android SDK
+        uses: actions/checkout@v4
+        with:
+          repository: neurolaboratories/neurolabs-android-sdk
+          path: external/neurolabs-android-sdk
+          token: ${{ secrets.DIST_REPO_PAT }}
+
+      - name: Checkout iOS SDK
+        uses: actions/checkout@v4
+        with:
+          repository: neurolaboratories/neurolabs-ios-sdk
+          path: external/neurolabs-ios-sdk
+          token: ${{ secrets.DIST_REPO_PAT }}
+
+      - name: Run parity check
+        run: |
+          python3 scripts/check_threshold_parity.py \
+            --android-root external/neurolabs-android-sdk \
+            --ios-root external/neurolabs-ios-sdk
