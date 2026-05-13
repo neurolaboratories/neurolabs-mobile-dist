@@ -72,48 +72,50 @@ def _sources(android_root: Path, ios_root: Path) -> tuple[Source, Source]:
     ios_engine = ios_root / "Sources/SDK/CaptureUI/NLCustomGuidanceEngine.swift"
     ios_camera_config = ios_root / "Sources/SDK/CaptureUI/NLCameraConfiguration.swift"
 
+    # Patterns are line-anchored (`re.MULTILINE` + `^\s*`) so commented-out
+    # declarations or string-literal references elsewhere in the file cannot
+    # masquerade as the active default. Each pattern matches the line that
+    # *defines* the threshold.
+    ML = re.MULTILINE
+
     android = Source(
         label="android",
         fields=[
-            (android_engine, "noShelfGracePeriod", re.compile(r"noShelfGracePeriod\s*=\s*([0-9.]+)")),
-            (android_engine, "angleOffWarningThresholdDegrees", re.compile(r"angleOffWarningThresholdDegrees\s*=\s*([0-9.]+)")),
-            (android_engine, "directionalPerspectiveThreshold", re.compile(r"directionalPerspectiveThreshold\s*=\s*([0-9.]+)")),
-            (android_engine, "guidanceDebounceInterval", re.compile(r"guidanceDebounceInterval\s*=\s*([0-9.]+)")),
-            (android_engine, "guidanceMessageCooldown", re.compile(r"guidanceMessageCooldown\s*=\s*([0-9.]+)")),
-            (android_evaluator, "blurScoreThreshold", re.compile(r"LIVE_BLUR_SCORE_THRESHOLD\s*=\s*([0-9.]+)")),
-            (android_evaluator, "motionBlurRatioThreshold", re.compile(r"LIVE_MOTION_BLUR_RATIO_THRESHOLD\s*=\s*([0-9.]+)")),
+            (android_engine, "noShelfGracePeriod", re.compile(r"^\s*(?:private\s+)?val\s+noShelfGracePeriod\s*=\s*([0-9.]+)", ML)),
+            (android_engine, "angleOffWarningThresholdDegrees", re.compile(r"^\s*(?:private\s+)?val\s+angleOffWarningThresholdDegrees\s*=\s*([0-9.]+)", ML)),
+            (android_engine, "directionalPerspectiveThreshold", re.compile(r"^\s*(?:private\s+)?val\s+directionalPerspectiveThreshold\s*=\s*([0-9.]+)", ML)),
+            (android_engine, "guidanceDebounceInterval", re.compile(r"^\s*(?:private\s+)?val\s+guidanceDebounceInterval\s*=\s*([0-9.]+)", ML)),
+            (android_engine, "guidanceMessageCooldown", re.compile(r"^\s*(?:private\s+)?val\s+guidanceMessageCooldown\s*=\s*([0-9.]+)", ML)),
+            (android_evaluator, "blurScoreThreshold", re.compile(r"^\s*(?:private\s+)?const\s+val\s+LIVE_BLUR_SCORE_THRESHOLD\s*=\s*([0-9.]+)", ML)),
+            (android_evaluator, "motionBlurRatioThreshold", re.compile(r"^\s*(?:private\s+)?const\s+val\s+LIVE_MOTION_BLUR_RATIO_THRESHOLD\s*=\s*([0-9.]+)", ML)),
         ],
     )
 
     ios = Source(
         label="ios",
         fields=[
-            (ios_engine, "noShelfGracePeriod", re.compile(r"noShelfGracePeriod:\s*TimeInterval\s*=\s*([0-9.]+)")),
-            (ios_engine, "angleOffWarningThresholdDegrees", re.compile(r"angleOffWarningThresholdDegrees:\s*Double\s*=\s*([0-9.]+)")),
+            (ios_engine, "noShelfGracePeriod", re.compile(r"^\s*private\s+let\s+noShelfGracePeriod:\s*TimeInterval\s*=\s*([0-9.]+)", ML)),
+            (ios_engine, "angleOffWarningThresholdDegrees", re.compile(r"^\s*private\s+let\s+angleOffWarningThresholdDegrees:\s*Double\s*=\s*([0-9.]+)", ML)),
             # iOS exposes the live perspective threshold as a `NLCameraConfiguration` init
             # default; mirror Android's `directionalPerspectiveThreshold` key here so the
             # diff compares on a shared name.
-            (ios_camera_config, "directionalPerspectiveThreshold", re.compile(r"livePerspectiveSkewWarningThreshold:\s*Double\s*=\s*([0-9.]+)")),
-            (ios_engine, "guidanceDebounceInterval", re.compile(r"guidanceDebounceInterval:\s*TimeInterval\s*=\s*([0-9.]+)")),
-            (ios_engine, "guidanceMessageCooldown", re.compile(r"guidanceMessageCooldown:\s*TimeInterval\s*\{\s*([0-9.]+)\s*\}")),
+            (ios_camera_config, "directionalPerspectiveThreshold", re.compile(r"^\s*livePerspectiveSkewWarningThreshold:\s*Double\s*=\s*([0-9.]+)", ML)),
+            (ios_engine, "guidanceDebounceInterval", re.compile(r"^\s*private\s+let\s+guidanceDebounceInterval:\s*TimeInterval\s*=\s*([0-9.]+)", ML)),
+            (ios_engine, "guidanceMessageCooldown", re.compile(r"^\s*private\s+var\s+guidanceMessageCooldown:\s*TimeInterval\s*\{\s*([0-9.]+)\s*\}", ML)),
             # iOS blur thresholds live inline in `evaluateGuidanceRules`. One regex each.
-            (ios_engine, "blurScoreThreshold", re.compile(r"blurScore\s*<\s*([0-9.]+)\s*\|\|")),
-            (ios_engine, "motionBlurRatioThreshold", re.compile(r"motionBlurRatio\s*<\s*([0-9.]+)")),
+            (ios_engine, "blurScoreThreshold", re.compile(r"^\s*return\s+blurScore\s*<\s*([0-9.]+)\s*\|\|", ML)),
+            (ios_engine, "motionBlurRatioThreshold", re.compile(r"^\s*return\s+blurScore\s*<\s*[0-9.]+\s*\|\|\s*motionBlurRatio\s*<\s*([0-9.]+)", ML)),
         ],
     )
 
     return android, ios
 
 
-def _compare(android: list[Reading], ios: list[Reading]) -> list[str]:
-    by_key_android = {r.key: r.value for r in android}
-    by_key_ios = {r.key: r.value for r in ios}
-
-    keys = sorted(set(by_key_android) | set(by_key_ios))
+def _compare(android: dict[str, float], ios: dict[str, float]) -> list[str]:
     errors: list[str] = []
-    for key in keys:
-        a = by_key_android.get(key)
-        i = by_key_ios.get(key)
+    for key in sorted(set(android) | set(ios)):
+        a = android.get(key)
+        i = ios.get(key)
         if a is None:
             errors.append(f"[missing-android] iOS has `{key}` = {i} but Android did not yield a value.")
             continue
@@ -125,16 +127,12 @@ def _compare(android: list[Reading], ios: list[Reading]) -> list[str]:
     return errors
 
 
-def _format_summary(android: list[Reading], ios: list[Reading]) -> str:
-    by_key_android = {r.key: r.value for r in android}
-    by_key_ios = {r.key: r.value for r in ios}
-    keys = sorted(set(by_key_android) | set(by_key_ios))
+def _format_summary(android: dict[str, float], ios: dict[str, float]) -> str:
+    keys = sorted(set(android) | set(ios))
     width = max((len(k) for k in keys), default=0)
     rows = ["threshold parity (android | ios):"]
     for key in keys:
-        a = by_key_android.get(key)
-        i = by_key_ios.get(key)
-        rows.append(f"  {key.ljust(width)}  android={a}  ios={i}")
+        rows.append(f"  {key.ljust(width)}  android={android.get(key)}  ios={ios.get(key)}")
     return "\n".join(rows)
 
 
@@ -145,12 +143,15 @@ def main() -> int:
     args = parser.parse_args()
 
     android_source, ios_source = _sources(args.android_root, args.ios_root)
-    android = _extract(android_source)
-    ios = _extract(ios_source)
+    # Materialise once. `_compare` and `_format_summary` both need a name->value
+    # view, so we hand them the dicts directly instead of re-traversing the
+    # `Reading` lists in each helper.
+    android_by_key = {r.key: r.value for r in _extract(android_source)}
+    ios_by_key = {r.key: r.value for r in _extract(ios_source)}
 
-    print(_format_summary(android, ios))
+    print(_format_summary(android_by_key, ios_by_key))
 
-    errors = _compare(android, ios)
+    errors = _compare(android_by_key, ios_by_key)
     if errors:
         print("\nFAIL: cross-platform threshold drift detected:", file=sys.stderr)
         for err in errors:
