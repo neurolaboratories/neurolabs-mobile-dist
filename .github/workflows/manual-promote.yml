@@ -249,6 +249,7 @@ jobs:
           git add Package.swift manifests/*.json manifests/release-state/*.json
           git diff --cached --quiet && exit 0
           git commit -m "chore(dist): manual promote for ${{ inputs.version }}"
+          git pull --rebase --autostash origin main
           git push
 
       - name: Check release readiness
@@ -306,6 +307,7 @@ jobs:
           git add docs/integration-guides manifests/guides.json
           git diff --cached --quiet && exit 0
           git commit -m "docs(dist): refresh integration guides for ${{ inputs.version }}"
+          git pull --rebase --autostash origin main
           git push
 
       - name: Update release notes

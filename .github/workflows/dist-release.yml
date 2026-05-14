@@ -241,6 +241,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Package.swift manifests/*.json manifests/release-state/*.json
           git commit -m "chore(dist): update ${{ steps.payload.outputs.platform }} for ${{ steps.payload.outputs.version }}" || exit 0
+          git pull --rebase --autostash origin main
           git push
 
       - name: Check release readiness
@@ -297,6 +298,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/integration-guides manifests/guides.json
           git commit -m "docs(dist): refresh integration guides for ${{ steps.payload.outputs.version }}" || exit 0
+          git pull --rebase --autostash origin main
           git push
 
       - name: Create or update aggregated release notes
