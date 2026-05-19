@@ -6,7 +6,7 @@
     "version": "v1.3.8",
     "asset_name": "neurolabs-android-sdk-v1.3.8.aar",
     "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.3.8/neurolabs-android-sdk-v1.3.8.aar",
-    "checksum_sha256": "7ef13f5014dbb216bb35ec1ce895981f363be6c27df530c5548204c374365edb",
+    "checksum_sha256": "2da58093713ab518ea0d92d83734b6c4d42757fe10a2eef45569bc9ddd96a22a",
     "gradle_example": "implementation(files(\"libs/neurolabs-android-sdk-v1.2.5.aar\"))",
     "maven": {
       "repository_url": "https://maven.pkg.github.com/neurolaboratories/neurolabs-mobile-dist",
