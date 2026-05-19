@@ -54,6 +54,13 @@ def _extract(source: Source) -> list[Reading]:
         body = _read(path)
         match = pattern.search(body)
         if not match:
+            # Constants intentionally retired on one platform (tracked in
+            # `ALLOWED_PLATFORM_ONLY`) must be silently skipped here so the
+            # comparator gets a clean `None` and can apply the allow-list.
+            # Hard-failing on absence is correct for the steady-state case
+            # but blocks legitimate UX deprecations.
+            if key in ALLOWED_PLATFORM_ONLY:
+                continue
             raise ValueError(
                 f"Could not locate `{key}` in {path} using pattern `{pattern.pattern}`. "
                 "Threshold parity check needs each platform to keep its defaults at the source-of-truth location."
@@ -117,14 +124,57 @@ def _compare(android: dict[str, float], ios: dict[str, float]) -> list[str]:
         a = android.get(key)
         i = ios.get(key)
         if a is None:
+            if key in ALLOWED_PLATFORM_ONLY:
+                # Intentionally absent on Android — e.g. directionalPerspectiveThreshold
+                # was retired on Android when the single-message guidance UX
+                # replaced the per-direction pills.
+                continue
             errors.append(f"[missing-android] iOS has `{key}` = {i} but Android did not yield a value.")
             continue
         if i is None:
+            if key in ALLOWED_PLATFORM_ONLY:
+                continue
             errors.append(f"[missing-ios] Android has `{key}` = {a} but iOS did not yield a value.")
             continue
         if abs(a - i) > 1e-6:
+            if key in ALLOWED_DEVIATIONS:
+                # Intentional Android deviation. Each entry must cite the
+                # justification in the SDK source via an `ANDROID DEVIATION`
+                # marker comment alongside the constant; the guard only checks
+                # that the deviation is registered here, not its magnitude.
+                continue
             errors.append(f"[drift] `{key}`: android={a}, ios={i}")
     return errors
+
+
+# Keys where Android intentionally diverges from iOS. Keep this list short.
+# Each addition must point at an `ANDROID DEVIATION` comment block in the
+# Android source explaining why the platforms cannot stay in lockstep — see
+# `sdk/src/main/kotlin/ai/neurolabs/sdk/ui/NLCustomGuidanceEngineAndroid.kt`
+# and `sdk/src/main/kotlin/ai/neurolabs/sdk/ui/NLCustomGuidanceEvaluator.kt`
+# for the v1.3.9 entries.
+ALLOWED_DEVIATIONS: set[str] = {
+    # Galaxy A14 + many mid-tier Android sensors (TYPE_GAME_ROTATION_VECTOR
+    # remapped via AXIS_X/AXIS_Z) carry 4-6° of bias + drift after baseline
+    # lock — iOS-parity 12° latched "Face the shelf straight on" within
+    # seconds of a clean perpendicular pose. Bumped to 20°.
+    "angleOffWarningThresholdDegrees",
+    # Live perspectiveSkew metric on the Android CameraX RGBA + downscale
+    # path reads 0.5-1.2 on perpendicular shelf scenes vs iPhone 0.04-0.10.
+    # Same physical pose, different image-gradient distribution.
+    "directionalPerspectiveThreshold",
+}
+
+# Keys allowed to be absent on the platform that did not yield a value.
+# Retired-on-one-platform constants land here so the guard does not fail
+# when a key disappears as part of a UX refactor.
+ALLOWED_PLATFORM_ONLY: set[str] = {
+    # Android dropped directional pills in v1.3.7 (single straight-on
+    # message). iOS still surfaces the value via NLCameraConfiguration.
+    # Listed for the missing-android case; also in ALLOWED_DEVIATIONS for
+    # the drift case during the transition window.
+    "directionalPerspectiveThreshold",
+}
 
 
 def _format_summary(android: dict[str, float], ios: dict[str, float]) -> str:
