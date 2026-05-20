@@ -4,6 +4,10 @@
     "cordova": {
       "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.3.10/neurolabs-cordova-sdk-v1.3.10.tgz",
       "checksum_sha256": "cd08e189429dee158b78e14fddc118a18fb20f0ee613672d19a4048242e7e64e"
+    },
+    "ios": {
+      "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.3.10/NeurolabsSDK.xcframework-v1.3.10.zip",
+      "checksum_sha256": "800157f7421e5878ac288c5e30b24f551613895cb67aa818b708c29bec2d4d29"
     }
   }
 }
