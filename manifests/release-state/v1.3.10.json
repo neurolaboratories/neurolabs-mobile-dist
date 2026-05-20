@@ -1,0 +1,9 @@
+{
+  "version": "v1.3.10",
+  "artifacts": {
+    "cordova": {
+      "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.3.10/neurolabs-cordova-sdk-v1.3.10.tgz",
+      "checksum_sha256": "cd08e189429dee158b78e14fddc118a18fb20f0ee613672d19a4048242e7e64e"
+    }
+  }
+}
