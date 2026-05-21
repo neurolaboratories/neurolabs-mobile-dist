@@ -11,7 +11,7 @@
     },
     "android": {
       "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.3.10/neurolabs-android-sdk-v1.3.10.aar",
-      "checksum_sha256": "18b0c954d396237372a5a13c835607af5e45b1cb668860bb66dd033ed6d7a20d",
+      "checksum_sha256": "79dda50089d47db1adf342dbcd911f7104ea4e519426b8a1db7e953cc27e2b20",
       "maven": {
         "repository_url": "https://maven.pkg.github.com/neurolaboratories/neurolabs-mobile-dist",
         "group_id": "ai.neurolabs",
