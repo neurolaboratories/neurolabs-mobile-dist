@@ -163,6 +163,18 @@ ALLOWED_DEVIATIONS: set[str] = {
     # path reads 0.5-1.2 on perpendicular shelf scenes vs iPhone 0.04-0.10.
     # Same physical pose, different image-gradient distribution.
     "directionalPerspectiveThreshold",
+    # iOS bumped to 5.0s for sparse-object scenes (single bottle / lone
+    # product) where the YOLO detector emits 0 detections on 95-98% of
+    # frames — the 1.5s grace latched "Point at a shelf" within a couple
+    # of seconds even on perfectly framed scenes. Android keeps 1.5s
+    # because the Galaxy A14 detector hit-rate stays high enough on
+    # sparse scenes that the wider grace would let stale "no shelf in
+    # frame" cases linger past the user's tolerance. Same rule
+    # semantics, platform-specific tuning. The iOS source comment at
+    # `NLCustomGuidanceEngine.swift`'s `noShelfGracePeriod` constant
+    # explains the bump; this entry registers the deviation here so the
+    # guard treats it as intentional.
+    "noShelfGracePeriod",
 }
 
 # Keys allowed to be absent on the platform that did not yield a value.
