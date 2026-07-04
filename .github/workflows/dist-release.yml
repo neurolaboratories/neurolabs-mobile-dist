@@ -198,6 +198,10 @@ jobs:
           latest["checksum_sha256"] = os.environ["CHECKSUM"]
           latest["asset_name"] = os.environ["ASSET_NAME"]
           if platform == "android":
+              # Regenerate the local-AAR snippet so it tracks the new asset —
+              # same stale-field class as cordova's install_example below; it
+              # sat frozen at v1.2.5 because only the maven fields were updated.
+              latest["gradle_example"] = f'implementation(files("libs/{os.environ["ASSET_NAME"]}"))'
               metadata_raw = os.environ.get("ANDROID_MAVEN_METADATA_JSON", "")
               if metadata_raw:
                   metadata = json.loads(metadata_raw)
