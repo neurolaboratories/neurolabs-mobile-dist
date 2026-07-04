@@ -29,12 +29,20 @@ def main() -> int:
         return 1
 
     state = json.loads(state_file.read_text())
-    version = (state.get("version") or "").strip()
-    if not version:
-        print("Release not ready. State file has no version.", file=sys.stderr)
+    if not isinstance(state, dict):
+        print("Release not ready. State file is not a JSON object.", file=sys.stderr)
         return 2
 
-    artifacts = state.get("artifacts") or {}
+    version = state.get("version")
+    if not isinstance(version, str) or not version.strip():
+        print("Release not ready. State file has no valid version string.", file=sys.stderr)
+        return 2
+    version = version.strip()
+
+    artifacts = state.get("artifacts")
+    if not isinstance(artifacts, dict):
+        print("Release not ready. State file has no valid artifacts dictionary.", file=sys.stderr)
+        return 2
     missing = sorted(REQUIRED - set(artifacts.keys()))
     if missing:
         print(f"Release not ready. Missing platforms: {', '.join(missing)}", file=sys.stderr)
@@ -42,16 +50,20 @@ def main() -> int:
 
     problems = []
     for platform in sorted(REQUIRED):
-        entry = artifacts.get(platform) or {}
+        entry = artifacts.get(platform)
+        if not isinstance(entry, dict):
+            problems.append(f"{platform}: invalid platform entry (expected an object)")
+            continue
         asset_url = (entry.get("asset_url") or "").strip()
         checksum = (entry.get("checksum_sha256") or "").strip()
         if not asset_url:
             problems.append(f"{platform}: empty asset_url")
         if not checksum:
             problems.append(f"{platform}: empty checksum_sha256")
-        # Asset URLs embed the tag (…/releases/download/<version>/<asset>);
-        # a mismatch means a stale artifact from a different version.
-        if asset_url and version not in asset_url:
+        # Asset URLs embed the tag as a path segment
+        # (…/releases/download/<version>/<asset>); matching the full segment
+        # avoids prefix collisions (v1.4.3 inside v1.4.30).
+        if asset_url and f"/releases/download/{version}/" not in asset_url:
             problems.append(f"{platform}: asset_url does not reference {version} ({asset_url})")
 
     if problems:
