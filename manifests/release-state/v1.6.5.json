@@ -7,7 +7,7 @@
     },
     "android": {
       "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.5/neurolabs-android-sdk-v1.6.5.aar",
-      "checksum_sha256": "e0dc77cdafd7f775a4bb109a408df3a749139e04dbe299a322431f8742072816",
+      "checksum_sha256": "dec24abd2b4d015423b6a0fca32e3bfcdd3edeccad4fe2ea665ec1dba833cc95",
       "maven": {
         "repository_url": "https://maven.pkg.github.com/neurolaboratories/neurolabs-mobile-dist",
         "group_id": "ai.neurolabs",
