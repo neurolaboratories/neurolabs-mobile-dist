@@ -18,7 +18,16 @@ def main() -> int:
         return 1
 
     text = manifest.read_text()
-    updated = re.sub(r'url: ".*?"', f'url: "{asset_url}"', text, count=1)
+    # Scope the url rewrite to the neurolaboratories asset URL (the binaryTarget)
+    # so it never clobbers the getsentry SentryShim `.package(url:)` dependency,
+    # which appears earlier in the manifest. checksum: is unique to the
+    # binaryTarget (the Sentry dep pins via `exact:`, not a checksum).
+    updated = re.sub(
+        r'url: "https://github\.com/neurolaboratories/[^"]*"',
+        f'url: "{asset_url}"',
+        text,
+        count=1,
+    )
     updated = re.sub(r'checksum: ".*?"', f'checksum: "{checksum}"', updated, count=1)
 
     if updated == text:
