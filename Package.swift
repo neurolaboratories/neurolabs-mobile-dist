@@ -27,8 +27,8 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "NeurolabsSDK",
-            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.5/NeurolabsSDK.xcframework-v1.6.5.zip",
-            checksum: "2d16542c727b4583f97f0e47717e877a21629af835ce5bcb2f5633aceebc9886"
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.6/NeurolabsSDK.xcframework-v1.6.6.zip",
+            checksum: "af99b813609625d6d49392f3e87dc337af7bc72f4539fc8016269233f84edfdc"
         ),
         .target(
             name: "NLSentryShim",
