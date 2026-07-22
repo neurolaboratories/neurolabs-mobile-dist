@@ -299,7 +299,8 @@ await Neurolabs.openCamera({
 });
 ```
 
-Out-of-range values reject with `INVALID_ARGUMENT`. An optional
+Out-of-range values reject with `INVALID_ARGUMENT`, as does
+`minBays > maxBays`. An optional
 `guidanceStyle: 'classic' | 'glance'` (case-insensitive) selects the
 guidance overlay style.
 
@@ -327,8 +328,17 @@ Neurolabs.addListener('cameraClosed', ({ sessionId, cancelled, captureCount, mes
 ```
 
 `dedupTrusted: false` means the on-device de-duplication could not be fully
-trusted (e.g. insufficient overlap) — the backend re-de-duplicates
-authoritatively, so treat `countsByLabel` as provisional in that case.
+trusted (the cross-bay alignment chain broke, the dedup timed out, or
+`onDeviceDedup` was disabled) — counts are then per-bay sums (an upper
+bound); the backend re-de-duplicates authoritatively, so treat
+`countsByLabel` as provisional in that case.
+
+There is no partner-facing in-camera bay-mode switch: the Single ↔
+Multi-bay toggle shown in Neurolabs demo builds is internal debug chrome
+(gated behind `NLSDKDebug.internalCameraToolsEnabled` on iOS and its
+Android equivalent, never enabled in partner builds). The capture mode is
+controlled purely by config: pass `multiBay` for a multi-bay session, omit
+it for single-bay.
 
 ## 7. Post-Processing + Lifecycle Events
 

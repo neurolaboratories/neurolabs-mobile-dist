@@ -243,7 +243,86 @@ neurolabsSDK.openNativeCaptureUI(config: config, sessionId: sessionId)
 
 Use `NLNativeCaptureOptions` with the same field names when the bridge payload is built from JS or other app code.
 
-## 9. Post-Processing Hooks
+## 9. Multi-Bay Capture (Long Shelves)
+
+Multi-bay capture handles shelves too long for a single photo: the user
+side-steps along the shelf and captures one overlapping photo per bay,
+the SDK guides the side-step, dedups the overlap on device, and reports
+merged product counts across bays in a single session result.
+
+Enable it by setting `NLCameraConfiguration.multiBay` (nil = feature off,
+the default):
+
+```swift
+var config = NLCameraConfiguration()
+config.multiBay = NLMultiBayOptions(
+    minBays: 2,                   // minimum bays before the session can finish (default 1)
+    maxBays: 4,                   // maximum bays per session (default 8, hard cap 8)
+    targetOverlapFraction: 0.30,  // fraction of the previous bay kept visible (default 0.30)
+    minDetectionConfidence: 0.5,  // confidence floor for merge/count participation (default 0.5)
+    onDeviceDedup: true,          // run overlap dedup at session finish (default true)
+    generatePreview: true,        // compose the display-only stitched preview (default true)
+    previewMaxDimension: 2048     // preview long-edge cap (default 2048, clamped 512...4096)
+)
+
+sdk.openCustomCameraUI(configuration: config, handlers: handlers)
+```
+
+On the WebView bridge the same options travel as
+`NLNativeCaptureOptions.multiBay` (`NLNativeMultiBayConfig`): every field
+is optional and absent fields take the `NLMultiBayOptions` defaults. The
+field names are camelCase and identical across iOS, Android, and Cordova.
+
+Reading merged results:
+- Native session result: `NLCaptureSessionResult.multiBay`
+  (`NLMultiBayResult?`, nil unless the session ran multi-bay) carries
+  `bays: [NLBaySummary]`, `mergedProducts: [NLMergedProduct]`,
+  `countsByLabel: [String: Int]`, the stitched preview
+  (`previewImageData` / `previewImageFileUri`), and `dedupTrusted`.
+- Use `NLMultiBayResult.productCount` for a product tally — it sums only
+  `sku_single` + `sku_multipack`; `countsByLabel` also carries
+  price/promo/poster buckets, so summing every label over-counts
+  products.
+- Bridge / SDK-managed flows: the `native_capture_result` payload carries
+  `multiBay: NLNativeMultiBayResultSummary` with `countsByLabel`,
+  `baysCount`, `dedupTrusted`, and `previewImageFileUri`. Preview bytes
+  are intentionally not sent over the bridge; the file URI is present
+  only when a stable spilled file exists.
+
+Meaning of `dedupTrusted`:
+- `true` — counts and `mergedProducts` are on-device deduped: each
+  physical product instance is counted once across overlapping bays.
+- `false` — an adjacent-pair alignment broke, the dedup timed out, or
+  `onDeviceDedup` was disabled; counts are then the per-bay sum (an
+  upper bound), not a deduped count.
+
+Upload semantics:
+- Each bay photo uploads as a normal capture through the operations
+  queue (resumable mission flow, one image per capture).
+- On `stopSession` the mission submit attaches a compact merge summary
+  (`{bays, counts_by_label, dedup_trusted, sdk_version,
+  ref_homographies}`) as structured `client_metadata.device_dedup` plus,
+  transitionally, a `notes` duplicate for older backends — so the
+  backend can re-dedup authoritatively.
+- SDK-managed flows (`openNativeCaptureUI`, `openCustomCameraUI`,
+  bridge-driven capture) record that summary automatically. Only hosts
+  presenting their own custom capture UI must pass
+  `NLMultiBayResult.submitNotesJSON()` to
+  `setMultiBaySubmitNotes(_:forSession:)` before `stopSession(_:)`.
+
+Config-only mode:
+- There is no partner-facing in-camera mode toggle. The Single ↔
+  Multi-bay capture-mode chip and sheet are internal demo/debug chrome
+  gated behind `NLSDKDebug.internalCameraToolsEnabled` (default `false`;
+  never enable it in partner builds). Partners control the mode purely
+  via configuration: `multiBay` set = multi-bay session, `multiBay = nil`
+  = single-bay session.
+- The Neurolabs demo app enables that chrome only in local Debug builds;
+  TestFlight/Release demo builds default to single-bay exactly like
+  partner builds. The multi-bay feature itself is fully available in all
+  builds via configuration — only the demo defaults changed.
+
+## 10. Post-Processing Hooks
 - `onSave` receives each approved capture.
 - `onSaveAll` receives final batch in multi-capture mode.
 - `onUploadRequested` exists but default queueing is done in `onSave` / `onSaveAll` path.
@@ -257,7 +336,7 @@ let handlers = NLCustomCameraHandlers(
 )
 ```
 
-## 9. Delegate/Event Callbacks
+## 11. Delegate/Event Callbacks
 
 ```swift
 final class SDKDelegate: NeurolabsSDKDelegate {
@@ -270,6 +349,6 @@ final class SDKDelegate: NeurolabsSDKDelegate {
 sdk.delegate = SDKDelegate()
 ```
 
-## 10. Notes
+## 12. Notes
 - Per-session routing is supported via native capture config task UUID overrides.
 - Ensure `NSCameraUsageDescription` is present in app `Info.plist`.

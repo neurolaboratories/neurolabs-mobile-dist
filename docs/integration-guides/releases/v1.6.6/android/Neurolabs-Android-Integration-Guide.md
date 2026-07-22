@@ -214,7 +214,58 @@ Recommended capture payload notes:
 - Keep `showDetections = false` and `showCapturedRegions = false` to stay on the custom-camera guidance UI path.
 - `guidanceMode = NLCaptureGuidanceMode.GUIDANCE` should only be used as a temporary fallback if a partner specifically needs looser Android behavior while a strict-guidance regression is being fixed.
 
-## 8. Post-Processing Hooks
+## 8. Multi-Bay Capture (Long Shelves)
+
+Multi-bay capture handles shelves too long for a single photo: the user side-steps along the shelf and captures one overlapping photo per bay, the SDK guides the side-step, dedups the overlap on device, and reports merged product counts across bays in a single session result.
+
+Enable it by setting `multiBay` on the capture config (`null` = feature off, the default):
+
+```kotlin
+import ai.neurolabs.sdk.models.*
+import ai.neurolabs.sdk.multibay.NLMultiBayOptions
+import ai.neurolabs.sdk.ui.openNativeCaptureUI
+
+val config = NLNativeCaptureConfig(
+    guidanceMode = NLCaptureGuidanceMode.STRICT,
+    multiBay = NLMultiBayOptions(
+        minBays = 2,                   // minimum bays before the session can finish (default 1)
+        maxBays = 4,                   // maximum bays per session (default 8, hard cap 8)
+        targetOverlapFraction = 0.30,  // fraction of the previous bay kept visible (default 0.30)
+        minDetectionConfidence = 0.5,  // confidence floor for merge/count participation (default 0.5)
+        onDeviceDedup = true,          // run overlap dedup at session finish (default true)
+        generatePreview = true,        // compose the display-only stitched preview (default true)
+        previewMaxDimension = 2048     // preview long-edge cap (default 2048, clamped 512..4096)
+    )
+)
+
+sdk.openNativeCaptureUI(
+    context = this,
+    sessionId = sessionId,
+    config = config
+)
+```
+
+The same `multiBay` field exists on `NLCameraConfiguration` for the custom-camera config path, and on the WebView/Cordova bridge payload (camelCase field names identical across iOS, Android, and Cordova; absent fields take the defaults above).
+
+Reading merged results:
+- Activity Result / bridge: `NLNativeCaptureResultPayload.multiBay` (`NLNativeMultiBayResultSummary?`, null unless the session ran multi-bay) carries `countsByLabel: Map<String, Int>`, `baysCount`, `dedupTrusted`, and `previewImageFileUri`.
+- Compose: `NLCaptureScreen` / `NLCustomCameraView` accept an `onMultiBayResult: ((NLMultiBayResult) -> Unit)?` callback delivering the full result — `bays: List<NLBaySummary>`, `mergedProducts: List<NLMergedProduct>` (one entry per physical product instance after cross-bay dedup), `countsByLabel`, the stitched preview (`previewImageData`), and `dedupTrusted`.
+- Use `NLMultiBayResult.productCount` for a product tally — it sums only `sku_single` + `sku_multipack`; `countsByLabel` also carries price/promo/poster buckets, so summing every label over-counts products.
+
+Meaning of `dedupTrusted`:
+- `true` — counts and `mergedProducts` are on-device deduped: each physical product instance is counted once across overlapping bays.
+- `false` — an adjacent-pair alignment broke, the dedup timed out, or `onDeviceDedup` was disabled; counts are then the per-bay sum (an upper bound), not a deduped count.
+
+Upload semantics:
+- Each bay photo uploads as a normal capture through the operations queue (resumable mission flow, one image per capture).
+- On `stopSession` the mission submit attaches a compact merge summary (`{bays, counts_by_label, dedup_trusted, ref_homographies, sdk_version}`) as structured `client_metadata.device_dedup` plus, transitionally, a `notes` duplicate for older backends — so the backend can re-dedup authoritatively.
+- SDK-managed capture flows record that summary automatically. Only hosts presenting their own custom capture UI must pass `NLMultiBayResult.submitNotesJSON()` to `sdk.setMultiBaySubmitNotes(notes, sessionId)` before `stopSession`.
+
+Config-only mode:
+- There is no partner-facing in-camera mode toggle. The Single ↔ Multi-bay capture-mode chip and sheet are internal demo/debug chrome gated behind `NLSDKDebug.internalCameraToolsEnabled` (default `false`; never enable it in partner builds). Partners control the mode purely via configuration: `multiBay` set = multi-bay session, `multiBay = null` = single-bay session — programmatic `multiBay` configuration is unaffected by the gate.
+- The Neurolabs demo app enables that chrome only in local debug builds; Firebase/release demo builds default to single-bay exactly like partner builds. The multi-bay feature itself is fully available in all builds via configuration — only the demo defaults changed.
+
+## 9. Post-Processing Hooks
 Use Activity Result API and process captures when camera returns.
 
 ```kotlin
@@ -237,7 +288,7 @@ private val captureLauncher = registerForActivityResult(
 }
 ```
 
-## 9. Delegate/Event Callbacks
+## 10. Delegate/Event Callbacks
 
 ```kotlin
 sdk.delegate = object : NeurolabsSDKDelegate {
@@ -251,7 +302,7 @@ sdk.delegate = object : NeurolabsSDKDelegate {
 }
 ```
 
-## 10. Notes
+## 11. Notes
 - Per-session upload routing is supported with `options.taskUUID`.
 - `autoCloseAfterCapture=true` closes after Save from preview/review flow.
 - Use `allowManualFinish = true` with `minCapturesBeforeDone` and `maxCaptures` when you want "at least X, up to Y" capture sequences.

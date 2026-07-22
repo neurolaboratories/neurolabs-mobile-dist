@@ -23,7 +23,7 @@ BT /F2 24.00 Tf 1 0 0 1 56.69 771.89 Tm (Neurolabs iOS SDK Integration Guide) Tj
 BT /F2 14.00 Tf 1 0 0 1 56.69 743.89 Tm (Technical Integration Specification) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 719.89 Tm (Document ID: NLB-IOS-INTEGRATION-GUIDE) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 705.89 Tm (Version: v1.6.6) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 691.89 Tm (Date: 2026-07-22) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 691.89 Tm (Date: 2026-07-23) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 677.89 Tm (Status: Partner integration reference) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 663.89 Tm (Owner: Neurolabs) Tj ET
 BT /F2 13.00 Tf 1 0 0 1 56.69 639.89 Tm (1. Scope) Tj ET
@@ -72,7 +72,7 @@ BT 1 0 0 1 70.69 83.89 Tm /F1 10.50 Tf (body surfaced when `debugLogging` is tru
 endstream
 endobj
 5 0 obj
-<< /Type /Page /Parent 16 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 4 0 R >>
+<< /Type /Page /Parent 20 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 4 0 R >>
 endobj
 6 0 obj
 << /Length 5185 >>
@@ -144,7 +144,7 @@ BT 1 0 0 1 70.69 107.89 Tm /F1 10.50 Tf (Initial lens switcher, memory fixes, bo
 endstream
 endobj
 7 0 obj
-<< /Type /Page /Parent 16 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 6 0 R >>
+<< /Type /Page /Parent 20 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 6 0 R >>
 endobj
 8 0 obj
 << /Length 3931 >>
@@ -201,7 +201,7 @@ BT /F3 8.20 Tf 1 0 0 1 66.69 250.89 Tm (}) Tj ET
 endstream
 endobj
 9 0 obj
-<< /Type /Page /Parent 16 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 8 0 R >>
+<< /Type /Page /Parent 20 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 8 0 R >>
 endobj
 10 0 obj
 << /Length 1419 >>
@@ -230,7 +230,7 @@ BT /F3 8.20 Tf 1 0 0 1 66.69 605.89 Tm (}) Tj ET
 endstream
 endobj
 11 0 obj
-<< /Type /Page /Parent 16 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 10 0 R >>
+<< /Type /Page /Parent 20 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 10 0 R >>
 endobj
 12 0 obj
 << /Length 4843 >>
@@ -305,10 +305,10 @@ BT 1 0 0 1 70.69 93.89 Tm /F1 10.50 Tf (captured` shown.) Tj ET
 endstream
 endobj
 13 0 obj
-<< /Type /Page /Parent 16 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 12 0 R >>
+<< /Type /Page /Parent 20 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 12 0 R >>
 endobj
 14 0 obj
-<< /Length 4551 >>
+<< /Length 5150 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
@@ -335,54 +335,154 @@ BT /F3 8.20 Tf 1 0 0 1 66.69 586.89 Tm ( ) Tj ET
 BT /F3 8.20 Tf 1 0 0 1 66.69 575.89 Tm (neurolabsSDK.openNativeCaptureUI\(config: config, sessionId: sessionId\)) Tj ET
 BT 1 0 0 1 56.69 556.89 Tm /F1 10.50 Tf (Use `NLNativeCaptureOptions` with the same field names when the bridge payload is) Tj ET
 BT 1 0 0 1 56.69 542.89 Tm /F1 10.50 Tf (built from JS or other app code.) Tj ET
-BT /F2 13.00 Tf 1 0 0 1 56.69 522.89 Tm (9. Post-Processing Hooks) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 500.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 500.89 Tm /F1 10.50 Tf (`onSave` receives each approved capture.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 482.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 482.89 Tm /F1 10.50 Tf (`onSaveAll` receives final batch in multi-capture mode.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 464.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 464.89 Tm /F1 10.50 Tf (`onUploadRequested` exists but default queueing is done in `onSave` / `onSaveAll`) Tj ET
-BT 1 0 0 1 70.69 450.89 Tm /F1 10.50 Tf (path.) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 522.89 Tm (9. Multi-Bay Capture \(Long Shelves\)) Tj ET
+BT 1 0 0 1 56.69 500.89 Tm /F1 10.50 Tf (Multi-bay capture handles shelves too long for a single photo: the user side-steps) Tj ET
+BT 1 0 0 1 56.69 486.89 Tm /F1 10.50 Tf (along the shelf and captures one overlapping photo per bay, the SDK guides the) Tj ET
+BT 1 0 0 1 56.69 472.89 Tm /F1 10.50 Tf (side-step, dedups the overlap on device, and reports merged product counts across bays) Tj ET
+BT 1 0 0 1 56.69 458.89 Tm /F1 10.50 Tf (in a single session result.) Tj ET
+BT 1 0 0 1 56.69 438.89 Tm /F1 10.50 Tf (Enable it by setting `NLCameraConfiguration.multiBay` \(nil = feature off, the) Tj ET
+BT 1 0 0 1 56.69 424.89 Tm /F1 10.50 Tf (default\):) Tj ET
 0.929412 0.333333 0.000000 RG
-56.69 358.89 481.89 84.00 re S
-BT /F3 8.20 Tf 1 0 0 1 66.69 420.89 Tm (let handlers = NLCustomCameraHandlers\() Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 409.89 Tm (    onSave: { capture in) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 398.89 Tm (        MyPostProcessor.shared.enqueue\(capture\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 387.89 Tm (        return .skipDefault) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 376.89 Tm (    }) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 365.89 Tm (\)) Tj ET
-BT /F2 13.00 Tf 1 0 0 1 56.69 334.89 Tm (9. Delegate/Event Callbacks) Tj ET
-0.929412 0.333333 0.000000 RG
-56.69 183.89 481.89 139.00 re S
-BT /F3 8.20 Tf 1 0 0 1 66.69 300.89 Tm (final class SDKDelegate: NeurolabsSDKDelegate {) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 289.89 Tm (    func neurolabsSDK\(_ sdk: NeurolabsSDKCore, didProduceCaptureResult result: NLNativeCaptur) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 278.89 Tm (eResult, for captureId: String, sessionId: String\) {}) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 267.89 Tm (    func neurolabsSDK\(_ sdk: NeurolabsSDKCore, didEncounterError error: NLError, sessionId: S) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 256.89 Tm (tring?, messageId: String?\) {}) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 245.89 Tm (    func neurolabsSDK\(_ sdk: NeurolabsSDKCore, didChangeQueueStatus status: NLQueueStatus\) {}) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 234.89 Tm (    func neurolabsSDK\(_ sdk: NeurolabsSDKCore, didUpdateLoadingProgress progress: NLLoadingPr) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 223.89 Tm (ogress\) {}) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 212.89 Tm (}) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 201.89 Tm ( ) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 190.89 Tm (sdk.delegate = SDKDelegate\(\)) Tj ET
-BT /F2 13.00 Tf 1 0 0 1 56.69 159.89 Tm (10. Notes) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 137.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 137.89 Tm /F1 10.50 Tf (Per-session routing is supported via native capture config task UUID overrides.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 119.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 119.89 Tm /F1 10.50 Tf (Ensure `NSCameraUsageDescription` is present in app `Info.plist`.) Tj ET
+56.69 253.89 481.89 161.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 392.89 Tm (var config = NLCameraConfiguration\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 381.89 Tm (config.multiBay = NLMultiBayOptions\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 370.89 Tm (    minBays: 2,                   // minimum bays before the session can finish \(default 1\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 359.89 Tm (    maxBays: 4,                   // maximum bays per session \(default 8, hard cap 8\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 348.89 Tm (    targetOverlapFraction: 0.30,  // fraction of the previous bay kept visible \(default 0.30\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 337.89 Tm (    minDetectionConfidence: 0.5,  // confidence floor for merge/count participation \(default ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 326.89 Tm (0.5\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 315.89 Tm (    onDeviceDedup: true,          // run overlap dedup at session finish \(default true\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 304.89 Tm (    generatePreview: true,        // compose the display-only stitched preview \(default true\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 293.89 Tm (    previewMaxDimension: 2048     // preview long-edge cap \(default 2048, clamped 512...4096\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 282.89 Tm (\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 271.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 260.89 Tm (sdk.openCustomCameraUI\(configuration: config, handlers: handlers\)) Tj ET
+BT 1 0 0 1 56.69 241.89 Tm /F1 10.50 Tf (On the WebView bridge the same options travel as `NLNativeCaptureOptions.multiBay`) Tj ET
+BT 1 0 0 1 56.69 227.89 Tm /F1 10.50 Tf (\(`NLNativeMultiBayConfig`\): every field is optional and absent fields take the) Tj ET
+BT 1 0 0 1 56.69 213.89 Tm /F1 10.50 Tf (`NLMultiBayOptions` defaults. The field names are camelCase and identical across iOS,) Tj ET
+BT 1 0 0 1 56.69 199.89 Tm /F1 10.50 Tf (Android, and Cordova.) Tj ET
+BT 1 0 0 1 56.69 179.89 Tm /F1 10.50 Tf (Reading merged results:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 159.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 159.89 Tm /F1 10.50 Tf (Native session result: `NLCaptureSessionResult.multiBay` \(`NLMultiBayResult?`, nil) Tj ET
+BT 1 0 0 1 70.69 145.89 Tm /F1 10.50 Tf (unless the session ran multi-bay\) carries `bays: [NLBaySummary]`, `mergedProducts:) Tj ET
+BT 1 0 0 1 70.69 131.89 Tm /F1 10.50 Tf ([NLMergedProduct]`, `countsByLabel: [String: Int]`, the stitched preview) Tj ET
+BT 1 0 0 1 70.69 117.89 Tm /F1 10.50 Tf (\(`previewImageData` / `previewImageFileUri`\), and `dedupTrusted`.) Tj ET
 endstream
 endobj
 15 0 obj
-<< /Type /Page /Parent 16 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 14 0 R >>
+<< /Type /Page /Parent 20 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 14 0 R >>
 endobj
 16 0 obj
-<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R] /Count 6 >>
+<< /Length 5616 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 7) Tj ET
+0.000000 0.000000 0.000000 rg
+BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (Use `NLMultiBayResult.productCount` for a product tally - it sums only `sku_single`) Tj ET
+BT 1 0 0 1 70.69 757.89 Tm /F1 10.50 Tf (+ `sku_multipack`; `countsByLabel` also carries price/promo/poster buckets, so) Tj ET
+BT 1 0 0 1 70.69 743.89 Tm /F1 10.50 Tf (summing every label over-counts products.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 725.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 725.89 Tm /F1 10.50 Tf (Bridge / SDK-managed flows: the `native_capture_result` payload carries `multiBay:) Tj ET
+BT 1 0 0 1 70.69 711.89 Tm /F1 10.50 Tf (NLNativeMultiBayResultSummary` with `countsByLabel`, `baysCount`, `dedupTrusted`,) Tj ET
+BT 1 0 0 1 70.69 697.89 Tm /F1 10.50 Tf (and `previewImageFileUri`. Preview bytes are intentionally not sent over the bridge;) Tj ET
+BT 1 0 0 1 70.69 683.89 Tm /F1 10.50 Tf (the file URI is present only when a stable spilled file exists.) Tj ET
+BT 1 0 0 1 56.69 665.89 Tm /F1 10.50 Tf (Meaning of `dedupTrusted`:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 645.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 645.89 Tm /F1 10.50 Tf (`true` - counts and `mergedProducts` are on-device deduped: each physical product) Tj ET
+BT 1 0 0 1 70.69 631.89 Tm /F1 10.50 Tf (instance is counted once across overlapping bays.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 613.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 613.89 Tm /F1 10.50 Tf (`false` - an adjacent-pair alignment broke, the dedup timed out, or `onDeviceDedup`) Tj ET
+BT 1 0 0 1 70.69 599.89 Tm /F1 10.50 Tf (was disabled; counts are then the per-bay sum \(an upper bound\), not a deduped count.) Tj ET
+BT 1 0 0 1 56.69 581.89 Tm /F1 10.50 Tf (Upload semantics:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 561.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 561.89 Tm /F1 10.50 Tf (Each bay photo uploads as a normal capture through the operations queue \(resumable) Tj ET
+BT 1 0 0 1 70.69 547.89 Tm /F1 10.50 Tf (mission flow, one image per capture\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 529.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 529.89 Tm /F1 10.50 Tf (On `stopSession` the mission submit attaches a compact merge summary \(`{bays,) Tj ET
+BT 1 0 0 1 70.69 515.89 Tm /F1 10.50 Tf (counts_by_label, dedup_trusted, sdk_version, ref_homographies}`\) as structured) Tj ET
+BT 1 0 0 1 70.69 501.89 Tm /F1 10.50 Tf (`client_metadata.device_dedup` plus, transitionally, a `notes` duplicate for older) Tj ET
+BT 1 0 0 1 70.69 487.89 Tm /F1 10.50 Tf (backends - so the backend can re-dedup authoritatively.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 469.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 469.89 Tm /F1 10.50 Tf (SDK-managed flows \(`openNativeCaptureUI`, `openCustomCameraUI`, bridge-driven) Tj ET
+BT 1 0 0 1 70.69 455.89 Tm /F1 10.50 Tf (capture\) record that summary automatically. Only hosts presenting their own custom) Tj ET
+BT 1 0 0 1 70.69 441.89 Tm /F1 10.50 Tf (capture UI must pass `NLMultiBayResult.submitNotesJSON\(\)` to) Tj ET
+BT 1 0 0 1 70.69 427.89 Tm /F1 10.50 Tf (`setMultiBaySubmitNotes\(_:forSession:\)` before `stopSession\(_:\)`.) Tj ET
+BT 1 0 0 1 56.69 409.89 Tm /F1 10.50 Tf (Config-only mode:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 389.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 389.89 Tm /F1 10.50 Tf (There is no partner-facing in-camera mode toggle. The Single Multi-bay capture-mode) Tj ET
+BT 1 0 0 1 70.69 375.89 Tm /F1 10.50 Tf (chip and sheet are internal demo/debug chrome gated behind) Tj ET
+BT 1 0 0 1 70.69 361.89 Tm /F1 10.50 Tf (`NLSDKDebug.internalCameraToolsEnabled` \(default `false`; never enable it in partner) Tj ET
+BT 1 0 0 1 70.69 347.89 Tm /F1 10.50 Tf (builds\). Partners control the mode purely via configuration: `multiBay` set =) Tj ET
+BT 1 0 0 1 70.69 333.89 Tm /F1 10.50 Tf (multi-bay session, `multiBay = nil` = single-bay session.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 315.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 315.89 Tm /F1 10.50 Tf (The Neurolabs demo app enables that chrome only in local Debug builds;) Tj ET
+BT 1 0 0 1 70.69 301.89 Tm /F1 10.50 Tf (TestFlight/Release demo builds default to single-bay exactly like partner builds.) Tj ET
+BT 1 0 0 1 70.69 287.89 Tm /F1 10.50 Tf (The multi-bay feature itself is fully available in all builds via configuration -) Tj ET
+BT 1 0 0 1 70.69 273.89 Tm /F1 10.50 Tf (only the demo defaults changed.) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 255.89 Tm (10. Post-Processing Hooks) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 233.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 233.89 Tm /F1 10.50 Tf (`onSave` receives each approved capture.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 215.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 215.89 Tm /F1 10.50 Tf (`onSaveAll` receives final batch in multi-capture mode.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 197.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 197.89 Tm /F1 10.50 Tf (`onUploadRequested` exists but default queueing is done in `onSave` / `onSaveAll`) Tj ET
+BT 1 0 0 1 70.69 183.89 Tm /F1 10.50 Tf (path.) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 91.89 481.89 84.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 153.89 Tm (let handlers = NLCustomCameraHandlers\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 142.89 Tm (    onSave: { capture in) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 131.89 Tm (        MyPostProcessor.shared.enqueue\(capture\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 120.89 Tm (        return .skipDefault) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 109.89 Tm (    }) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 98.89 Tm (\)) Tj ET
+endstream
 endobj
 17 0 obj
-<< /Type /Catalog /Pages 16 0 R >>
+<< /Type /Page /Parent 20 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 16 0 R >>
+endobj
+18 0 obj
+<< /Length 1872 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 8) Tj ET
+0.000000 0.000000 0.000000 rg
+BT /F2 13.00 Tf 1 0 0 1 56.69 771.89 Tm (11. Delegate/Event Callbacks) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 620.89 481.89 139.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 737.89 Tm (final class SDKDelegate: NeurolabsSDKDelegate {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 726.89 Tm (    func neurolabsSDK\(_ sdk: NeurolabsSDKCore, didProduceCaptureResult result: NLNativeCaptur) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 715.89 Tm (eResult, for captureId: String, sessionId: String\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 704.89 Tm (    func neurolabsSDK\(_ sdk: NeurolabsSDKCore, didEncounterError error: NLError, sessionId: S) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 693.89 Tm (tring?, messageId: String?\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 682.89 Tm (    func neurolabsSDK\(_ sdk: NeurolabsSDKCore, didChangeQueueStatus status: NLQueueStatus\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 671.89 Tm (    func neurolabsSDK\(_ sdk: NeurolabsSDKCore, didUpdateLoadingProgress progress: NLLoadingPr) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 660.89 Tm (ogress\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 649.89 Tm (}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 638.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 627.89 Tm (sdk.delegate = SDKDelegate\(\)) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 596.89 Tm (12. Notes) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 574.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 574.89 Tm /F1 10.50 Tf (Per-session routing is supported via native capture config task UUID overrides.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 556.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 556.89 Tm /F1 10.50 Tf (Ensure `NSCameraUsageDescription` is present in app `Info.plist`.) Tj ET
+endstream
+endobj
+19 0 obj
+<< /Type /Page /Parent 20 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 18 0 R >>
+endobj
+20 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R] /Count 8 >>
+endobj
+21 0 obj
+<< /Type /Catalog /Pages 20 0 R >>
 endobj
 xref
-0 18
+0 22
 0000000000 65535 f 
 0000000015 00000 n 
 0000000085 00000 n 
@@ -398,11 +498,15 @@ xref
 0000016981 00000 n 
 0000021877 00000 n 
 0000022032 00000 n 
-0000026636 00000 n 
-0000026791 00000 n 
-0000026882 00000 n 
+0000027235 00000 n 
+0000027390 00000 n 
+0000033059 00000 n 
+0000033214 00000 n 
+0000035139 00000 n 
+0000035294 00000 n 
+0000035399 00000 n 
 trailer
-<< /Size 18 /Root 17 0 R >>
+<< /Size 22 /Root 21 0 R >>
 startxref
-26933
+35450
 %%EOF
