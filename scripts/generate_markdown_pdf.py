@@ -43,6 +43,90 @@ def pdf_escape(value: str) -> str:
     return value.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
 
 
+BOLD_MARKER_RE = re.compile(r"\*\*(.+?)\*\*")
+
+
+def parse_inline_runs(text: str) -> list[tuple[str, bool]]:
+    """Split text into (fragment, is_bold) runs, stripping ** markers."""
+    runs: list[tuple[str, bool]] = []
+    pos = 0
+    for match in BOLD_MARKER_RE.finditer(text):
+        if match.start() > pos:
+            runs.append((text[pos:match.start()], False))
+        runs.append((match.group(1), True))
+        pos = match.end()
+    if pos < len(text):
+        runs.append((text[pos:], False))
+    return runs or [("", False)]
+
+
+def strip_bold_markers(text: str) -> str:
+    return BOLD_MARKER_RE.sub(r"\1", text)
+
+
+def wrap_styled_text(
+    text: str,
+    max_width: float,
+    font_size: float,
+) -> list[list[tuple[str, bool]]]:
+    """Wrap text into lines of (fragment, is_bold) runs using the same
+    average-width budget as wrap_text."""
+    text = sanitize_text(text)
+    # Words as lists of (fragment, bold) runs so bold can start/end mid-word.
+    words: list[list[tuple[str, bool]]] = []
+    current_word: list[tuple[str, bool]] = []
+    for fragment, bold in parse_inline_runs(text):
+        for part in re.split(r"(\s+)", fragment):
+            if not part:
+                continue
+            if part.isspace():
+                if current_word:
+                    words.append(current_word)
+                    current_word = []
+            elif current_word and current_word[-1][1] == bold:
+                current_word[-1] = (current_word[-1][0] + part, bold)
+            else:
+                current_word.append((part, bold))
+    if current_word:
+        words.append(current_word)
+    if not words:
+        return [[("", False)]]
+
+    avg_width = font_size * 0.53
+    max_chars = max(10, int(max_width / avg_width))
+
+    def word_len(word: list[tuple[str, bool]]) -> int:
+        return sum(len(fragment) for fragment, _ in word)
+
+    line_words: list[list[list[tuple[str, bool]]]] = []
+    current_line = [words[0]]
+    current_len = word_len(words[0])
+    for word in words[1:]:
+        candidate_len = current_len + 1 + word_len(word)
+        if candidate_len <= max_chars:
+            current_line.append(word)
+            current_len = candidate_len
+        else:
+            line_words.append(current_line)
+            current_line = [word]
+            current_len = word_len(word)
+    line_words.append(current_line)
+
+    lines: list[list[tuple[str, bool]]] = []
+    for line in line_words:
+        runs: list[tuple[str, bool]] = []
+        for index, word in enumerate(line):
+            if index > 0 and runs:
+                runs[-1] = (runs[-1][0] + " ", runs[-1][1])
+            for fragment, bold in word:
+                if runs and runs[-1][1] == bold:
+                    runs[-1] = (runs[-1][0] + fragment, bold)
+                else:
+                    runs.append((fragment, bold))
+        lines.append(runs)
+    return lines
+
+
 def wrap_text(
     text: str,
     max_width: float,
@@ -101,6 +185,8 @@ class RenderProfile:
     subtitle_size: float = 14.0
     heading_font: str = "F2"
     heading_size: float = 13.0
+    heading3_font: str = "F2"
+    heading3_size: float = 11.5
     body_font: str = "F1"
     body_size: float = 10.5
     code_font: str = "F3"
@@ -111,6 +197,7 @@ class RenderProfile:
     footer_right_prefix: str = "Neurolabs SDK - Page "
     bullet_glyph: str = "-"
     heading_height: float = 22.0
+    heading3_height: float = 18.0
     heading_gap: float = 4.0
     paragraph_gap: float = 6.0
     bullet_gap: float = 4.0
@@ -247,6 +334,25 @@ class PDFBuilder:
             f"BT /{font} {size:.2f} Tf 1 0 0 1 {x:.2f} {y:.2f} Tm ({pdf_escape(text)}) Tj ET"
         )
 
+    def text_runs(
+        self,
+        x: float,
+        y: float,
+        runs: list[tuple[str, bool]],
+        regular_font: str,
+        bold_font: str,
+        size: float,
+    ) -> None:
+        """Render one line made of (fragment, is_bold) runs. Consecutive Tj
+        operators continue at the current text position, so native font
+        metrics keep inline spacing correct."""
+        parts = [f"BT 1 0 0 1 {x:.2f} {y:.2f} Tm"]
+        for fragment, bold in runs:
+            font = bold_font if bold else regular_font
+            parts.append(f"/{font} {size:.2f} Tf ({pdf_escape(fragment)}) Tj")
+        parts.append("ET")
+        self.current.commands.append(" ".join(parts))
+
     def save(self, output_path: Path) -> None:
         font_objects = {
             "F1": "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
@@ -331,10 +437,33 @@ def parse_blocks(markdown: str) -> list[tuple[str, object]]:
             blocks.append(("code", {"lang": fence_lang, "lines": code_lines}))
         elif stripped.startswith("# "):
             pass
+        elif stripped.startswith("### "):
+            blocks.append(("heading3", stripped[4:].strip()))
         elif stripped.startswith("## "):
             blocks.append(("heading", stripped[3:].strip()))
         elif stripped.startswith("- "):
-            blocks.append(("bullet", stripped[2:].strip()))
+            bullet_parts = [stripped[2:].strip()]
+            i += 1
+            # Source-wrapped bullets continue on indented lines; fold them into
+            # the bullet so the hanging indent is preserved when rendering.
+            while i < len(lines):
+                next_line = lines[i].rstrip()
+                content = next_line.strip()
+                if (
+                    next_line.startswith((" ", "\t"))
+                    and content
+                    and not content.startswith("- ")
+                    and not content.startswith("#")
+                    and not content.startswith("```")
+                ):
+                    bullet_parts.append(content)
+                    i += 1
+                else:
+                    i -= 1
+                    break
+            else:
+                i -= 1
+            blocks.append(("bullet", " ".join(bullet_parts)))
         elif stripped.strip():
             paragraph = [stripped.strip()]
             i += 1
@@ -353,11 +482,13 @@ def parse_blocks(markdown: str) -> list[tuple[str, object]]:
 def block_render_height(kind: str, payload: object, content_width: float, profile: RenderProfile) -> float:
     if kind == "heading":
         return profile.heading_height
+    if kind == "heading3":
+        return profile.heading3_height
     if kind == "paragraph":
-        lines = wrap_text(str(payload), content_width, profile.body_size)
+        lines = wrap_styled_text(str(payload), content_width, profile.body_size)
         return len(lines) * profile.body_line_height + profile.paragraph_gap
     if kind == "bullet":
-        lines = wrap_text(str(payload), content_width - 14, profile.body_size)
+        lines = wrap_styled_text(str(payload), content_width - 14, profile.body_size)
         return len(lines) * profile.body_line_height + profile.bullet_gap
     if kind == "code":
         code = payload  # type: ignore[assignment]
@@ -432,32 +563,35 @@ def render(
     content_width = PAGE_WIDTH - profile.left - profile.right
 
     for index, (kind, payload) in enumerate(blocks):
-        if kind == "heading":
-            heading = str(payload)
+        if kind in ("heading", "heading3"):
+            heading = strip_bold_markers(str(payload))
+            heading_height = profile.heading_height if kind == "heading" else profile.heading3_height
+            heading_font = profile.heading_font if kind == "heading" else profile.heading3_font
+            heading_size = profile.heading_size if kind == "heading" else profile.heading3_size
             next_block_height = 0.0
             if index + 1 < len(blocks):
                 next_kind, next_payload = blocks[index + 1]
                 next_block_height = block_render_height(next_kind, next_payload, content_width, profile)
             # Keep headings with the beginning of the next block so headings are never
             # stranded as the last line on a page.
-            needed = profile.heading_height + profile.heading_gap + next_block_height
+            needed = heading_height + profile.heading_gap + next_block_height
             if y - needed < profile.bottom_guard:
                 builder.new_page()
                 page_number += 1
                 y = start_page(page_number)
-            builder.text(profile.left, y, heading, profile.heading_font, profile.heading_size)
-            y -= profile.heading_height
+            builder.text(profile.left, y, heading, heading_font, heading_size)
+            y -= heading_height
             continue
 
         if kind == "paragraph":
-            lines = wrap_text(str(payload), content_width, profile.body_size)
+            lines = wrap_styled_text(str(payload), content_width, profile.body_size)
             needed = len(lines) * profile.body_line_height + profile.paragraph_gap
             if y - needed < profile.bottom_guard:
                 builder.new_page()
                 page_number += 1
                 y = start_page(page_number)
             for line in lines:
-                builder.text(profile.left, y, line, profile.body_font, profile.body_size)
+                builder.text_runs(profile.left, y, line, profile.body_font, "F2", profile.body_size)
                 y -= profile.body_line_height
             y -= profile.paragraph_gap
             continue
@@ -465,17 +599,17 @@ def render(
         if kind == "bullet":
             text = str(payload)
             bullet_indent = 14
-            lines = wrap_text(text, content_width - bullet_indent, profile.body_size)
+            lines = wrap_styled_text(text, content_width - bullet_indent, profile.body_size)
             needed = len(lines) * profile.body_line_height + profile.bullet_gap
             if y - needed < profile.bottom_guard:
                 builder.new_page()
                 page_number += 1
                 y = start_page(page_number)
             builder.text(profile.left, y, profile.bullet_glyph, profile.body_font, profile.body_size)
-            builder.text(profile.left + bullet_indent, y, lines[0], profile.body_font, profile.body_size)
+            builder.text_runs(profile.left + bullet_indent, y, lines[0], profile.body_font, "F2", profile.body_size)
             y -= profile.body_line_height
             for line in lines[1:]:
-                builder.text(profile.left + bullet_indent, y, line, profile.body_font, profile.body_size)
+                builder.text_runs(profile.left + bullet_indent, y, line, profile.body_font, "F2", profile.body_size)
                 y -= profile.body_line_height
             y -= profile.bullet_gap
             continue
