@@ -47,7 +47,7 @@ let package = Package(
         .binaryTarget(
             name: "ProductAuditKit",
             url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.6/ProductAuditKit.xcframework-v1.6.6.zip",
-            checksum: "83524bcd8107e461a6371d630472e26147a56217c6155625d7a4e45738ed8068"
+            checksum: "ee6dffe324188a18940ae6c1868721bf42df7b7dbe8f01a156a69daa06bb8712"
         ),
         .target(
             name: "NLSentryShim",
