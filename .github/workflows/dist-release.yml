@@ -35,6 +35,10 @@ jobs:
           SOURCE_ASSET_URL=$(jq -r '.asset_url' payload.json)
           CHECKSUM=$(jq -r '.checksum_sha256' payload.json)
           ASSET_NAME=$(jq -r '.asset_name // empty' payload.json)
+          # Optional second iOS product — ProductAuditKit ships as its own asset.
+          PAK_ASSET_NAME=$(jq -r '.productauditkit.asset_name // empty' payload.json)
+          PAK_ASSET_URL=$(jq -r '.productauditkit.asset_url // empty' payload.json)
+          PAK_CHECKSUM=$(jq -r '.productauditkit.checksum_sha256 // empty' payload.json)
           MAVEN_REPOSITORY_URL=$(jq -r '.maven.repository_url // .maven_repository_url // empty' payload.json)
           MAVEN_GROUP_ID=$(jq -r '.maven.group_id // .maven_group_id // empty' payload.json)
           MAVEN_ARTIFACT_ID=$(jq -r '.maven.artifact_id // .maven_artifact_id // empty' payload.json)
@@ -87,6 +91,9 @@ jobs:
           echo "source_asset_url=$SOURCE_ASSET_URL" >> "$GITHUB_OUTPUT"
           echo "checksum=$CHECKSUM" >> "$GITHUB_OUTPUT"
           echo "asset_name=$ASSET_NAME" >> "$GITHUB_OUTPUT"
+          echo "pak_asset_name=$PAK_ASSET_NAME" >> "$GITHUB_OUTPUT"
+          echo "pak_asset_url=$PAK_ASSET_URL" >> "$GITHUB_OUTPUT"
+          echo "pak_checksum=$PAK_CHECKSUM" >> "$GITHUB_OUTPUT"
           echo "has_android_maven=$HAS_ANDROID_MAVEN" >> "$GITHUB_OUTPUT"
           {
             echo "android_maven_metadata_json<<EOF"
@@ -154,6 +161,34 @@ jobs:
         run: |
           set -euo pipefail
           gh release upload "${{ steps.payload.outputs.version }}" "${{ steps.sync_asset.outputs.local_path }}" --clobber
+
+      - name: Sync ProductAuditKit asset (iOS, when present)
+        id: sync_pak
+        if: steps.payload.outputs.platform == 'ios' && steps.payload.outputs.pak_asset_name != ''
+        env:
+          DIST_REPO_PAT: ${{ secrets.DIST_REPO_PAT }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          PAK_NAME="${{ steps.payload.outputs.pak_asset_name }}"
+          PAK_URL="${{ steps.payload.outputs.pak_asset_url }}"
+          PAK_CS="${{ steps.payload.outputs.pak_checksum }}"
+          mkdir -p incoming
+          DEST="incoming/${PAK_NAME}"
+          SOURCE_PATH="${PAK_URL#https://github.com/}"
+          SOURCE_REPO="$(echo "$SOURCE_PATH" | cut -d/ -f1-2)"
+          SOURCE_TAG="$(echo "$SOURCE_PATH" | cut -d/ -f5)"
+          rm -f "$DEST"
+          GH_TOKEN="${DIST_REPO_PAT}" gh release download "$SOURCE_TAG" \
+            --repo "$SOURCE_REPO" --pattern "$PAK_NAME" --dir incoming
+          ACTUAL=$(sha256sum "$DEST" | awk '{print $1}')
+          if [[ "$ACTUAL" != "$PAK_CS" ]]; then
+            echo "ProductAuditKit checksum mismatch: expected=$PAK_CS actual=$ACTUAL" >&2
+            exit 1
+          fi
+          gh release upload "${{ steps.payload.outputs.version }}" "$DEST" --clobber
+          DIST_PAK_URL="https://github.com/${{ github.repository }}/releases/download/${{ steps.payload.outputs.version }}/${PAK_NAME}"
+          echo "dist_pak_url=$DIST_PAK_URL" >> "$GITHUB_OUTPUT"
 
       - name: Merge version state
         run: |
@@ -233,10 +268,21 @@ jobs:
       - name: Update SPM manifest (iOS only)
         if: steps.payload.outputs.platform == 'ios'
         run: |
-          python3 scripts/update_spm_manifest.py \
-            Package.swift \
-            "${{ steps.sync_asset.outputs.dist_asset_url }}" \
-            "${{ steps.payload.outputs.checksum }}"
+          set -euo pipefail
+          if [[ -n "${{ steps.payload.outputs.pak_asset_name }}" ]]; then
+            # Stamp both binaryTargets by name, each with its own asset.
+            python3 scripts/update_spm_manifest.py \
+              Package.swift \
+              "${{ steps.sync_asset.outputs.dist_asset_url }}" \
+              "${{ steps.payload.outputs.checksum }}" \
+              "${{ steps.sync_pak.outputs.dist_pak_url }}" \
+              "${{ steps.payload.outputs.pak_checksum }}"
+          else
+            python3 scripts/update_spm_manifest.py \
+              Package.swift \
+              "${{ steps.sync_asset.outputs.dist_asset_url }}" \
+              "${{ steps.payload.outputs.checksum }}"
+          fi
 
       - name: Commit manifest changes
         run: |
