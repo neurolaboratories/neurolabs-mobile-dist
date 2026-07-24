@@ -3,7 +3,7 @@
   "artifacts": {
     "ios": {
       "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.6/NeurolabsSDK.xcframework-v1.6.6.zip",
-      "checksum_sha256": "4345eda5583e9ad84f2b8c8aeec88ad40c8f5d4daf3b46c6b8b4da0c247fc2b3"
+      "checksum_sha256": "51028fcffed5475e6c51b32521442c8259805b930a276f448ab24edc3c539714"
     },
     "android": {
       "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.6/neurolabs-android-sdk-v1.6.6.aar",
