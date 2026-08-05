@@ -293,6 +293,16 @@ jobs:
           git commit -m "chore(dist): update ${{ steps.payload.outputs.platform }} for ${{ steps.payload.outputs.version }}" || exit 0
           git pull --rebase --autostash origin main
           git push
+          # Retarget the version tag to the stamp commit just pushed.
+          # "Ensure dist release exists" runs BEFORE the manifest stamp, and
+          # `gh release create` tags the pre-stamp HEAD — so the vX tag's
+          # Package.swift pointed at the PREVIOUS release's binaries and SPM
+          # consumers pinning the tag fetched the wrong xcframeworks
+          # (observed: v1.6.7 served v1.7.0 assets; v1.7.0 served v1.6.6).
+          # Skipped automatically when nothing was committed (the `|| exit 0`
+          # above ends the step), so a no-op re-dispatch never moves a tag.
+          git tag -f "${{ steps.payload.outputs.version }}"
+          git push -f origin "refs/tags/${{ steps.payload.outputs.version }}"
 
       - name: Check release readiness
         id: ready
