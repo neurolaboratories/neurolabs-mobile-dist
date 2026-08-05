@@ -38,16 +38,16 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "NeurolabsSDK",
-            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.7/NeurolabsSDK.xcframework-v1.6.7.zip",
-            checksum: "8a5ce213be1f0f384a79e8c4f04a6cbd280b8d22cd051181f08aa191c3afa79a"
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.8/NeurolabsSDK.xcframework-v1.6.8.zip",
+            checksum: "e07e435f4ec02c77b513f772c58b72773313c44997192c208c5609f39d1f6da2"
         ),
         // Independent asset — its OWN zip, url and checksum. SPM keys the binary
         // artifact cache by URL, so two targets must NOT share one url (they
         // collide). One xcframework product per asset.
         .binaryTarget(
             name: "ProductAuditKit",
-            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.7/ProductAuditKit.xcframework-v1.6.7.zip",
-            checksum: "2c284e6e3a44dd7a1dc21502793623beffe0e4bcd8e75c1cd32bb1fd0cb5406c"
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.8/ProductAuditKit.xcframework-v1.6.8.zip",
+            checksum: "9e287a6abfe1671128c13f2c69ef841ebea3df7f2317a082ab1fb0a0ef83e69f"
         ),
         .target(
             name: "NLSentryShim",
