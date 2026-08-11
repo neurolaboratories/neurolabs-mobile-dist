@@ -49,6 +49,8 @@ jobs:
           RQ_CHECKSUM=$(jq -r '.recognitionengineqdrant.checksum_sha256 // empty' payload.json)
           FFI_ASSET=$(jq -r '.nlqdrantedgeffi.asset_name // empty' payload.json)
           FFI_CHECKSUM=$(jq -r '.nlqdrantedgeffi.checksum_sha256 // empty' payload.json)
+          RB_ASSET=$(jq -r '.recognitionbootstrap.asset_name // empty' payload.json)
+          RB_CHECKSUM=$(jq -r '.recognitionbootstrap.checksum_sha256 // empty' payload.json)
           MAVEN_REPOSITORY_URL=$(jq -r '.maven.repository_url // .maven_repository_url // empty' payload.json)
           MAVEN_GROUP_ID=$(jq -r '.maven.group_id // .maven_group_id // empty' payload.json)
           MAVEN_ARTIFACT_ID=$(jq -r '.maven.artifact_id // .maven_artifact_id // empty' payload.json)
@@ -112,6 +114,8 @@ jobs:
           echo "rq_checksum=$RQ_CHECKSUM" >> "$GITHUB_OUTPUT"
           echo "ffi_asset=$FFI_ASSET" >> "$GITHUB_OUTPUT"
           echo "ffi_checksum=$FFI_CHECKSUM" >> "$GITHUB_OUTPUT"
+          echo "rb_asset=$RB_ASSET" >> "$GITHUB_OUTPUT"
+          echo "rb_checksum=$RB_CHECKSUM" >> "$GITHUB_OUTPUT"
           echo "has_android_maven=$HAS_ANDROID_MAVEN" >> "$GITHUB_OUTPUT"
           {
             echo "android_maven_metadata_json<<EOF"
@@ -241,6 +245,10 @@ jobs:
           sync_one "${{ steps.payload.outputs.re_asset }}" "${{ steps.payload.outputs.re_checksum }}" re
           sync_one "${{ steps.payload.outputs.rq_asset }}" "${{ steps.payload.outputs.rq_checksum }}" rq
           sync_one "${{ steps.payload.outputs.ffi_asset }}" "${{ steps.payload.outputs.ffi_checksum }}" ffi
+          # Optional (ships from the tag after v1.7.1).
+          if [[ -n "${{ steps.payload.outputs.rb_asset }}" ]]; then
+            sync_one "${{ steps.payload.outputs.rb_asset }}" "${{ steps.payload.outputs.rb_checksum }}" rb
+          fi
 
       - name: Merge version state
         run: |
@@ -346,6 +354,13 @@ jobs:
                 NLQdrantEdgeFFI \
                 "${{ steps.sync_recognition.outputs.ffi_url }}" \
                 "${{ steps.payload.outputs.ffi_checksum }}"
+              if [[ -n "${{ steps.payload.outputs.rb_asset }}" ]]; then
+                python3 scripts/update_spm_manifest.py \
+                  Package.swift \
+                  RecognitionBootstrap \
+                  "${{ steps.sync_recognition.outputs.rb_url }}" \
+                  "${{ steps.payload.outputs.rb_checksum }}"
+              fi
             fi
           else
             python3 scripts/update_spm_manifest.py \

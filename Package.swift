@@ -39,6 +39,9 @@ let package = Package(
         // NLRecognitionBootstrap for binary consumers; the Qdrant product
         // bundles the Rust FFI dylib target so one product line links both.
         .library(name: "RecognitionInterface", targets: ["RecognitionInterface"]),
+        // The provider-chain bootstrap. Link together with RecognitionEngine
+        // + RecognitionInterface (its framework references their dylibs).
+        .library(name: "RecognitionBootstrap", targets: ["RecognitionBootstrap"]),
         .library(name: "RecognitionEngine", targets: ["RecognitionEngine"]),
         .library(
             name: "RecognitionEngineQdrant",
@@ -73,6 +76,11 @@ let package = Package(
             name: "RecognitionEngineQdrant",
             url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.1/RecognitionEngineQdrant.xcframework-v1.7.1.zip",
             checksum: "a74e166d36f381d1ee6517772f4d69412a72d32d63fb00caeef63bb73113866b"
+        ),
+        .binaryTarget(
+            name: "RecognitionBootstrap",
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.6/RecognitionBootstrap.xcframework-v1.6.6.zip",
+            checksum: "0000000000000000000000000000000000000000000000000000000000000000"
         ),
         .binaryTarget(
             name: "NLQdrantEdgeFFI",
