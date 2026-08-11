@@ -1,27 +1,28 @@
 // swift-tools-version: 5.9
 import PackageDescription
 
-// Partner-facing iOS binary package manifest.
+// Binary distribution manifest for the prebuilt xcframeworks.
+// The URL/checksum are stamped per release (see the release train).
 //
-// Two binary products, each from its OWN release asset (SPM keys the binary
-// artifact cache by URL, so two binaryTargets must not share one url — they
-// collide; one xcframework product per zip):
-//   • NeurolabsSDK    — main SDK. Asset NeurolabsSDK.xcframework-<v>.zip carries
-//                       NeurolabsSDK.xcframework + its companion Sentry.xcframework.
-//   • ProductAuditKit — camera/product-audit + barcode capture SDK. Asset
-//                       ProductAuditKit.xcframework-<v>.zip. Independent of
-//                       NeurolabsSDK and NOT linked to Sentry (no shim).
+// Every product comes from its OWN release asset (SPM keys the binary
+// artifact cache by URL — binaryTargets cannot share one zip):
+//   • NeurolabsSDK           — main SDK (asset carries SDK + Sentry companion).
+//   • ProductAuditKit        — camera/product-audit + barcode capture,
+//                              independent, no Sentry link.
+//   • RecognitionInterface   — on-device recognition protocols + snapshot
+//                              loader (v1.7.x).
+//   • RecognitionEngine      — DINOv3 provider chain over the USearch index;
+//                              self-contained (USearch archived in).
+//   • RecognitionEngineQdrant — Qdrant Edge index (payloads-in-shard, offline
+//                              product details); links the NLQdrantEdgeFFI
+//                              Rust dylib, which SPM provides as its own
+//                              binary target below.
 //
-// scripts/update_spm_manifest.py stamps every neurolaboratories binaryTarget
-// url + checksum on release; the getsentry SentryShim `.package(url:)`
-// dependency is scoped out and preserved.
-//
-// The NLSentryShim target is REQUIRED for NeurolabsSDK: the prebuilt
-// NeurolabsSDK.xcframework links Sentry DYNAMICALLY (@rpath/Sentry.framework),
-// so a binary SPM consumer needs SPM to provide Sentry.framework at the exact
-// version the binary was built against, or it crashes at dyld. Do NOT remove it
-// or float the version independently of the release the framework was built
-// from. ProductAuditKit does not use it.
+// The SentryShim target is REQUIRED for NeurolabsSDK: the prebuilt framework
+// links Sentry dynamically, so consumers need SPM to provide Sentry.framework
+// at the exact version the binary was linked against — do not remove it or
+// float its version independently of the release notes. ProductAuditKit does
+// not use it.
 
 let package = Package(
     name: "NeurolabsSDKDistribution",
@@ -30,7 +31,19 @@ let package = Package(
     ],
     products: [
         .library(name: "NeurolabsSDK", targets: ["NeurolabsSDK", "NLSentryShim"]),
-        .library(name: "ProductAuditKit", targets: ["ProductAuditKit"])
+        // Camera/product-audit + barcode capture SDK. Own asset, own checksum
+        // (SPM keys the binary artifact cache by URL — two targets must not
+        // share one zip). Independent of NeurolabsSDK, no Sentry link.
+        .library(name: "ProductAuditKit", targets: ["ProductAuditKit"]),
+        // On-device recognition (v1.7.x). RecognitionEngine + Interface power
+        // NLRecognitionBootstrap for binary consumers; the Qdrant product
+        // bundles the Rust FFI dylib target so one product line links both.
+        .library(name: "RecognitionInterface", targets: ["RecognitionInterface"]),
+        .library(name: "RecognitionEngine", targets: ["RecognitionEngine"]),
+        .library(
+            name: "RecognitionEngineQdrant",
+            targets: ["RecognitionEngineQdrant", "NLQdrantEdgeFFI"]
+        )
     ],
     dependencies: [
         .package(url: "https://github.com/getsentry/sentry-cocoa.git", exact: "9.21.0")
@@ -38,16 +51,33 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "NeurolabsSDK",
-            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.8/NeurolabsSDK.xcframework-v1.6.8.zip",
-            checksum: "e07e435f4ec02c77b513f772c58b72773313c44997192c208c5609f39d1f6da2"
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.6/NeurolabsSDK.xcframework-v1.6.6.zip",
+            checksum: "51028fcffed5475e6c51b32521442c8259805b930a276f448ab24edc3c539714"
         ),
-        // Independent asset — its OWN zip, url and checksum. SPM keys the binary
-        // artifact cache by URL, so two targets must NOT share one url (they
-        // collide). One xcframework product per asset.
         .binaryTarget(
             name: "ProductAuditKit",
-            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.8/ProductAuditKit.xcframework-v1.6.8.zip",
-            checksum: "9e287a6abfe1671128c13f2c69ef841ebea3df7f2317a082ab1fb0a0ef83e69f"
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.6/ProductAuditKit.xcframework-v1.6.6.zip",
+            checksum: "f485970dcd1f0b0a1513c905bc8c40ec3379cd92090231e0d4144e142b9d0783"
+        ),
+        .binaryTarget(
+            name: "RecognitionInterface",
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.6/RecognitionInterface.xcframework-v1.6.6.zip",
+            checksum: "0000000000000000000000000000000000000000000000000000000000000000"
+        ),
+        .binaryTarget(
+            name: "RecognitionEngine",
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.6/RecognitionEngine.xcframework-v1.6.6.zip",
+            checksum: "0000000000000000000000000000000000000000000000000000000000000000"
+        ),
+        .binaryTarget(
+            name: "RecognitionEngineQdrant",
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.6/RecognitionEngineQdrant.xcframework-v1.6.6.zip",
+            checksum: "0000000000000000000000000000000000000000000000000000000000000000"
+        ),
+        .binaryTarget(
+            name: "NLQdrantEdgeFFI",
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.6/NLQdrantEdgeFFI.xcframework-v1.6.6.zip",
+            checksum: "0000000000000000000000000000000000000000000000000000000000000000"
         ),
         .target(
             name: "NLSentryShim",

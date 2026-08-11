@@ -39,6 +39,16 @@ jobs:
           PAK_ASSET_NAME=$(jq -r '.productauditkit.asset_name // empty' payload.json)
           PAK_ASSET_URL=$(jq -r '.productauditkit.asset_url // empty' payload.json)
           PAK_CHECKSUM=$(jq -r '.productauditkit.checksum_sha256 // empty' payload.json)
+          # Optional recognition binary stack (iOS v1.7.x): four more assets,
+          # each name+checksum; URLs derive from the main asset's release.
+          RI_ASSET=$(jq -r '.recognitioninterface.asset_name // empty' payload.json)
+          RI_CHECKSUM=$(jq -r '.recognitioninterface.checksum_sha256 // empty' payload.json)
+          RE_ASSET=$(jq -r '.recognitionengine.asset_name // empty' payload.json)
+          RE_CHECKSUM=$(jq -r '.recognitionengine.checksum_sha256 // empty' payload.json)
+          RQ_ASSET=$(jq -r '.recognitionengineqdrant.asset_name // empty' payload.json)
+          RQ_CHECKSUM=$(jq -r '.recognitionengineqdrant.checksum_sha256 // empty' payload.json)
+          FFI_ASSET=$(jq -r '.nlqdrantedgeffi.asset_name // empty' payload.json)
+          FFI_CHECKSUM=$(jq -r '.nlqdrantedgeffi.checksum_sha256 // empty' payload.json)
           MAVEN_REPOSITORY_URL=$(jq -r '.maven.repository_url // .maven_repository_url // empty' payload.json)
           MAVEN_GROUP_ID=$(jq -r '.maven.group_id // .maven_group_id // empty' payload.json)
           MAVEN_ARTIFACT_ID=$(jq -r '.maven.artifact_id // .maven_artifact_id // empty' payload.json)
@@ -94,6 +104,14 @@ jobs:
           echo "pak_asset_name=$PAK_ASSET_NAME" >> "$GITHUB_OUTPUT"
           echo "pak_asset_url=$PAK_ASSET_URL" >> "$GITHUB_OUTPUT"
           echo "pak_checksum=$PAK_CHECKSUM" >> "$GITHUB_OUTPUT"
+          echo "ri_asset=$RI_ASSET" >> "$GITHUB_OUTPUT"
+          echo "ri_checksum=$RI_CHECKSUM" >> "$GITHUB_OUTPUT"
+          echo "re_asset=$RE_ASSET" >> "$GITHUB_OUTPUT"
+          echo "re_checksum=$RE_CHECKSUM" >> "$GITHUB_OUTPUT"
+          echo "rq_asset=$RQ_ASSET" >> "$GITHUB_OUTPUT"
+          echo "rq_checksum=$RQ_CHECKSUM" >> "$GITHUB_OUTPUT"
+          echo "ffi_asset=$FFI_ASSET" >> "$GITHUB_OUTPUT"
+          echo "ffi_checksum=$FFI_CHECKSUM" >> "$GITHUB_OUTPUT"
           echo "has_android_maven=$HAS_ANDROID_MAVEN" >> "$GITHUB_OUTPUT"
           {
             echo "android_maven_metadata_json<<EOF"
@@ -190,6 +208,40 @@ jobs:
           DIST_PAK_URL="https://github.com/${{ github.repository }}/releases/download/${{ steps.payload.outputs.version }}/${PAK_NAME}"
           echo "dist_pak_url=$DIST_PAK_URL" >> "$GITHUB_OUTPUT"
 
+      - name: Sync recognition assets (iOS, when present)
+        id: sync_recognition
+        if: steps.payload.outputs.platform == 'ios' && steps.payload.outputs.ri_asset != ''
+        env:
+          DIST_REPO_PAT: ${{ secrets.DIST_REPO_PAT }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Same source release as the main asset.
+          SOURCE_PATH="${{ steps.payload.outputs.source_asset_url }}"
+          SOURCE_PATH="${SOURCE_PATH#https://github.com/}"
+          SOURCE_REPO="$(echo "$SOURCE_PATH" | cut -d/ -f1-2)"
+          SOURCE_TAG="$(echo "$SOURCE_PATH" | cut -d/ -f5)"
+          mkdir -p incoming
+          sync_one() {
+            local NAME="$1" CS="$2" KEY="$3"
+            local DEST="incoming/${NAME}"
+            rm -f "$DEST"
+            GH_TOKEN="${DIST_REPO_PAT}" gh release download "$SOURCE_TAG" \
+              --repo "$SOURCE_REPO" --pattern "$NAME" --dir incoming
+            local ACTUAL
+            ACTUAL=$(sha256sum "$DEST" | awk '{print $1}')
+            if [[ "$ACTUAL" != "$CS" ]]; then
+              echo "${NAME} checksum mismatch: expected=$CS actual=$ACTUAL" >&2
+              exit 1
+            fi
+            gh release upload "${{ steps.payload.outputs.version }}" "$DEST" --clobber
+            echo "${KEY}_url=https://github.com/${{ github.repository }}/releases/download/${{ steps.payload.outputs.version }}/${NAME}" >> "$GITHUB_OUTPUT"
+          }
+          sync_one "${{ steps.payload.outputs.ri_asset }}" "${{ steps.payload.outputs.ri_checksum }}" ri
+          sync_one "${{ steps.payload.outputs.re_asset }}" "${{ steps.payload.outputs.re_checksum }}" re
+          sync_one "${{ steps.payload.outputs.rq_asset }}" "${{ steps.payload.outputs.rq_checksum }}" rq
+          sync_one "${{ steps.payload.outputs.ffi_asset }}" "${{ steps.payload.outputs.ffi_checksum }}" ffi
+
       - name: Merge version state
         run: |
           set -euo pipefail
@@ -270,13 +322,31 @@ jobs:
         run: |
           set -euo pipefail
           if [[ -n "${{ steps.payload.outputs.pak_asset_name }}" ]]; then
-            # Stamp both binaryTargets by name, each with its own asset.
+            # Stamp every shipped binaryTarget by name, each its own asset.
             python3 scripts/update_spm_manifest.py \
               Package.swift \
+              NeurolabsSDK \
               "${{ steps.sync_asset.outputs.dist_asset_url }}" \
               "${{ steps.payload.outputs.checksum }}" \
+              ProductAuditKit \
               "${{ steps.sync_pak.outputs.dist_pak_url }}" \
               "${{ steps.payload.outputs.pak_checksum }}"
+            if [[ -n "${{ steps.payload.outputs.ri_asset }}" ]]; then
+              python3 scripts/update_spm_manifest.py \
+                Package.swift \
+                RecognitionInterface \
+                "${{ steps.sync_recognition.outputs.ri_url }}" \
+                "${{ steps.payload.outputs.ri_checksum }}" \
+                RecognitionEngine \
+                "${{ steps.sync_recognition.outputs.re_url }}" \
+                "${{ steps.payload.outputs.re_checksum }}" \
+                RecognitionEngineQdrant \
+                "${{ steps.sync_recognition.outputs.rq_url }}" \
+                "${{ steps.payload.outputs.rq_checksum }}" \
+                NLQdrantEdgeFFI \
+                "${{ steps.sync_recognition.outputs.ffi_url }}" \
+                "${{ steps.payload.outputs.ffi_checksum }}"
+            fi
           else
             python3 scripts/update_spm_manifest.py \
               Package.swift \
