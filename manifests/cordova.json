@@ -3,10 +3,10 @@
   "product": "ai.neurolabs.cordova",
   "distribution": "github_release_asset",
   "latest": {
-    "version": "v1.7.1",
-    "asset_name": "neurolabs-cordova-sdk-v1.7.1.tgz",
-    "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.1/neurolabs-cordova-sdk-v1.7.1.tgz",
-    "checksum_sha256": "5c4454b37eac0903d4f680279c1f3772ddf5a3d06537ce1d685e34aedc23c35a",
-    "install_example": "cordova plugin add https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.1/neurolabs-cordova-sdk-v1.7.1.tgz"
+    "version": "v1.6.9",
+    "asset_name": "neurolabs-cordova-sdk-v1.6.9.tgz",
+    "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.9/neurolabs-cordova-sdk-v1.6.9.tgz",
+    "checksum_sha256": "bd8cc95c987467a8800cb377823180352dbb8be59e91c202d2d71a7a16860d79",
+    "install_example": "cordova plugin add https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.9/neurolabs-cordova-sdk-v1.6.9.tgz"
   }
 }
