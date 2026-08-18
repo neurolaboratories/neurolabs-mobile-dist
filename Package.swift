@@ -51,13 +51,13 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "NeurolabsSDK",
-            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.1/NeurolabsSDK.xcframework-v1.7.1.zip",
-            checksum: "8ea16f5d57d40709d47dcb0db81e6d18cc2560860cf9e5dd6c2583e8870cf85c"
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.9/NeurolabsSDK.xcframework-v1.6.9.zip",
+            checksum: "3aa3dba851b81a187721bac95f39770700dd049f1af569be5e384affafd89e5e"
         ),
         .binaryTarget(
             name: "ProductAuditKit",
-            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.1/ProductAuditKit.xcframework-v1.7.1.zip",
-            checksum: "815ff37aed73e9a38e4ffe24f0c1e6815c29d9bdfa6ed4c441065d1e52b9b0a5"
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.9/ProductAuditKit.xcframework-v1.6.9.zip",
+            checksum: "4d19cd1abf8864e99e4d05731c69217cdb8924ff0d802c8d7506bbdb52108c70"
         ),
         .binaryTarget(
             name: "RecognitionInterface",
