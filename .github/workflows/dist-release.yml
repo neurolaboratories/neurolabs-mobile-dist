@@ -39,18 +39,23 @@ jobs:
           PAK_ASSET_NAME=$(jq -r '.productauditkit.asset_name // empty' payload.json)
           PAK_ASSET_URL=$(jq -r '.productauditkit.asset_url // empty' payload.json)
           PAK_CHECKSUM=$(jq -r '.productauditkit.checksum_sha256 // empty' payload.json)
-          # Optional recognition binary stack (iOS v1.7.x): four more assets,
+          # Optional recognition binary stack (iOS v1.7.x): five more assets,
           # each name+checksum; URLs derive from the main asset's release.
-          RI_ASSET=$(jq -r '.recognitioninterface.asset_name // empty' payload.json)
-          RI_CHECKSUM=$(jq -r '.recognitioninterface.checksum_sha256 // empty' payload.json)
-          RE_ASSET=$(jq -r '.recognitionengine.asset_name // empty' payload.json)
-          RE_CHECKSUM=$(jq -r '.recognitionengine.checksum_sha256 // empty' payload.json)
-          RQ_ASSET=$(jq -r '.recognitionengineqdrant.asset_name // empty' payload.json)
-          RQ_CHECKSUM=$(jq -r '.recognitionengineqdrant.checksum_sha256 // empty' payload.json)
-          FFI_ASSET=$(jq -r '.nlqdrantedgeffi.asset_name // empty' payload.json)
-          FFI_CHECKSUM=$(jq -r '.nlqdrantedgeffi.checksum_sha256 // empty' payload.json)
-          RB_ASSET=$(jq -r '.recognitionbootstrap.asset_name // empty' payload.json)
-          RB_CHECKSUM=$(jq -r '.recognitionbootstrap.checksum_sha256 // empty' payload.json)
+          # NESTED under one `recognition` key: repository_dispatch caps
+          # client_payload at 10 TOP-LEVEL properties, and v1.7.2's flat
+          # form hit 11 when RecognitionBootstrap joined (the v1.7.2
+          # dispatch failed on exactly that). Legacy flat keys accepted as
+          # fallback for replays of older payloads.
+          RI_ASSET=$(jq -r '.recognition.interface.asset_name // .recognitioninterface.asset_name // empty' payload.json)
+          RI_CHECKSUM=$(jq -r '.recognition.interface.checksum_sha256 // .recognitioninterface.checksum_sha256 // empty' payload.json)
+          RE_ASSET=$(jq -r '.recognition.engine.asset_name // .recognitionengine.asset_name // empty' payload.json)
+          RE_CHECKSUM=$(jq -r '.recognition.engine.checksum_sha256 // .recognitionengine.checksum_sha256 // empty' payload.json)
+          RQ_ASSET=$(jq -r '.recognition.engineqdrant.asset_name // .recognitionengineqdrant.asset_name // empty' payload.json)
+          RQ_CHECKSUM=$(jq -r '.recognition.engineqdrant.checksum_sha256 // .recognitionengineqdrant.checksum_sha256 // empty' payload.json)
+          FFI_ASSET=$(jq -r '.recognition.nlqdrantedgeffi.asset_name // .nlqdrantedgeffi.asset_name // empty' payload.json)
+          FFI_CHECKSUM=$(jq -r '.recognition.nlqdrantedgeffi.checksum_sha256 // .nlqdrantedgeffi.checksum_sha256 // empty' payload.json)
+          RB_ASSET=$(jq -r '.recognition.bootstrap.asset_name // .recognitionbootstrap.asset_name // empty' payload.json)
+          RB_CHECKSUM=$(jq -r '.recognition.bootstrap.checksum_sha256 // .recognitionbootstrap.checksum_sha256 // empty' payload.json)
           MAVEN_REPOSITORY_URL=$(jq -r '.maven.repository_url // .maven_repository_url // empty' payload.json)
           MAVEN_GROUP_ID=$(jq -r '.maven.group_id // .maven_group_id // empty' payload.json)
           MAVEN_ARTIFACT_ID=$(jq -r '.maven.artifact_id // .maven_artifact_id // empty' payload.json)
