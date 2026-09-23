@@ -1,79 +1,203 @@
 #!/usr/bin/env python3
-from pathlib import Path
+"""Stamp EVERY .binaryTarget in Package.swift, from one release, in one call.
+
+All-or-nothing by construction. The previous version stamped whatever triples
+the caller happened to pass, and the workflow decided what to pass with a
+cascade of `if [[ -n "$ri_asset" ]]` tests keyed on which assets the dispatch
+carried. A 1.6.x backport dispatch has no `recognition` key, so the cascade
+stamped NeurolabsSDK + ProductAuditKit and silently left the five recognition
+targets on their 1.7.x URLs — a Package.swift serving two release lines at
+once, which is how `main` came to hand SPM consumers a 1.6.12 SDK bolted to a
+1.7.7 recognition stack.
+
+There is no longer a way to express "stamp some of them":
+
+  * the set of targets supplied must EXACTLY equal the set of .binaryTarget
+    blocks in the manifest — a missing target is a hard failure naming it, an
+    unknown target is a hard failure too;
+  * every URL must carry the same /releases/download/<tag>/ segment;
+  * the legacy two-positional-arg form is gone. It stamped NeurolabsSDK only
+    and left the other six targets wherever they were, which made the
+    documented recovery tool (manual-promote.yml) a manifest-splitter.
+
+Two ways to supply the assets:
+
+    # explicit, for the release train (URLs already known)
+    update_spm_manifest.py Package.swift --release-tag v1.7.7 \
+        --target NeurolabsSDK --url <url> --checksum <sha> \
+        --target ProductAuditKit --url <url> --checksum <sha> ...
+
+    # derived, for recovery: read the published release and hash what is there
+    update_spm_manifest.py Package.swift --release-tag v1.7.7 \
+        --from-release neurolaboratories/neurolabs-mobile-dist
+
+Run scripts/verify_spm_manifest.py afterwards — stamping and asserting are
+deliberately separate so the assertion also covers hand edits.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
 import re
+import subprocess
 import sys
+import tempfile
+from pathlib import Path
+
+BINARY_TARGET = re.compile(
+    r'\.binaryTarget\(\s*name:\s*"(?P<name>[^"]+)",\s*'
+    r'url:\s*"(?P<url>[^"]*)",\s*checksum:\s*"(?P<checksum>[^"]*)"',
+    re.DOTALL,
+)
+SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 
-def stamp_target(text: str, target_name: str, asset_url: str, checksum: str) -> str:
-    """Rewrite the url + checksum of ONE .binaryTarget(name: "<target_name>", ...)
-    block, matched by name. Each product ships from its own asset (SPM keys the
-    binary artifact cache by URL, so binaryTargets must not share a url), so we
-    stamp each target individually rather than globally. The getsentry
-    SentryShim `.package(url:)` dependency carries no checksum and is not a
-    binaryTarget, so it is never touched.
-    """
+def discover_targets(text: str) -> list[str]:
+    names = [m.group("name") for m in BINARY_TARGET.finditer(text)]
+    if not names:
+        raise SystemExit("error: no .binaryTarget blocks found in the manifest")
+    dupes = {n for n in names if names.count(n) > 1}
+    if dupes:
+        raise SystemExit(f"error: duplicate binaryTarget names: {sorted(dupes)}")
+    return names
+
+
+def stamp_target(text: str, name: str, url: str, checksum: str) -> str:
     pattern = re.compile(
-        r'(\.binaryTarget\(\s*name:\s*"' + re.escape(target_name) + r'",\s*'
+        r'(\.binaryTarget\(\s*name:\s*"' + re.escape(name) + r'",\s*'
         r'url:\s*")[^"]*(",\s*checksum:\s*")[^"]*(")',
         re.DOTALL,
     )
-    new_text, n = pattern.subn(rf'\g<1>{asset_url}\g<2>{checksum}\g<3>', text)
+    new_text, n = pattern.subn(rf"\g<1>{url}\g<2>{checksum}\g<3>", text)
     if n != 1:
-        raise SystemExit(
-            f"Expected exactly one binaryTarget named {target_name!r}, matched {n}"
-        )
+        raise SystemExit(f"error: expected exactly one binaryTarget {name!r}, matched {n}")
     return new_text
 
 
+def _gh(args: list[str]) -> str:
+    proc = subprocess.run(["gh", *args], capture_output=True, text=True)
+    if proc.returncode != 0:
+        raise SystemExit(f"error: gh {' '.join(args)} failed:\n{proc.stderr.strip()}")
+    return proc.stdout
+
+
+def resolve_from_release(repo: str, tag: str, names: list[str]) -> dict[str, tuple[str, str]]:
+    """Download every target's asset from the published release and hash it.
+
+    This is what makes recovery trustworthy: the checksums come from the bytes
+    actually being served, not from a workflow input somebody retyped.
+    """
+    assets = json.loads(_gh(["release", "view", tag, "--repo", repo, "--json", "assets"]))
+    available = [a["name"] for a in assets.get("assets", [])]
+    resolved: dict[str, tuple[str, str]] = {}
+    with tempfile.TemporaryDirectory() as tmp:
+        for name in names:
+            exact = f"{name}.xcframework-{tag}.zip"
+            candidates = [a for a in available if a == exact] or [
+                a for a in available if a.startswith(f"{name}.")
+            ]
+            if len(candidates) != 1:
+                raise SystemExit(
+                    f"error: release {tag} of {repo} has "
+                    f"{len(candidates)} assets for binaryTarget {name!r} "
+                    f"(candidates={candidates}); cannot stamp all-or-nothing."
+                )
+            asset = candidates[0]
+            _gh(["release", "download", tag, "--repo", repo, "--pattern", asset,
+                 "--dir", tmp, "--clobber"])
+            digest = hashlib.sha256(Path(tmp, asset).read_bytes()).hexdigest()
+            resolved[name] = (
+                f"https://github.com/{repo}/releases/download/{tag}/{asset}",
+                digest,
+            )
+    return resolved
+
+
 def main() -> int:
-    args = sys.argv[1:]
-    # Two calling conventions:
-    #   Legacy positional (kept so old workflow revisions replay cleanly):
-    #     <Package.swift> <sdk-url> <sdk-checksum> [<pak-url> <pak-checksum>]
-    #   Named triples (v1.7.x — arbitrary binaryTargets, e.g. the recognition
-    #     stack): <Package.swift> <target-name> <url> <checksum> [...]
-    if len(args) < 3:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("manifest", type=Path)
+    ap.add_argument("--release-tag", required=True)
+    ap.add_argument("--target", action="append", default=[])
+    ap.add_argument("--url", action="append", default=[])
+    ap.add_argument("--checksum", action="append", default=[])
+    ap.add_argument("--from-release", default="",
+                    help="OWNER/REPO: derive every URL + checksum from that published release")
+    args = ap.parse_args()
+
+    if not args.manifest.exists():
+        print(f"error: manifest not found: {args.manifest}", file=sys.stderr)
+        return 1
+
+    tag = args.release_tag.strip()
+    text = args.manifest.read_text()
+    names = discover_targets(text)
+
+    if args.from_release:
+        if args.target:
+            print("error: --from-release and --target are mutually exclusive", file=sys.stderr)
+            return 1
+        supplied = resolve_from_release(args.from_release, tag, names)
+    else:
+        if not (len(args.target) == len(args.url) == len(args.checksum)):
+            print("error: --target/--url/--checksum must come in matched sets", file=sys.stderr)
+            return 1
+        supplied = {
+            t: (u.strip(), c.strip())
+            for t, u, c in zip(args.target, args.url, args.checksum)
+        }
+
+    # ---- all-or-nothing gate -------------------------------------------------
+    missing = sorted(set(names) - set(supplied))
+    unknown = sorted(set(supplied) - set(names))
+    if missing:
         print(
-            "Usage: update_spm_manifest.py <Package.swift> "
-            "(<sdk-url> <sdk-checksum> [<pak-url> <pak-checksum>] | "
-            "<target> <url> <checksum> [<target> <url> <checksum> ...])",
+            "error: the dispatch carried no asset for "
+            f"{', '.join(missing)}. Package.swift declares {len(names)} "
+            "binaryTargets and every release must stamp all of them — a "
+            "partial stamp is what splits the manifest across two release "
+            "lines. Refusing to write.",
             file=sys.stderr,
         )
-        return 1
+        return 2
+    if unknown:
+        print(f"error: not a binaryTarget in this manifest: {', '.join(unknown)}",
+              file=sys.stderr)
+        return 2
 
-    manifest = Path(args[0])
-    if not manifest.exists():
-        print(f"Manifest not found: {manifest}", file=sys.stderr)
-        return 1
+    problems = []
+    seen_urls: dict[str, str] = {}
+    for name in names:
+        url, checksum = supplied[name]
+        if not url:
+            problems.append(f"{name}: empty url")
+        elif f"/releases/download/{tag}/" not in url:
+            problems.append(f"{name}: url is not from {tag} ({url})")
+        if not SHA256.match(checksum):
+            problems.append(f"{name}: checksum is not a sha256 hex digest ({checksum!r})")
+        if url in seen_urls:
+            # SPM keys the binary artifact cache by URL; two targets sharing a
+            # zip resolve to one artifact and the other framework goes missing.
+            problems.append(f"{name}: shares its url with {seen_urls[url]}")
+        seen_urls[url] = name
+    if problems:
+        print("error: refusing to stamp:", file=sys.stderr)
+        for p in problems:
+            print(f"  - {p}", file=sys.stderr)
+        return 2
 
-    rest = args[1:]
-    # Named mode iff the first value is not a URL (target names never are).
-    named_mode = not rest[0].startswith("http")
-    triples: list[tuple[str, str, str]] = []
-    if named_mode:
-        if len(rest) % 3 != 0:
-            print("Named mode expects <target> <url> <checksum> triples", file=sys.stderr)
-            return 1
-        for i in range(0, len(rest), 3):
-            triples.append((rest[i], rest[i + 1], rest[i + 2]))
-    else:
-        if len(rest) not in (2, 4):
-            print("Legacy mode expects 2 or 4 positional values", file=sys.stderr)
-            return 1
-        triples.append(("NeurolabsSDK", rest[0], rest[1]))
-        if len(rest) == 4:
-            triples.append(("ProductAuditKit", rest[2], rest[3]))
-
-    text = manifest.read_text()
     updated = text
-    for target_name, url, checksum in triples:
-        updated = stamp_target(updated, target_name, url, checksum)
+    for name in names:
+        url, checksum = supplied[name]
+        updated = stamp_target(updated, name, url, checksum)
 
-    if updated == text:
-        print("No changes applied to Package.swift", file=sys.stderr)
-        return 1
-
-    manifest.write_text(updated)
+    # An identical re-stamp is a legitimate replay, NOT an error. The old
+    # script exited 1 on "No changes applied", which failed re-dispatches.
+    if updated != text:
+        args.manifest.write_text(updated)
+        print(f"stamped {len(names)} binaryTargets at {tag}: {', '.join(names)}")
+    else:
+        print(f"already stamped at {tag}: {', '.join(names)} (no change)")
     return 0
 
 
