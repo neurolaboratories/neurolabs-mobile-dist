@@ -219,6 +219,216 @@ class VerifierTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 2)
 
 
+class StampFromStateTests(unittest.TestCase):
+    """The readiness gate, and what had to change to make gating survivable.
+
+    Stamping each platform on its own dispatch published an `asset_url` on a
+    still-draft release — a 404 for every partner who is not a collaborator —
+    and simply adding an `if:` to those steps would have left two of the three
+    manifests stamped by nobody, because a dispatch only ever touched its own
+    file. These cover the replacement: one stamp, from release-state, for every
+    platform at once.
+    """
+
+    ASSETS = {
+        "ios": "NeurolabsSDK.xcframework-{v}.zip",
+        "android": "neurolabs-android-sdk-{v}.aar",
+        "cordova": "neurolabs-cordova-sdk-{v}.tgz",
+    }
+    MAVEN = {
+        "repository_url": "https://maven.pkg.github.com/neurolaboratories/neurolabs-mobile-dist",
+        "group_id": "ai.neurolabs",
+        "artifact_id": "neurolabs-android-sdk",
+        "version": "1.7.8",
+        "packaging": "aar",
+    }
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.manifests = self.root / "manifests"
+        self.state_dir = self.manifests / "release-state"
+        self.state_dir.mkdir(parents=True)
+        for platform, asset in self.ASSETS.items():
+            name = asset.format(v="v1.7.7")
+            (self.manifests / f"{platform}.json").write_text(json.dumps({
+                "platform": platform,
+                "latest": {
+                    "version": "v1.7.7",
+                    "asset_name": name,
+                    "asset_url": f"{BASE}/v1.7.7/{name}",
+                    "checksum_sha256": SHA_A,
+                },
+            }, indent=2) + "\n")
+        self.package = self.root / "Package.swift"
+        self.package.write_text(SpmStampTests.MANIFEST)
+        self.before = self.snapshot()
+
+    def snapshot(self) -> dict:
+        return {p.name: p.read_text()
+                for p in list(self.manifests.glob("*.json")) + [self.package]}
+
+    def url(self, platform: str, version: str) -> str:
+        return f"{BASE}/{version}/{self.ASSETS[platform].format(v=version)}"
+
+    def write_state(self, version, platforms=("ios", "android", "cordova"),
+                    *, maven=None, spm_targets=None, overrides=None):
+        artifacts = {
+            platform: {
+                "asset_url": self.url(platform, version),
+                "checksum_sha256": SHA_B,
+            }
+            for platform in platforms
+        }
+        if maven:
+            artifacts["android"]["maven"] = maven
+        if spm_targets:
+            artifacts["ios"]["spm_targets"] = spm_targets
+        for platform, patch in (overrides or {}).items():
+            artifacts[platform].update(patch)
+        path = self.state_dir / f"{version}.json"
+        path.write_text(json.dumps({"version": version, "artifacts": artifacts},
+                                   indent=2) + "\n")
+        return path
+
+    def stamp(self, version, *extra) -> subprocess.CompletedProcess:
+        return run("stamp_manifests_from_state.py",
+                   str(self.state_dir / f"{version}.json"),
+                   "--manifests-dir", str(self.manifests),
+                   "--package-swift", str(self.package), *extra)
+
+    def manifest(self, platform: str) -> dict:
+        return json.loads((self.manifests / f"{platform}.json").read_text())
+
+    def assertNothingWritten(self, proc):
+        self.assertEqual(proc.returncode, 2, proc.stdout + proc.stderr)
+        self.assertEqual(self.snapshot(), self.before)
+
+    def test_all_three_manifests_are_stamped_from_one_state_file(self):
+        """The whole point: the run where `ready` flips stamps every platform,
+        not just the one that happened to dispatch last."""
+        self.write_state("v1.7.8")
+        proc = self.stamp("v1.7.8")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        for platform, asset in self.ASSETS.items():
+            latest = self.manifest(platform)["latest"]
+            self.assertEqual(latest["version"], "v1.7.8")
+            self.assertEqual(latest["asset_name"], asset.format(v="v1.7.8"))
+            self.assertEqual(latest["asset_url"], self.url(platform, "v1.7.8"))
+            self.assertEqual(latest["checksum_sha256"], SHA_B)
+
+    def test_android_maven_block_survives_the_round_trip(self):
+        self.write_state("v1.7.8", maven=self.MAVEN)
+        self.assertEqual(self.stamp("v1.7.8").returncode, 0)
+        latest = self.manifest("android")["latest"]
+        self.assertEqual(latest["maven"], self.MAVEN)
+        self.assertEqual(
+            latest["gradle_maven_dependency_example"],
+            'implementation("ai.neurolabs:neurolabs-android-sdk:1.7.8")',
+        )
+        self.assertIn("v1.7.8", latest["gradle_example"])
+        self.assertIn("v1.7.8", self.manifest("cordova")["latest"]["install_example"])
+
+    def test_state_without_an_ios_target_map_does_not_crash_the_train(self):
+        """Every state file written before the map existed looks like this."""
+        self.write_state("v1.7.8")
+        proc = self.stamp("v1.7.8")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertIn("no iOS spm_targets map", proc.stdout)
+        self.assertEqual(self.package.read_text(), SpmStampTests.MANIFEST)
+        self.assertEqual(self.manifest("ios")["latest"]["version"], "v1.7.8")
+
+    def test_ios_target_map_stamps_package_swift(self):
+        self.write_state("v1.7.8", spm_targets={
+            "NeurolabsSDK": {
+                "url": f"{BASE}/v1.7.8/NeurolabsSDK.xcframework-v1.7.8.zip",
+                "checksum_sha256": SHA_A,
+            },
+            "RecognitionEngine": {
+                "url": f"{BASE}/v1.7.8/RecognitionEngine.xcframework-v1.7.8.zip",
+                "checksum_sha256": SHA_B,
+            },
+        })
+        proc = self.stamp("v1.7.8")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertNotIn("v1.7.7", self.package.read_text())
+
+    def test_partial_ios_target_map_is_still_all_or_nothing(self):
+        """The split-manifest gate applies to this path too."""
+        self.write_state("v1.7.8", spm_targets={
+            "NeurolabsSDK": {
+                "url": f"{BASE}/v1.7.8/NeurolabsSDK.xcframework-v1.7.8.zip",
+                "checksum_sha256": SHA_A,
+            },
+        })
+        proc = self.stamp("v1.7.8")
+        self.assertIn("RecognitionEngine", proc.stderr)
+        self.assertNothingWritten(proc)
+
+    def test_a_partial_release_is_refused_outright(self):
+        """The defect: a cordova-only dispatch stamping cordova.json with an
+        asset_url on a draft release, which 404s for every partner."""
+        self.write_state("v1.7.8", platforms=("cordova",))
+        proc = self.stamp("v1.7.8")
+        self.assertIn("Missing platforms: android, ios", proc.stderr)
+        self.assertIn("not publishable yet", proc.stderr)
+        self.assertNothingWritten(proc)
+
+    def test_backport_stamps_its_line_and_leaves_latest_alone(self):
+        """The monotonic rule is unchanged by going through release-state."""
+        self.write_state("v1.6.12")
+        proc = self.stamp("v1.6.12")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        for platform in self.ASSETS:
+            data = self.manifest(platform)
+            self.assertEqual(data["latest"]["version"], "v1.7.7")
+            self.assertEqual(data["lines"]["1.6"]["version"], "v1.6.12")
+            self.assertEqual(data["lines"]["1.7"]["version"], "v1.7.7")
+
+    def test_within_line_regression_is_still_refused_and_writes_nothing(self):
+        self.write_state("v1.7.6")
+        proc = self.stamp("v1.7.6")
+        self.assertIn("backwards", proc.stderr)
+        self.assertNothingWritten(proc)
+
+    def test_empty_asset_url_is_refused(self):
+        self.write_state("v1.7.8", overrides={"android": {"asset_url": ""}})
+        proc = self.stamp("v1.7.8")
+        self.assertIn("empty asset_url", proc.stderr)
+        self.assertNothingWritten(proc)
+
+    def test_asset_url_with_no_file_name_is_refused(self):
+        """Passes the readiness gate — it carries the tag segment — and would
+        otherwise stamp `asset_name: ""` into a partner install instruction."""
+        self.write_state("v1.7.8", overrides={
+            "cordova": {"asset_url": f"{BASE}/v1.7.8/"},
+        })
+        proc = self.stamp("v1.7.8")
+        self.assertIn("cannot derive an asset name", proc.stderr)
+        self.assertNothingWritten(proc)
+
+    def test_asset_url_from_another_release_is_refused(self):
+        self.write_state("v1.7.8", overrides={
+            "ios": {"asset_url": self.url("ios", "v1.7.7")},
+        })
+        proc = self.stamp("v1.7.8")
+        self.assertIn("does not reference v1.7.8", proc.stderr)
+        self.assertNothingWritten(proc)
+
+    def test_skip_package_swift_leaves_it_to_the_recovery_tool(self):
+        self.write_state("v1.7.8", spm_targets={
+            "NeurolabsSDK": {
+                "url": f"{BASE}/v1.7.8/NeurolabsSDK.xcframework-v1.7.8.zip",
+                "checksum_sha256": SHA_A,
+            },
+        })
+        proc = self.stamp("v1.7.8", "--skip-package-swift")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertEqual(self.package.read_text(), SpmStampTests.MANIFEST)
+        self.assertEqual(self.manifest("ios")["latest"]["version"], "v1.7.8")
+
+
 class CheckedInStateTests(unittest.TestCase):
     """The repo as committed must satisfy its own rules."""
 
