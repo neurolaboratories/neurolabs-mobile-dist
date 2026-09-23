@@ -41,6 +41,12 @@ jobs:
       - name: Checkout dist repo
         uses: actions/checkout@v4
 
+      # Pure-logic regression tests for the semver comparison and the
+      # monotonic/all-or-nothing rules. Stdlib only, no toolchain, ~0.3s —
+      # every case is a downgrade or a split that actually reached `main`.
+      - name: Run manifest tooling tests
+        run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
+
       # ubuntu-latest has no Swift toolchain but does have Docker; the script
       # falls back to the official Swift image so `dump-package` really runs.
       - name: Pre-pull the Swift image

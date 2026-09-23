@@ -248,6 +248,11 @@ Shared tooling:
 | `scripts/update_spm_manifest.py` | all-or-nothing `binaryTarget` stamping |
 | `scripts/verify_spm_manifest.py` | one-release-line assertion + `swift package dump-package` |
 | `scripts/validate_release_ready.py` | 3-platform readiness gate; runs **before** anything is committed or tagged |
+| `scripts/test_manifest_tooling.py` | regression tests for the above; `python3 -m unittest discover -s scripts -p 'test_*.py'` |
+
+- `.github/workflows/manifest-guard.yml`
+  - runs those tests plus the one-release-line assertion on every PR, on pushes
+    to `main` and nightly
 
 ## Integrity Verification
 
