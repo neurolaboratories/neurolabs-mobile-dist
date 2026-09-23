@@ -1,0 +1,16 @@
+{
+  "version": "v1.7.8",
+  "artifacts": {
+    "android": {
+      "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.8/neurolabs-android-sdk-v1.7.8.aar",
+      "checksum_sha256": "f8616936d6fcbb36171ae40a90304bb6e853b42b952f64fbb8a9ecf5bf0c1f9b",
+      "maven": {
+        "repository_url": "https://maven.pkg.github.com/neurolaboratories/neurolabs-mobile-dist",
+        "group_id": "ai.neurolabs",
+        "artifact_id": "neurolabs-android-sdk",
+        "version": "1.7.8",
+        "packaging": "aar"
+      }
+    }
+  }
+}
