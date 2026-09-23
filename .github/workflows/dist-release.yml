@@ -69,6 +69,31 @@ jobs:
           test -n "$CHECKSUM" && test "$CHECKSUM" != "null"
           test -n "$ASSET_NAME" && test "$ASSET_NAME" != "null"
 
+          # An iOS dispatch must carry EVERY binaryTarget Package.swift
+          # declares. It used to be allowed to carry a subset, and the stamp
+          # step below quietly stamped only what arrived — which is how a
+          # 1.6.x backport (no `recognition` key) left five recognition
+          # targets pinned to 1.7.7 while moving the other two to 1.6.12, and
+          # shipped a Package.swift serving two release lines at once.
+          # Fail here, before a single asset is uploaded, rather than there.
+          if [[ "$PLATFORM" == "ios" ]]; then
+            MISSING=()
+            [[ -n "$PAK_ASSET_NAME" ]] || MISSING+=("productauditkit")
+            [[ -n "$RI_ASSET" ]] || MISSING+=("recognition.interface")
+            [[ -n "$RE_ASSET" ]] || MISSING+=("recognition.engine")
+            [[ -n "$RQ_ASSET" ]] || MISSING+=("recognition.engineqdrant")
+            [[ -n "$FFI_ASSET" ]] || MISSING+=("recognition.nlqdrantedgeffi")
+            [[ -n "$RB_ASSET" ]] || MISSING+=("recognition.bootstrap")
+            if (( ${#MISSING[@]} > 0 )); then
+              echo "::error::iOS dispatch for $VERSION is missing assets for: ${MISSING[*]}" >&2
+              echo "Package.swift on main declares 7 binaryTargets and a release must stamp all of them." >&2
+              echo "A source tree without the recognition targets (the 1.6.x line) cannot be described by" >&2
+              echo "this manifest — it needs its own release/1.6 branch with its own Package.swift, not a" >&2
+              echo "partial stamp of this one. See README 'Release lines'." >&2
+              exit 1
+            fi
+          fi
+
           HAS_ANDROID_MAVEN=false
           if [[ "$PLATFORM" == "android" ]]; then
             if [[ -n "$MAVEN_REPOSITORY_URL" || -n "$MAVEN_GROUP_ID" || -n "$MAVEN_ARTIFACT_ID" || -n "$MAVEN_VERSION" || -n "$MAVEN_POM_URL" ]]; then
@@ -128,14 +153,24 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Ensure dist release exists
+      # Created as a DRAFT on purpose. A published release needs a git tag, and
+      # `gh release create` tags whatever HEAD is at the time — i.e. the commit
+      # BEFORE the manifest stamp. That is why this job used to finish with
+      # `git tag -f` + `git push -f`, force-moving a tag partners may already
+      # have resolved. A draft carries no tag, so the tag can be created once,
+      # at the end, on the commit that actually contains the stamped manifest.
+      - name: Ensure draft dist release exists
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           VERSION="${{ steps.payload.outputs.version }}"
-          gh release view "$VERSION" >/dev/null 2>&1 \
-            || gh release create "$VERSION" --title "Release $VERSION" --notes "Release in progress. Artifacts are being synchronized."
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            exit 0
+          fi
+          gh release create "$VERSION" --draft \
+            --title "Release $VERSION" \
+            --notes "Release in progress. Artifacts are being synchronized."
 
       - name: Download source artifact and verify checksum
         id: sync_asset
@@ -189,9 +224,9 @@ jobs:
           set -euo pipefail
           gh release upload "${{ steps.payload.outputs.version }}" "${{ steps.sync_asset.outputs.local_path }}" --clobber
 
-      - name: Sync ProductAuditKit asset (iOS, when present)
+      - name: Sync ProductAuditKit asset (iOS)
         id: sync_pak
-        if: steps.payload.outputs.platform == 'ios' && steps.payload.outputs.pak_asset_name != ''
+        if: steps.payload.outputs.platform == 'ios'
         env:
           DIST_REPO_PAT: ${{ secrets.DIST_REPO_PAT }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -217,9 +252,9 @@ jobs:
           DIST_PAK_URL="https://github.com/${{ github.repository }}/releases/download/${{ steps.payload.outputs.version }}/${PAK_NAME}"
           echo "dist_pak_url=$DIST_PAK_URL" >> "$GITHUB_OUTPUT"
 
-      - name: Sync recognition assets (iOS, when present)
+      - name: Sync recognition assets (iOS)
         id: sync_recognition
-        if: steps.payload.outputs.platform == 'ios' && steps.payload.outputs.ri_asset != ''
+        if: steps.payload.outputs.platform == 'ios'
         env:
           DIST_REPO_PAT: ${{ secrets.DIST_REPO_PAT }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -250,10 +285,10 @@ jobs:
           sync_one "${{ steps.payload.outputs.re_asset }}" "${{ steps.payload.outputs.re_checksum }}" re
           sync_one "${{ steps.payload.outputs.rq_asset }}" "${{ steps.payload.outputs.rq_checksum }}" rq
           sync_one "${{ steps.payload.outputs.ffi_asset }}" "${{ steps.payload.outputs.ffi_checksum }}" ffi
-          # Optional (ships from the tag after v1.7.1).
-          if [[ -n "${{ steps.payload.outputs.rb_asset }}" ]]; then
-            sync_one "${{ steps.payload.outputs.rb_asset }}" "${{ steps.payload.outputs.rb_checksum }}" rb
-          fi
+          # No longer optional: the payload gate above rejects a dispatch
+          # without it, because Package.swift declares the target and a
+          # missing asset means a stale pin, not an absent product.
+          sync_one "${{ steps.payload.outputs.rb_asset }}" "${{ steps.payload.outputs.rb_checksum }}" rb
 
       - name: Merge version state
         run: |
@@ -276,124 +311,10 @@ jobs:
               "${{ steps.payload.outputs.checksum }}"
           fi
 
-      - name: Update platform manifest
-        run: |
-          set -euo pipefail
-          PLATFORM="${{ steps.payload.outputs.platform }}"
-          VERSION="${{ steps.payload.outputs.version }}"
-          ASSET_URL="${{ steps.sync_asset.outputs.dist_asset_url }}"
-          CHECKSUM="${{ steps.payload.outputs.checksum }}"
-          ASSET_NAME="${{ steps.payload.outputs.asset_name }}"
-          ANDROID_MAVEN_METADATA_JSON='${{ steps.payload.outputs.android_maven_metadata_json }}'
-
-          python3 - <<'PY'
-          import json, os
-          from pathlib import Path
-          platform = os.environ["PLATFORM"]
-          manifest = Path(f"manifests/{platform}.json")
-          data = json.loads(manifest.read_text())
-          latest = data.setdefault("latest", {})
-          latest["version"] = os.environ["VERSION"]
-          latest["asset_url"] = os.environ["ASSET_URL"]
-          latest["checksum_sha256"] = os.environ["CHECKSUM"]
-          latest["asset_name"] = os.environ["ASSET_NAME"]
-          if platform == "android":
-              # Regenerate the local-AAR snippet so it tracks the new asset —
-              # same stale-field class as cordova's install_example below; it
-              # sat frozen at v1.2.5 because only the maven fields were updated.
-              latest["gradle_example"] = f'implementation(files("libs/{os.environ["ASSET_NAME"]}"))'
-              metadata_raw = os.environ.get("ANDROID_MAVEN_METADATA_JSON", "")
-              if metadata_raw:
-                  metadata = json.loads(metadata_raw)
-                  latest["maven"] = metadata.get("maven", {})
-                  maven = latest["maven"]
-                  if maven.get("group_id") and maven.get("artifact_id") and maven.get("version"):
-                      if maven.get("repository_url"):
-                          latest["gradle_maven_repository_example"] = f'maven {{ url = uri("{maven["repository_url"]}") }}'
-                      latest["gradle_maven_dependency_example"] = f'implementation("{maven["group_id"]}:{maven["artifact_id"]}:{maven["version"]}")'
-              else:
-                  latest.pop("maven", None)
-                  latest.pop("gradle_maven_repository_example", None)
-                  latest.pop("gradle_maven_dependency_example", None)
-          elif platform == "cordova":
-              # Regenerate the snippet so it tracks the new asset URL — without
-              # this the field stayed pinned to the version it was first
-              # written for (the manifest landed v1.2.5 hardcoded).
-              latest["install_example"] = f'cordova plugin add {os.environ["ASSET_URL"]}'
-          manifest.write_text(json.dumps(data, indent=2) + "\n")
-          PY
-        env:
-          PLATFORM: ${{ steps.payload.outputs.platform }}
-          VERSION: ${{ steps.payload.outputs.version }}
-          ASSET_URL: ${{ steps.sync_asset.outputs.dist_asset_url }}
-          CHECKSUM: ${{ steps.payload.outputs.checksum }}
-          ASSET_NAME: ${{ steps.payload.outputs.asset_name }}
-          ANDROID_MAVEN_METADATA_JSON: ${{ steps.payload.outputs.android_maven_metadata_json }}
-
-      - name: Update SPM manifest (iOS only)
-        if: steps.payload.outputs.platform == 'ios'
-        run: |
-          set -euo pipefail
-          if [[ -n "${{ steps.payload.outputs.pak_asset_name }}" ]]; then
-            # Stamp every shipped binaryTarget by name, each its own asset.
-            python3 scripts/update_spm_manifest.py \
-              Package.swift \
-              NeurolabsSDK \
-              "${{ steps.sync_asset.outputs.dist_asset_url }}" \
-              "${{ steps.payload.outputs.checksum }}" \
-              ProductAuditKit \
-              "${{ steps.sync_pak.outputs.dist_pak_url }}" \
-              "${{ steps.payload.outputs.pak_checksum }}"
-            if [[ -n "${{ steps.payload.outputs.ri_asset }}" ]]; then
-              python3 scripts/update_spm_manifest.py \
-                Package.swift \
-                RecognitionInterface \
-                "${{ steps.sync_recognition.outputs.ri_url }}" \
-                "${{ steps.payload.outputs.ri_checksum }}" \
-                RecognitionEngine \
-                "${{ steps.sync_recognition.outputs.re_url }}" \
-                "${{ steps.payload.outputs.re_checksum }}" \
-                RecognitionEngineQdrant \
-                "${{ steps.sync_recognition.outputs.rq_url }}" \
-                "${{ steps.payload.outputs.rq_checksum }}" \
-                NLQdrantEdgeFFI \
-                "${{ steps.sync_recognition.outputs.ffi_url }}" \
-                "${{ steps.payload.outputs.ffi_checksum }}"
-              if [[ -n "${{ steps.payload.outputs.rb_asset }}" ]]; then
-                python3 scripts/update_spm_manifest.py \
-                  Package.swift \
-                  RecognitionBootstrap \
-                  "${{ steps.sync_recognition.outputs.rb_url }}" \
-                  "${{ steps.payload.outputs.rb_checksum }}"
-              fi
-            fi
-          else
-            python3 scripts/update_spm_manifest.py \
-              Package.swift \
-              "${{ steps.sync_asset.outputs.dist_asset_url }}" \
-              "${{ steps.payload.outputs.checksum }}"
-          fi
-
-      - name: Commit manifest changes
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Package.swift manifests/*.json manifests/release-state/*.json
-          git commit -m "chore(dist): update ${{ steps.payload.outputs.platform }} for ${{ steps.payload.outputs.version }}" || exit 0
-          git pull --rebase --autostash origin main
-          git push
-          # Retarget the version tag to the stamp commit just pushed.
-          # "Ensure dist release exists" runs BEFORE the manifest stamp, and
-          # `gh release create` tags the pre-stamp HEAD — so the vX tag's
-          # Package.swift pointed at the PREVIOUS release's binaries and SPM
-          # consumers pinning the tag fetched the wrong xcframeworks
-          # (observed: v1.6.7 served v1.7.0 assets; v1.7.0 served v1.6.6).
-          # Skipped automatically when nothing was committed (the `|| exit 0`
-          # above ends the step), so a no-op re-dispatch never moves a tag.
-          git tag -f "${{ steps.payload.outputs.version }}"
-          git push -f origin "refs/tags/${{ steps.payload.outputs.version }}"
-
+      # MOVED AHEAD OF THE STAMP/COMMIT/TAG. It used to run after the manifest
+      # was already committed, pushed and the tag force-moved, so the gate it
+      # is named for could not gate anything. Now `ready` is known before any
+      # of that, and it is what decides whether the tag is created at all.
       - name: Check release readiness
         id: ready
         run: |
@@ -406,6 +327,81 @@ jobs:
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
           fi
+
+      # Monotonic and line-aware: a backport records itself under
+      # lines["<major>.<minor>"] and leaves `latest` alone. The previous inline
+      # heredoc set latest["version"] unconditionally with no comparison at
+      # all, which downgraded `latest` nine times in the 1.6/1.7 era alone
+      # (v1.6.7/v1.6.9/v1.6.11 in August, v1.6.12 in September).
+      - name: Update platform manifest
+        run: |
+          set -euo pipefail
+          python3 scripts/update_platform_manifest.py \
+            "manifests/${{ steps.payload.outputs.platform }}.json" \
+            --version "${{ steps.payload.outputs.version }}" \
+            --asset-url "${{ steps.sync_asset.outputs.dist_asset_url }}" \
+            --asset-name "${{ steps.payload.outputs.asset_name }}" \
+            --checksum "${{ steps.payload.outputs.checksum }}" \
+            --maven-json "$ANDROID_MAVEN_METADATA_JSON"
+        env:
+          ANDROID_MAVEN_METADATA_JSON: ${{ steps.payload.outputs.android_maven_metadata_json }}
+
+      # ONE invocation, every binaryTarget, or nothing. The previous version
+      # was a nested `if [[ -n "$ri_asset" ]]` cascade that stamped whichever
+      # subset the dispatch happened to carry; the script now refuses to write
+      # unless the set of targets supplied equals the set declared in
+      # Package.swift, and unless every URL is from this release's tag.
+      - name: Update SPM manifest (iOS only)
+        if: steps.payload.outputs.platform == 'ios'
+        run: |
+          set -euo pipefail
+          python3 scripts/update_spm_manifest.py Package.swift \
+            --release-tag "${{ steps.payload.outputs.version }}" \
+            --target NeurolabsSDK \
+            --url "${{ steps.sync_asset.outputs.dist_asset_url }}" \
+            --checksum "${{ steps.payload.outputs.checksum }}" \
+            --target ProductAuditKit \
+            --url "${{ steps.sync_pak.outputs.dist_pak_url }}" \
+            --checksum "${{ steps.payload.outputs.pak_checksum }}" \
+            --target RecognitionInterface \
+            --url "${{ steps.sync_recognition.outputs.ri_url }}" \
+            --checksum "${{ steps.payload.outputs.ri_checksum }}" \
+            --target RecognitionEngine \
+            --url "${{ steps.sync_recognition.outputs.re_url }}" \
+            --checksum "${{ steps.payload.outputs.re_checksum }}" \
+            --target RecognitionEngineQdrant \
+            --url "${{ steps.sync_recognition.outputs.rq_url }}" \
+            --checksum "${{ steps.payload.outputs.rq_checksum }}" \
+            --target RecognitionBootstrap \
+            --url "${{ steps.sync_recognition.outputs.rb_url }}" \
+            --checksum "${{ steps.payload.outputs.rb_checksum }}" \
+            --target NLQdrantEdgeFFI \
+            --url "${{ steps.sync_recognition.outputs.ffi_url }}" \
+            --checksum "${{ steps.payload.outputs.ffi_checksum }}"
+
+      # The assertion that cannot be reasoned around. Fails unless every
+      # binaryTarget URL shares one /releases/download/<tag>/ segment, then
+      # runs `swift package dump-package` to prove the file still parses and
+      # that every hand-maintained product link closure resolves. There is no
+      # Swift toolchain on ubuntu-latest, so the script falls back to the
+      # official Swift container; it treats "no toolchain at all" as a
+      # failure, never as a skip.
+      - name: Assert Package.swift serves one release line
+        if: steps.payload.outputs.platform == 'ios'
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_spm_manifest.py Package.swift \
+            --expect-tag "${{ steps.payload.outputs.version }}"
+
+      - name: Commit manifest changes
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Package.swift manifests/*.json manifests/release-state/*.json
+          git commit -m "chore(dist): update ${{ steps.payload.outputs.platform }} for ${{ steps.payload.outputs.version }}" || echo "nothing to commit"
+          git pull --rebase --autostash origin main
+          git push
 
       - name: Checkout Cordova SDK repo for guide refresh
         if: steps.ready.outputs.ready == 'true'
@@ -447,7 +443,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/integration-guides manifests/guides.json
-          git commit -m "docs(dist): refresh integration guides for ${{ steps.payload.outputs.version }}" || exit 0
+          git commit -m "docs(dist): refresh integration guides for ${{ steps.payload.outputs.version }}" || echo "nothing to commit"
           git pull --rebase --autostash origin main
           git push
 
@@ -492,3 +488,50 @@ jobs:
           ${ANDROID_MAVEN_NOTE}
           EOF2
           gh release edit "$VERSION" --notes-file release-notes.md
+
+      # The tag is created ONCE, here, on the commit that carries the finished
+      # manifest — and only after validate_release_ready.py said all three
+      # platforms landed. No `git tag -f`, no `git push -f`: a tag partners may
+      # already have resolved is never moved under them. If the tag somehow
+      # exists on a different commit, that is a state a human has to look at,
+      # so the job fails instead of overwriting it.
+      - name: Tag and publish the release
+        if: steps.ready.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.payload.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch --tags origin
+          HEAD_SHA="$(git rev-parse HEAD)"
+          if EXISTING="$(git rev-parse -q --verify "refs/tags/${VERSION}^{commit}")"; then
+            if [[ "$EXISTING" != "$HEAD_SHA" ]]; then
+              echo "::error::Tag ${VERSION} already exists at ${EXISTING} but the finished" >&2
+              echo "manifest is at ${HEAD_SHA}. Refusing to force-move a published tag." >&2
+              echo "Delete the tag deliberately, or cut a new patch version." >&2
+              exit 1
+            fi
+          else
+            git tag -a "$VERSION" -m "Coordinated mobile distribution release $VERSION"
+            git push origin "refs/tags/${VERSION}"
+          fi
+          # Never let a backport claim GitHub's "Latest" badge. That badge is
+          # what a partner sees first, and v1.6.12 held it while being an
+          # iOS-only two-asset release with no Android AAR and no Cordova tgz.
+          IS_LATEST=$(VERSION="$VERSION" python3 - <<'PY'
+          import json, os, sys
+          sys.path.insert(0, "scripts")
+          import semver
+          version = os.environ["VERSION"]
+          known = []
+          for name in ("ios", "android", "cordova"):
+              data = json.loads(open(f"manifests/{name}.json").read())
+              entries = list((data.get("lines") or {}).values()) + [data.get("latest") or {}]
+              known += [e["version"] for e in entries if e.get("version")]
+          print("true" if all(semver.compare(version, k) >= 0 for k in known) else "false")
+          PY
+          )
+          gh release edit "$VERSION" --draft=false --latest="$IS_LATEST"
+          echo "published $VERSION (latest=$IS_LATEST)"

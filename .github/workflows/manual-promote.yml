@@ -42,6 +42,15 @@ on:
       cordova_checksum_sha256:
         description: Cordova SHA256 checksum
         required: false
+      stamp_spm:
+        description: >-
+          Re-stamp every binaryTarget in Package.swift from the assets published
+          on this release tag (checksums recomputed from the bytes actually
+          served). Leave on to repair a split manifest; this needs no asset URL
+          inputs.
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -115,14 +124,20 @@ jobs:
           cordova_asset_url: ${{ inputs.cordova_asset_url }}
           cordova_checksum_sha256: ${{ inputs.cordova_checksum_sha256 }}
 
-      - name: Ensure dist release exists
+      # Draft, for the same reason as dist-release.yml: a published release
+      # needs a tag, and creating it here would tag the pre-stamp commit.
+      - name: Ensure draft dist release exists
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           VERSION="${{ inputs.version }}"
-          gh release view "$VERSION" >/dev/null 2>&1 \
-            || gh release create "$VERSION" --title "Release $VERSION" --notes "Release in progress (manual promote)."
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            exit 0
+          fi
+          gh release create "$VERSION" --draft \
+            --title "Release $VERSION" \
+            --notes "Release in progress (manual promote)."
 
       - name: Download and re-upload assets to dist release
         env:
@@ -156,6 +171,21 @@ jobs:
             fi
           done
 
+      # MOVED AHEAD OF THE STAMP/COMMIT, as in dist-release.yml: the gate
+      # has to run before the thing it gates.
+      - name: Check release readiness
+        id: ready
+        run: |
+          set +e
+          python3 scripts/validate_release_ready.py "manifests/release-state/${{ inputs.version }}.json"
+          CODE=$?
+          set -e
+          if [ "$CODE" -eq 0 ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Update platform manifests
         run: |
           set -euo pipefail
@@ -178,6 +208,10 @@ jobs:
               }')
           fi
 
+          # Same monotonic, line-aware stamper the release train uses. This
+          # step used to carry its own copy of the unconditional
+          # `latest["version"] = VERSION` heredoc, so the recovery tool could
+          # reintroduce the downgrade it was being used to repair.
           for P in ios android cordova; do
             URL_VAR="${P}_asset_url"
             CS_VAR="${P}_checksum_sha256"
@@ -186,37 +220,14 @@ jobs:
             if [ -z "$URL" ] || [ -z "$CS" ]; then continue; fi
             ASSET_NAME=$(basename "$URL")
             DIST_URL="https://github.com/${{ github.repository }}/releases/download/${VERSION}/${ASSET_NAME}"
-            PLATFORM="$P" VERSION="$VERSION" ASSET_URL="$DIST_URL" CHECKSUM="$CS" \
-              ASSET_NAME="$ASSET_NAME" ANDROID_MAVEN_METADATA_JSON="$ANDROID_MAVEN_METADATA_JSON" \
-              python3 - <<'PY'
-          import json, os
-          from pathlib import Path
-          platform = os.environ["PLATFORM"]
-          manifest = Path(f"manifests/{platform}.json")
-          data = json.loads(manifest.read_text())
-          latest = data.setdefault("latest", {})
-          latest["version"] = os.environ["VERSION"]
-          latest["asset_url"] = os.environ["ASSET_URL"]
-          latest["checksum_sha256"] = os.environ["CHECKSUM"]
-          latest["asset_name"] = os.environ["ASSET_NAME"]
-          if platform == "android":
-              metadata_raw = os.environ.get("ANDROID_MAVEN_METADATA_JSON", "")
-              if metadata_raw:
-                  metadata = json.loads(metadata_raw)
-                  latest["maven"] = metadata.get("maven", {})
-                  maven = latest["maven"]
-                  if maven.get("group_id") and maven.get("artifact_id") and maven.get("version"):
-                      if maven.get("repository_url"):
-                          latest["gradle_maven_repository_example"] = f'maven {{ url = uri("{maven["repository_url"]}") }}'
-                      latest["gradle_maven_dependency_example"] = f'implementation("{maven["group_id"]}:{maven["artifact_id"]}:{maven["version"]}")'
-              else:
-                  latest.pop("maven", None)
-                  latest.pop("gradle_maven_repository_example", None)
-                  latest.pop("gradle_maven_dependency_example", None)
-          elif platform == "cordova":
-              latest["install_example"] = f'cordova plugin add {os.environ["ASSET_URL"]}'
-          manifest.write_text(json.dumps(data, indent=2) + "\n")
-          PY
+            MAVEN_JSON=""
+            if [[ "$P" == "android" ]]; then MAVEN_JSON="$ANDROID_MAVEN_METADATA_JSON"; fi
+            python3 scripts/update_platform_manifest.py "manifests/${P}.json" \
+              --version "$VERSION" \
+              --asset-url "$DIST_URL" \
+              --asset-name "$ASSET_NAME" \
+              --checksum "$CS" \
+              --maven-json "$MAVEN_JSON"
           done
         env:
           ios_asset_url: ${{ inputs.ios_asset_url }}
@@ -232,14 +243,30 @@ jobs:
           cordova_asset_url: ${{ inputs.cordova_asset_url }}
           cordova_checksum_sha256: ${{ inputs.cordova_checksum_sha256 }}
 
-      - name: Update SPM manifest (if iOS provided)
-        if: inputs.ios_asset_url != '' && inputs.ios_checksum_sha256 != ''
+      # THE defect this tool was carrying: it called update_spm_manifest.py with
+      # two positional args, which hit the legacy branch that stamped
+      # NeurolabsSDK and nothing else — leaving the other six binaryTargets on
+      # whatever tag they happened to be on. The tool an engineer reaches for to
+      # repair a split manifest produced a worse one. The legacy branch is gone;
+      # this now re-derives EVERY binaryTarget's URL and checksum from the
+      # assets published on the tag, by downloading and hashing them, and fails
+      # if the release is missing an asset for any declared target.
+      - name: Re-stamp Package.swift from the release assets
+        if: inputs.stamp_spm
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          DIST_ASSET_URL="https://github.com/${{ github.repository }}/releases/download/${{ inputs.version }}/$(basename "${{ inputs.ios_asset_url }}")"
-          python3 scripts/update_spm_manifest.py \
-            Package.swift \
-            "$DIST_ASSET_URL" \
-            "${{ inputs.ios_checksum_sha256 }}"
+          set -euo pipefail
+          python3 scripts/update_spm_manifest.py Package.swift \
+            --release-tag "${{ inputs.version }}" \
+            --from-release "${{ github.repository }}"
+
+      - name: Assert Package.swift serves one release line
+        if: inputs.stamp_spm
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_spm_manifest.py Package.swift \
+            --expect-tag "${{ inputs.version }}"
 
       - name: Commit manifest changes
         run: |
@@ -247,23 +274,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Package.swift manifests/*.json manifests/release-state/*.json
-          git diff --cached --quiet && exit 0
-          git commit -m "chore(dist): manual promote for ${{ inputs.version }}"
+          git commit -m "chore(dist): manual promote for ${{ inputs.version }}" || echo "nothing to commit"
           git pull --rebase --autostash origin main
           git push
-
-      - name: Check release readiness
-        id: ready
-        run: |
-          set +e
-          python3 scripts/validate_release_ready.py "manifests/release-state/${{ inputs.version }}.json"
-          CODE=$?
-          set -e
-          if [ "$CODE" -eq 0 ]; then
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-          fi
 
       - name: Checkout Cordova SDK repo
         if: steps.ready.outputs.ready == 'true'
@@ -305,8 +318,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/integration-guides manifests/guides.json
-          git diff --cached --quiet && exit 0
-          git commit -m "docs(dist): refresh integration guides for ${{ inputs.version }}"
+          git commit -m "docs(dist): refresh integration guides for ${{ inputs.version }}" || echo "nothing to commit"
           git pull --rebase --autostash origin main
           git push
 
@@ -350,3 +362,44 @@ jobs:
             fi
           } > release-notes.md
           gh release edit "$VERSION" --notes-file release-notes.md
+
+      # Same single-shot tagging as dist-release.yml. A recovery run that did
+      # not reach a complete, validated release leaves the draft alone: no tag,
+      # nothing published, nothing force-moved.
+      - name: Tag and publish the release
+        if: steps.ready.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          VERSION="${{ inputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch --tags origin
+          HEAD_SHA="$(git rev-parse HEAD)"
+          if EXISTING="$(git rev-parse -q --verify "refs/tags/${VERSION}^{commit}")"; then
+            if [[ "$EXISTING" != "$HEAD_SHA" ]]; then
+              echo "::error::Tag ${VERSION} already exists at ${EXISTING} but the finished" >&2
+              echo "manifest is at ${HEAD_SHA}. Refusing to force-move a published tag." >&2
+              echo "Delete the tag deliberately, or cut a new patch version." >&2
+              exit 1
+            fi
+          else
+            git tag -a "$VERSION" -m "Coordinated mobile distribution release $VERSION"
+            git push origin "refs/tags/${VERSION}"
+          fi
+          IS_LATEST=$(VERSION="$VERSION" python3 - <<'PY'
+          import json, os, sys
+          sys.path.insert(0, "scripts")
+          import semver
+          version = os.environ["VERSION"]
+          known = []
+          for name in ("ios", "android", "cordova"):
+              data = json.loads(open(f"manifests/{name}.json").read())
+              entries = list((data.get("lines") or {}).values()) + [data.get("latest") or {}]
+              known += [e["version"] for e in entries if e.get("version")]
+          print("true" if all(semver.compare(version, k) >= 0 for k in known) else "false")
+          PY
+          )
+          gh release edit "$VERSION" --draft=false --latest="$IS_LATEST"
+          echo "published $VERSION (latest=$IS_LATEST)"

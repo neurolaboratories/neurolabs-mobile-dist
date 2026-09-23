@@ -1,0 +1,58 @@
+name: Distribution Manifest Guard
+
+# Nothing in this repo had ever detected a split distribution manifest. The
+# release train produced one in August (v1.6.7, v1.6.9, v1.6.11 each downgraded
+# `latest` behind a 1.7.x release) and again on 2026-09-21, when v1.6.12 stamped
+# two of seven binaryTargets and left the other five at v1.7.7; every August
+# occurrence was masked by the next 1.7.x release overwriting it, and the
+# September one reached partners.
+#
+# The release workflows now assert this at stamp time. This guard asserts the
+# same thing on the state actually sitting on `main`, so a hand edit, a bad
+# merge or a revert cannot reintroduce it either.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "Package.swift"
+      - "manifests/*.json"
+      - "scripts/*.py"
+      - ".github/workflows/manifest-guard.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "Package.swift"
+      - "manifests/*.json"
+      - "scripts/*.py"
+  schedule:
+    # A release lands on main without a PR, so catch anything the train wrote
+    # overnight even if the push trigger was skipped.
+    - cron: "0 6 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout dist repo
+        uses: actions/checkout@v4
+
+      # Pure-logic regression tests for the semver comparison and the
+      # monotonic/all-or-nothing rules. Stdlib only, no toolchain, ~0.3s —
+      # every case is a downgrade or a split that actually reached `main`.
+      - name: Run manifest tooling tests
+        run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
+
+      # ubuntu-latest has no Swift toolchain but does have Docker; the script
+      # falls back to the official Swift image so `dump-package` really runs.
+      - name: Pre-pull the Swift image
+        run: docker pull swift:6.0-jammy
+
+      - name: Assert one release line, end to end
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_spm_manifest.py Package.swift --cross-check-manifests

@@ -44,6 +44,21 @@ import PackageDescription
 // Do NOT trim these lists back to one entry "because the target is already in
 // another product": that is exactly the defect that shipped from v1.7.2.
 //
+// ONE RELEASE LINE, ALWAYS. Every binaryTarget below must point at the SAME
+// /releases/download/<tag>/ segment. On 2026-09-21 a v1.6.12 maintenance
+// backport stamped NeurolabsSDK and ProductAuditKit while leaving the five
+// recognition targets at v1.7.7, and `main` spent a day handing SPM consumers
+// a 1.6.12 SDK — 363 fewer public declarations, no setRecognitionProvider —
+// bolted to a 1.7.7 recognition stack it had nowhere to plug into.
+// `scripts/verify_spm_manifest.py` now fails the release on exactly that, and
+// runs on every stamp; run it yourself after any hand edit here.
+//
+// The 1.6.x source tree has no RecognitionEngine/RecognitionEngineQdrant/
+// RecognitionBootstrap targets at all, so this manifest cannot describe it.
+// A 1.6.x release needs its own branch and its own Package.swift — see
+// "Release lines" in the README. The release train now rejects an iOS dispatch
+// that does not carry an asset for every target below.
+//
 // The SentryShim target is REQUIRED for NeurolabsSDK: the prebuilt framework
 // links Sentry dynamically, so consumers need SPM to provide Sentry.framework
 // at the exact version the binary was linked against — do not remove it or
@@ -98,13 +113,13 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "NeurolabsSDK",
-            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.12/NeurolabsSDK.xcframework-v1.6.12.zip",
-            checksum: "23c89879168979686f3e5ca2f8f47092e08798d155b19cdc0feef29a1967ae8b"
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.7/NeurolabsSDK.xcframework-v1.7.7.zip",
+            checksum: "555c991eb5480e2f924691b24d4846e2fe53d5720b29c186b5ebc2c5594f9773"
         ),
         .binaryTarget(
             name: "ProductAuditKit",
-            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.6.12/ProductAuditKit.xcframework-v1.6.12.zip",
-            checksum: "8000870cfafea0a0a029d0c0f8015092275ab04b0a401f427b3a9ea06d6992a5"
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.7/ProductAuditKit.xcframework-v1.7.7.zip",
+            checksum: "e4d50670a4080cdb123efc9c52aeae5485bbd089797246a769fa37eb5efd0971"
         ),
         .binaryTarget(
             name: "RecognitionInterface",
