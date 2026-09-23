@@ -19,6 +19,14 @@ This repository is the single release entry point for:
   `scripts/validate_release_ready.py` confirms all three platforms landed. The
   tag is created once, on the commit carrying the finished manifest, and is
   never force-moved.
+- **Manifests are stamped at that same gate, never before it.** A draft's
+  download URLs 404 for anyone outside the org, so a manifest advertising one
+  is a broken install instruction — worse than the previous version it
+  replaced. Each dispatch records its artifacts in
+  `manifests/release-state/<tag>.json` and nothing else; the dispatch that
+  completes the set stamps every platform manifest and `Package.swift` from
+  that file, via `scripts/stamp_manifests_from_state.py`. A release that never
+  completes leaves `manifests/*.json` pointing at the last release that did.
 
 ## Release lines
 
@@ -232,12 +240,17 @@ Real workflows used in this repo:
 
 - `.github/workflows/dist-release.yml`
   - receives `ios_ready`, `android_ready`, `cordova_ready`
-  - updates manifests and iOS `Package.swift`
+  - records each platform's artifacts in `manifests/release-state/<tag>.json`
+    on every dispatch
+  - stamps every manifest and iOS `Package.swift` on the dispatch that
+    completes the release, and only then
   - creates/updates the coordinated release metadata
 - `.github/workflows/manual-promote.yml`
   - manual fallback for recovery or backfill
   - re-stamps `Package.swift` in full from the assets published on a tag
     (`stamp_spm`), for repairing a split manifest
+  - subject to the same readiness gate: it records what it is given, but stamps
+    nothing for a release that is still a draft
 
 Shared tooling:
 
@@ -246,6 +259,7 @@ Shared tooling:
 | `scripts/semver.py` | semver parse/compare/line helpers — never compare tags as strings |
 | `scripts/update_platform_manifest.py` | monotonic, line-aware `latest` for `ios`/`android`/`cordova` |
 | `scripts/update_spm_manifest.py` | all-or-nothing `binaryTarget` stamping |
+| `scripts/stamp_manifests_from_state.py` | stamps **all** manifests + `Package.swift` from one release-state file; refuses to run unless the release is publishable |
 | `scripts/verify_spm_manifest.py` | one-release-line assertion + `swift package dump-package` |
 | `scripts/validate_release_ready.py` | 3-platform readiness gate; runs **before** anything is committed or tagged |
 | `scripts/test_manifest_tooling.py` | regression tests for the above; `python3 -m unittest discover -s scripts -p 'test_*.py'` |

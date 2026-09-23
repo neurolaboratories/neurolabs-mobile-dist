@@ -53,13 +53,22 @@ BINARY_TARGET = re.compile(
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 
+class StampError(Exception):
+    """A refused stamp. `code` is the exit status the CLI returns for it: 1 for
+    a malformed manifest, 2 for a violated all-or-nothing rule."""
+
+    def __init__(self, message: str, code: int = 2):
+        super().__init__(message)
+        self.code = code
+
+
 def discover_targets(text: str) -> list[str]:
     names = [m.group("name") for m in BINARY_TARGET.finditer(text)]
     if not names:
-        raise SystemExit("error: no .binaryTarget blocks found in the manifest")
+        raise StampError("no .binaryTarget blocks found in the manifest", 1)
     dupes = {n for n in names if names.count(n) > 1}
     if dupes:
-        raise SystemExit(f"error: duplicate binaryTarget names: {sorted(dupes)}")
+        raise StampError(f"duplicate binaryTarget names: {sorted(dupes)}", 1)
     return names
 
 
@@ -71,8 +80,66 @@ def stamp_target(text: str, name: str, url: str, checksum: str) -> str:
     )
     new_text, n = pattern.subn(rf"\g<1>{url}\g<2>{checksum}\g<3>", text)
     if n != 1:
-        raise SystemExit(f"error: expected exactly one binaryTarget {name!r}, matched {n}")
+        raise StampError(f"expected exactly one binaryTarget {name!r}, matched {n}", 1)
     return new_text
+
+
+def stamp_text(text: str, tag: str, supplied: dict[str, tuple[str, str]]) -> tuple[str, str]:
+    """Stamp every declared binaryTarget, or none. Pure; raises StampError.
+
+    Importable so `stamp_manifests_from_state.py` stamps Package.swift through
+    the same all-or-nothing gate the release train uses, rather than growing a
+    second, laxer path into the file that decides what SPM consumers link.
+    """
+    names = discover_targets(text)
+
+    # ---- all-or-nothing gate -------------------------------------------------
+    missing = sorted(set(names) - set(supplied))
+    unknown = sorted(set(supplied) - set(names))
+    if missing:
+        raise StampError(
+            "the dispatch carried no asset for "
+            f"{', '.join(missing)}. Package.swift declares {len(names)} "
+            "binaryTargets and every release must stamp all of them — a "
+            "partial stamp is what splits the manifest across two release "
+            "lines. Refusing to write.",
+            2,
+        )
+    if unknown:
+        raise StampError(f"not a binaryTarget in this manifest: {', '.join(unknown)}", 2)
+
+    problems = []
+    seen_urls: dict[str, str] = {}
+    for name in names:
+        url, checksum = supplied[name]
+        if not url:
+            problems.append(f"{name}: empty url")
+        elif f"/releases/download/{tag}/" not in url:
+            problems.append(f"{name}: url is not from {tag} ({url})")
+        if not SHA256.match(checksum):
+            problems.append(f"{name}: checksum is not a sha256 hex digest ({checksum!r})")
+        if url in seen_urls:
+            # SPM keys the binary artifact cache by URL; two targets sharing a
+            # zip resolve to one artifact and the other framework goes missing.
+            problems.append(f"{name}: shares its url with {seen_urls[url]}")
+        seen_urls[url] = name
+    if problems:
+        raise StampError(
+            "refusing to stamp:\n" + "\n".join(f"  - {p}" for p in problems), 2
+        )
+
+    updated = text
+    for name in names:
+        url, checksum = supplied[name]
+        updated = stamp_target(updated, name, url, checksum)
+
+    # An identical re-stamp is a legitimate replay, NOT an error. The old
+    # script exited 1 on "No changes applied", which failed re-dispatches.
+    if updated != text:
+        summary = f"stamped {len(names)} binaryTargets at {tag}: {', '.join(names)}"
+    else:
+        summary = f"already stamped at {tag}: {', '.join(names)} (no change)"
+    return updated, summary
 
 
 def _gh(args: list[str]) -> str:
@@ -131,7 +198,11 @@ def main() -> int:
 
     tag = args.release_tag.strip()
     text = args.manifest.read_text()
-    names = discover_targets(text)
+    try:
+        names = discover_targets(text)
+    except StampError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return exc.code
 
     if args.from_release:
         if args.target:
@@ -147,57 +218,15 @@ def main() -> int:
             for t, u, c in zip(args.target, args.url, args.checksum)
         }
 
-    # ---- all-or-nothing gate -------------------------------------------------
-    missing = sorted(set(names) - set(supplied))
-    unknown = sorted(set(supplied) - set(names))
-    if missing:
-        print(
-            "error: the dispatch carried no asset for "
-            f"{', '.join(missing)}. Package.swift declares {len(names)} "
-            "binaryTargets and every release must stamp all of them — a "
-            "partial stamp is what splits the manifest across two release "
-            "lines. Refusing to write.",
-            file=sys.stderr,
-        )
-        return 2
-    if unknown:
-        print(f"error: not a binaryTarget in this manifest: {', '.join(unknown)}",
-              file=sys.stderr)
-        return 2
+    try:
+        updated, summary = stamp_text(text, tag, supplied)
+    except StampError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return exc.code
 
-    problems = []
-    seen_urls: dict[str, str] = {}
-    for name in names:
-        url, checksum = supplied[name]
-        if not url:
-            problems.append(f"{name}: empty url")
-        elif f"/releases/download/{tag}/" not in url:
-            problems.append(f"{name}: url is not from {tag} ({url})")
-        if not SHA256.match(checksum):
-            problems.append(f"{name}: checksum is not a sha256 hex digest ({checksum!r})")
-        if url in seen_urls:
-            # SPM keys the binary artifact cache by URL; two targets sharing a
-            # zip resolve to one artifact and the other framework goes missing.
-            problems.append(f"{name}: shares its url with {seen_urls[url]}")
-        seen_urls[url] = name
-    if problems:
-        print("error: refusing to stamp:", file=sys.stderr)
-        for p in problems:
-            print(f"  - {p}", file=sys.stderr)
-        return 2
-
-    updated = text
-    for name in names:
-        url, checksum = supplied[name]
-        updated = stamp_target(updated, name, url, checksum)
-
-    # An identical re-stamp is a legitimate replay, NOT an error. The old
-    # script exited 1 on "No changes applied", which failed re-dispatches.
     if updated != text:
         args.manifest.write_text(updated)
-        print(f"stamped {len(names)} binaryTargets at {tag}: {', '.join(names)}")
-    else:
-        print(f"already stamped at {tag}: {', '.join(names)} (no change)")
+    print(summary)
     return 0
 
 
