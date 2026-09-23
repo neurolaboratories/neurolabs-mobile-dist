@@ -290,10 +290,57 @@ jobs:
           # missing asset means a stale pin, not an absent product.
           sync_one "${{ steps.payload.outputs.rb_asset }}" "${{ steps.payload.outputs.rb_checksum }}" rb
 
+      # release-state is the only thing that outlives a dispatch, so everything
+      # a later run needs to stamp THIS platform has to land in it here. For
+      # android that has always been the `maven` block; iOS now adds the
+      # per-binaryTarget URL/checksum map, because Package.swift is no longer
+      # stamped on the iOS dispatch — it is stamped on whichever dispatch
+      # completes the release, and that is usually not iOS.
       - name: Merge version state
+        env:
+          ANDROID_MAVEN_METADATA_JSON: ${{ steps.payload.outputs.android_maven_metadata_json }}
+          PLATFORM: ${{ steps.payload.outputs.platform }}
+          SDK_URL: ${{ steps.sync_asset.outputs.dist_asset_url }}
+          SDK_CHECKSUM: ${{ steps.payload.outputs.checksum }}
+          PAK_URL: ${{ steps.sync_pak.outputs.dist_pak_url }}
+          PAK_CHECKSUM: ${{ steps.payload.outputs.pak_checksum }}
+          RI_URL: ${{ steps.sync_recognition.outputs.ri_url }}
+          RI_CHECKSUM: ${{ steps.payload.outputs.ri_checksum }}
+          RE_URL: ${{ steps.sync_recognition.outputs.re_url }}
+          RE_CHECKSUM: ${{ steps.payload.outputs.re_checksum }}
+          RQ_URL: ${{ steps.sync_recognition.outputs.rq_url }}
+          RQ_CHECKSUM: ${{ steps.payload.outputs.rq_checksum }}
+          RB_URL: ${{ steps.sync_recognition.outputs.rb_url }}
+          RB_CHECKSUM: ${{ steps.payload.outputs.rb_checksum }}
+          FFI_URL: ${{ steps.sync_recognition.outputs.ffi_url }}
+          FFI_CHECKSUM: ${{ steps.payload.outputs.ffi_checksum }}
         run: |
           set -euo pipefail
-          EXTRA_METADATA='${{ steps.payload.outputs.android_maven_metadata_json }}'
+          EXTRA_METADATA="$ANDROID_MAVEN_METADATA_JSON"
+          if [[ "$PLATFORM" == "ios" ]]; then
+            # The payload gate above already refused a dispatch missing any of
+            # these, so an empty value here is a workflow bug, not a 1.6.x
+            # shape — and update_spm_manifest.py refuses to stamp on it.
+            EXTRA_METADATA=$(jq -nc \
+              --arg sdk_url "$SDK_URL" --arg sdk_cs "$SDK_CHECKSUM" \
+              --arg pak_url "$PAK_URL" --arg pak_cs "$PAK_CHECKSUM" \
+              --arg ri_url "$RI_URL" --arg ri_cs "$RI_CHECKSUM" \
+              --arg re_url "$RE_URL" --arg re_cs "$RE_CHECKSUM" \
+              --arg rq_url "$RQ_URL" --arg rq_cs "$RQ_CHECKSUM" \
+              --arg rb_url "$RB_URL" --arg rb_cs "$RB_CHECKSUM" \
+              --arg ffi_url "$FFI_URL" --arg ffi_cs "$FFI_CHECKSUM" \
+              '{
+                spm_targets: {
+                  NeurolabsSDK:            {url: $sdk_url, checksum_sha256: $sdk_cs},
+                  ProductAuditKit:         {url: $pak_url, checksum_sha256: $pak_cs},
+                  RecognitionInterface:    {url: $ri_url,  checksum_sha256: $ri_cs},
+                  RecognitionEngine:       {url: $re_url,  checksum_sha256: $re_cs},
+                  RecognitionEngineQdrant: {url: $rq_url,  checksum_sha256: $rq_cs},
+                  RecognitionBootstrap:    {url: $rb_url,  checksum_sha256: $rb_cs},
+                  NLQdrantEdgeFFI:         {url: $ffi_url, checksum_sha256: $ffi_cs}
+                }
+              }')
+          fi
           if [[ -n "$EXTRA_METADATA" ]]; then
             python3 scripts/merge_release_state.py \
               manifests/release-state \
@@ -311,10 +358,31 @@ jobs:
               "${{ steps.payload.outputs.checksum }}"
           fi
 
+      # Committed on EVERY dispatch, gate or no gate. release-state is the
+      # train's memory: it is how the third dispatch learns that the other two
+      # already landed. Rolling it into the gated manifest commit below would
+      # mean the first two platforms left no trace on `main` and the readiness
+      # check could never pass. Nothing here is partner-facing — it is an
+      # internal ledger, not an install instruction.
+      - name: Record release state
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add manifests/release-state/*.json
+          git commit -m "chore(dist): record ${{ steps.payload.outputs.platform }} artifacts for ${{ steps.payload.outputs.version }}" || echo "nothing to commit"
+          git pull --rebase --autostash origin main
+          git push
+
       # MOVED AHEAD OF THE STAMP/COMMIT/TAG. It used to run after the manifest
       # was already committed, pushed and the tag force-moved, so the gate it
       # is named for could not gate anything. Now `ready` is known before any
-      # of that, and it is what decides whether the tag is created at all.
+      # of that, and it is what decides whether anything partner-facing is
+      # written at all.
+      #
+      # It runs after the state commit above so that it reads the rebased
+      # ledger — whatever the other platforms pushed while this run was
+      # downloading assets counts towards readiness.
       - name: Check release readiness
         id: ready
         run: |
@@ -328,78 +396,61 @@ jobs:
             echo "ready=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # Monotonic and line-aware: a backport records itself under
-      # lines["<major>.<minor>"] and leaves `latest` alone. The previous inline
-      # heredoc set latest["version"] unconditionally with no comparison at
-      # all, which downgraded `latest` nine times in the 1.6/1.7 era alone
-      # (v1.6.7/v1.6.9/v1.6.11 in August, v1.6.12 in September).
-      - name: Update platform manifest
+      # GATED, and PLURAL, and those two facts are the same fact.
+      #
+      # Gated: until all three platforms have landed the release is still a
+      # draft, and a draft's download URLs 404 for anyone who is not a repo
+      # collaborator. Stamping on arrival replaced a working install
+      # instruction with a broken one — strictly worse than leaving the
+      # previous version in place.
+      #
+      # Plural: a dispatch only ever knew about its own platform, so gating the
+      # old per-platform stamp would have meant the first two platforms skipped
+      # their stamp and the third stamped only itself. The stamp therefore
+      # moves to the gate and reads release-state, which by definition now
+      # holds all three. Same monotonic, line-aware rules — the script imports
+      # update_platform_manifest.py rather than restating them — and the same
+      # all-or-nothing rule for Package.swift, whose seven binaryTargets come
+      # from the iOS dispatch's spm_targets map.
+      - name: Stamp every manifest for the completed release
+        if: steps.ready.outputs.ready == 'true'
         run: |
           set -euo pipefail
-          python3 scripts/update_platform_manifest.py \
-            "manifests/${{ steps.payload.outputs.platform }}.json" \
-            --version "${{ steps.payload.outputs.version }}" \
-            --asset-url "${{ steps.sync_asset.outputs.dist_asset_url }}" \
-            --asset-name "${{ steps.payload.outputs.asset_name }}" \
-            --checksum "${{ steps.payload.outputs.checksum }}" \
-            --maven-json "$ANDROID_MAVEN_METADATA_JSON"
-        env:
-          ANDROID_MAVEN_METADATA_JSON: ${{ steps.payload.outputs.android_maven_metadata_json }}
+          python3 scripts/stamp_manifests_from_state.py \
+            "manifests/release-state/${{ steps.payload.outputs.version }}.json" \
+            --manifests-dir manifests \
+            --package-swift Package.swift
 
-      # ONE invocation, every binaryTarget, or nothing. The previous version
-      # was a nested `if [[ -n "$ri_asset" ]]` cascade that stamped whichever
-      # subset the dispatch happened to carry; the script now refuses to write
-      # unless the set of targets supplied equals the set declared in
-      # Package.swift, and unless every URL is from this release's tag.
-      - name: Update SPM manifest (iOS only)
-        if: steps.payload.outputs.platform == 'ios'
-        run: |
-          set -euo pipefail
-          python3 scripts/update_spm_manifest.py Package.swift \
-            --release-tag "${{ steps.payload.outputs.version }}" \
-            --target NeurolabsSDK \
-            --url "${{ steps.sync_asset.outputs.dist_asset_url }}" \
-            --checksum "${{ steps.payload.outputs.checksum }}" \
-            --target ProductAuditKit \
-            --url "${{ steps.sync_pak.outputs.dist_pak_url }}" \
-            --checksum "${{ steps.payload.outputs.pak_checksum }}" \
-            --target RecognitionInterface \
-            --url "${{ steps.sync_recognition.outputs.ri_url }}" \
-            --checksum "${{ steps.payload.outputs.ri_checksum }}" \
-            --target RecognitionEngine \
-            --url "${{ steps.sync_recognition.outputs.re_url }}" \
-            --checksum "${{ steps.payload.outputs.re_checksum }}" \
-            --target RecognitionEngineQdrant \
-            --url "${{ steps.sync_recognition.outputs.rq_url }}" \
-            --checksum "${{ steps.payload.outputs.rq_checksum }}" \
-            --target RecognitionBootstrap \
-            --url "${{ steps.sync_recognition.outputs.rb_url }}" \
-            --checksum "${{ steps.payload.outputs.rb_checksum }}" \
-            --target NLQdrantEdgeFFI \
-            --url "${{ steps.sync_recognition.outputs.ffi_url }}" \
-            --checksum "${{ steps.payload.outputs.ffi_checksum }}"
-
-      # The assertion that cannot be reasoned around. Fails unless every
-      # binaryTarget URL shares one /releases/download/<tag>/ segment, then
-      # runs `swift package dump-package` to prove the file still parses and
-      # that every hand-maintained product link closure resolves. There is no
-      # Swift toolchain on ubuntu-latest, so the script falls back to the
-      # official Swift container; it treats "no toolchain at all" as a
+      # The assertion that cannot be reasoned around, unchanged and now running
+      # on every completed release rather than only on iOS dispatches. Fails
+      # unless every binaryTarget URL shares one /releases/download/<tag>/
+      # segment, then runs `swift package dump-package` to prove the file still
+      # parses and that every hand-maintained product link closure resolves.
+      # There is no Swift toolchain on ubuntu-latest, so the script falls back
+      # to the official Swift container; it treats "no toolchain at all" as a
       # failure, never as a skip.
+      #
+      # It is also the backstop for a release-state file written before
+      # spm_targets existed: the stamper leaves Package.swift alone for those,
+      # and this step is what proves the file is nonetheless at this tag.
       - name: Assert Package.swift serves one release line
-        if: steps.payload.outputs.platform == 'ios'
+        if: steps.ready.outputs.ready == 'true'
         run: |
           set -euo pipefail
           python3 scripts/verify_spm_manifest.py Package.swift \
             --expect-tag "${{ steps.payload.outputs.version }}"
 
+      # Only the partner-facing files, and only once the release is publishable.
+      # release-state was committed above, on its own, precisely so this commit
+      # can be skipped without the train losing its memory.
       - name: Commit manifest changes
+        if: steps.ready.outputs.ready == 'true'
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Package.swift manifests/*.json manifests/release-state/*.json
-          git commit -m "chore(dist): update ${{ steps.payload.outputs.platform }} for ${{ steps.payload.outputs.version }}" || echo "nothing to commit"
+          git add Package.swift manifests/*.json
+          git commit -m "chore(dist): publish manifests for ${{ steps.payload.outputs.version }}" || echo "nothing to commit"
           git pull --rebase --autostash origin main
           git push
 
