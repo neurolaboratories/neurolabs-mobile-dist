@@ -113,38 +113,38 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "NeurolabsSDK",
-            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.8/NeurolabsSDK.xcframework-v1.7.8.zip",
-            checksum: "24732b82821b8248f9d85707284069d9785fdb6fe865300721a20d76de60b145"
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.9/NeurolabsSDK.xcframework-v1.7.9.zip",
+            checksum: "53efe27474136b96f75a2eac0c7896e6aeb1ff7d626471b006bda93d94523ff8"
         ),
         .binaryTarget(
             name: "ProductAuditKit",
-            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.8/ProductAuditKit.xcframework-v1.7.8.zip",
-            checksum: "80b275e35579565c5732578530e7ecac91760a92ccd7bb1f7c3e04561d2a50b2"
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.9/ProductAuditKit.xcframework-v1.7.9.zip",
+            checksum: "1d9a2239500d83be1d782603a8a2d66a793e95f400b728698bcd198315eb5db3"
         ),
         .binaryTarget(
             name: "RecognitionInterface",
-            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.8/RecognitionInterface.xcframework-v1.7.8.zip",
-            checksum: "6bd8e3789d890a7709c9c0d7a7b2954ce5bcdb2c69aa105e9851d49703e94fbc"
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.9/RecognitionInterface.xcframework-v1.7.9.zip",
+            checksum: "63e3e72ccbf8b5e51aa1cad9de43059516750f0bb99b1efd0cf88f0762bb16a4"
         ),
         .binaryTarget(
             name: "RecognitionEngine",
-            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.8/RecognitionEngine.xcframework-v1.7.8.zip",
-            checksum: "58016d5d6531847b44f20ec58150ad89a2582da72868e9348aa6e37097746aab"
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.9/RecognitionEngine.xcframework-v1.7.9.zip",
+            checksum: "6e6cd1b346cf72469a2c979f946417c954d627abb7b26599e54d0f75517edd39"
         ),
         .binaryTarget(
             name: "RecognitionEngineQdrant",
-            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.8/RecognitionEngineQdrant.xcframework-v1.7.8.zip",
-            checksum: "7658d7dc22a643626ba87b9c1c941c0069604791ccaaede0e66b3a70df08d2eb"
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.9/RecognitionEngineQdrant.xcframework-v1.7.9.zip",
+            checksum: "bcc403baac983750954f12bb067aba398974564d4c368ad4262279fd4b8dc375"
         ),
         .binaryTarget(
             name: "RecognitionBootstrap",
-            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.8/RecognitionBootstrap.xcframework-v1.7.8.zip",
-            checksum: "faaeed532e23eed24673f64aaef09d28dadd5c2a095f9bb703051d6ee2eb6b98"
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.9/RecognitionBootstrap.xcframework-v1.7.9.zip",
+            checksum: "f8f5d5afebfa509d3b1b729649a78b8c2ab0c4e5b8c227a91f38058d2e1ce2af"
         ),
         .binaryTarget(
             name: "NLQdrantEdgeFFI",
-            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.8/NLQdrantEdgeFFI.xcframework-v1.7.8.zip",
-            checksum: "61d73b0db0f622b7f5f852998cf2785552f9278d15ab941a30c27e516c3cadec"
+            url: "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.9/NLQdrantEdgeFFI.xcframework-v1.7.9.zip",
+            checksum: "93dd005d4cdf469d14006f9e9dbee438644ab1509930e4d6fc48fba89d8e1351"
         ),
         .target(
             name: "NLSentryShim",
