@@ -1,0 +1,39 @@
+{
+  "version": "v1.7.12",
+  "artifacts": {
+    "ios": {
+      "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.12/NeurolabsSDK.xcframework-v1.7.12.zip",
+      "checksum_sha256": "24e9986968d263ecff772692dc190d7f1aad6fd65e525c6ad56d05cbea0ed2fb",
+      "spm_targets": {
+        "NeurolabsSDK": {
+          "url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.12/NeurolabsSDK.xcframework-v1.7.12.zip",
+          "checksum_sha256": "24e9986968d263ecff772692dc190d7f1aad6fd65e525c6ad56d05cbea0ed2fb"
+        },
+        "ProductAuditKit": {
+          "url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.12/ProductAuditKit.xcframework-v1.7.12.zip",
+          "checksum_sha256": "1be9b180c1cfa9cbc76573dfe1d03a5047c947bfe0734678cde6102961ce7764"
+        },
+        "RecognitionInterface": {
+          "url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.12/RecognitionInterface.xcframework-v1.7.12.zip",
+          "checksum_sha256": "b22d61b69d0d55f60e311be71928f0faadbbb7c3af524caded3b4edc677ba70a"
+        },
+        "RecognitionEngine": {
+          "url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.12/RecognitionEngine.xcframework-v1.7.12.zip",
+          "checksum_sha256": "b947aa7b5645845783bf082f58116f63307b2ae221e615587cf2dbb899a1d2cf"
+        },
+        "RecognitionEngineQdrant": {
+          "url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.12/RecognitionEngineQdrant.xcframework-v1.7.12.zip",
+          "checksum_sha256": "99fdffa3fd2bb88cc1c10fe078b2a7db4b50fbc3979d6d41582fbdbfd03b2a9c"
+        },
+        "RecognitionBootstrap": {
+          "url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.12/RecognitionBootstrap.xcframework-v1.7.12.zip",
+          "checksum_sha256": "fce0002e85f98a5d12b5f2924d4d05884a400b6c603ca57cbc328fdd2e68d0b0"
+        },
+        "NLQdrantEdgeFFI": {
+          "url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.12/NLQdrantEdgeFFI.xcframework-v1.7.12.zip",
+          "checksum_sha256": "2fd05ff9be77482ef3d9b4223f1550e95661ddcf7266f5bedab2d3676ca7654d"
+        }
+      }
+    }
+  }
+}
