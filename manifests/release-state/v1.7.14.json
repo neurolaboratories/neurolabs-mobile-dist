@@ -45,6 +45,10 @@
         "version": "1.7.14",
         "packaging": "aar"
       }
+    },
+    "cordova": {
+      "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.14/neurolabs-cordova-sdk-v1.7.14.tgz",
+      "checksum_sha256": "e50ec02e3fcf8daf4088777b9934315d7090e5a6d6b1dd08cd2174d8ba1f50b1"
     }
   }
 }
