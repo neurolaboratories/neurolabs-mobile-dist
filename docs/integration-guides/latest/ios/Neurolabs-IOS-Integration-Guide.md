@@ -14,6 +14,38 @@ custom-camera flows that need a minimum capture count and a higher
 maximum cap. `showsCapturedCountLabel` hides the `N captured` chip in
 custom camera and multi-capture flow UIs.
 
+### v1.7.18
+No initialiser changes. The new options and result fields are stored
+properties and are additive for the ABI.
+
+Behaviour changes, with no opt-in:
+- After each photo uploads, its capture metadata (capture contract v1)
+  goes up from a retrying outbox; location and depth only when you opt in
+  (section 6).
+- An upload in flight when the app is backgrounded gets iOS's background
+  grace period (section 6).
+- A multi-bay walk with a broken bay link is deduped per linked segment
+  instead of giving up on the rest of the walk; the submit sends
+  `device_dedup` v2 when every segment is trusted, and the walk's stitched
+  realogram (section 9).
+- With on-device recognition off, the AR overlay tells touching boxes
+  apart by appearance (section 13).
+- The camera follows the core's `analyticsEnabled`, and a camera opened
+  before any `NeurolabsSDKCore` exists sends no analytics (section 7,
+  "Camera analytics").
+
+New APIs:
+- `NLConfiguration.captureGeolocation` and `NLConfiguration.captureDepth`,
+  both off by default (section 6).
+- `NLNativeCaptureResult.captureMetadata` and
+  `NLCustomCameraCapture.captureMetadata` (`NLCaptureMetadata`, section 6).
+- `NLMultiBayResult.segments` (`[NLDedupSegment]`) and
+  `NLMultiBayResult.realogram` (`NLStitchedRealogram`), also on
+  `NLNativeMultiBayResultSummary` for bridge hosts (section 9).
+- `NLCameraConfiguration.arAppearanceWithoutRecognition`, on by default,
+  and its bridge key on `NLNativeCaptureConfig` / `NLNativeCaptureOptions`
+  (sections 9 and 13).
+
 ### v1.7.17
 No initialiser changes. The new options are stored properties set after
 `init` and are additive for the ABI.
@@ -267,6 +299,48 @@ print("kept=\(status.retainedCount) bytes=\(status.retainedBytes)")
   and it is a client condition (`NLError.clientConfigurationCodes`), never
   reported to the SDK's Sentry.
 
+### Uploads after the app is backgrounded
+
+A flush with photos to upload holds an iOS background task
+(`beginBackgroundTask`) until it ends, so an upload in flight when the rep
+locks the phone or switches app gets iOS's grace period (about 30 s), which
+is usually enough for one photo to finish. The task ends when the flush ends
+or when iOS expires it. A photo that does not finish stays queued and resumes
+from its confirmed offset when the app returns to the foreground or is next
+opened. There is no upload after the app is killed. No API change.
+
+### What reaches the backend
+
+What the operations upload carries:
+- Per capture: the JPEG (the full frame, sized by `maxImageDimension` /
+  `imageCompressionQuality`), with its task and bay (`subsection_name`).
+- Per capture, after the JPEG uploads: its capture metadata (capture
+  contract v1, `PUT .../images/{imageId}/capture-metadata`), for captures the
+  SDK camera took: shutter time, SDK/device/OS, camera mode, photo size, an
+  EXIF subset (no GPS, no serial numbers), device attitude, camera
+  intrinsics and, on the AR camera, its pose. The detector's boxes only with
+  `sendDetectionsMetadata`. Location only with
+  `NLConfiguration.captureGeolocation` AND your app's location permission
+  (the SDK never asks for it); the LiDAR depth map only with
+  `NLConfiguration.captureDepth`. Both default off. It goes up from its own
+  retrying outbox and never holds up the photo or the submit. Your app reads
+  the same record on `NLNativeCaptureResult.captureMetadata` and
+  `NLCustomCameraCapture.captureMetadata`.
+- Per session: the mission submit's `client_metadata.device_dedup` summary
+  for a multi-bay session (section 9).
+
+What stays on the device:
+- The capture's detections always reach your app
+  (`NLCustomCameraCapture.detections`, the capture result);
+  `sendDetectionsMetadata` decides only whether they are kept in the queue
+  record (`getQueuedItems`) and uploaded with the capture metadata.
+- `enablePreviewCropping` trims only the thumbnail your app and the review
+  show, to the area the detections cover. The uploaded photo is always the
+  full frame, on iOS and Android.
+- `.nlrec` files (`arSessionRecording`, experimental) are AR tooling
+  recordings for replay and calibration. They are not a capture output and
+  are never uploaded.
+
 ## 7. Open Custom Camera
 
 ```swift
@@ -416,6 +490,8 @@ NLDetectorModels.setCredentials(apiKey: operationsKey)              // productio
 
 The call is idempotent (the same key again changes nothing, so a failure's retry wait still holds), a new key retries at once, and the most recent call wins, this one or a core's. A base that is not absolute https with a host is refused.
 
+**Camera analytics (1.7.18).** An SDK camera follows the `analyticsEnabled` of the `NeurolabsSDKCore` that opened it, or, for a camera your app builds itself, of the most recently created core. A camera opened before any `NeurolabsSDKCore` exists sends no analytics (no Mixpanel events, no event-bus `sdk_event`) for its whole lifetime, even if a core is created later. To have camera analytics, create the core first.
+
 For a signed-in rep's bearer, follow this lifecycle:
 
 - **At sign-in,** call `setCredentials(authProvider:)` with one provider for that rep. You can call it again on each camera open, as long as you pass that same instance. A new provider per call refreshes each time, and the new bearer counts as a new key, which clears the retry wait.
@@ -540,7 +616,14 @@ Reading merged results:
   (`NLMultiBayResult?`, nil unless the session ran multi-bay) carries
   `bays: [NLBaySummary]`, `mergedProducts: [NLMergedProduct]`,
   `countsByLabel: [String: Int]`, the stitched preview
-  (`previewImageData` / `previewImageFileUri`), and `dedupTrusted`.
+  (`previewImageData` / `previewImageFileUri`), and `dedupTrusted`. From
+  v1.7.18 it also carries `segments` (`[NLDedupSegment]`: `fromBay`,
+  `toBay`, `trusted`, `countsByLabel`, one per run of linked bays) and
+  `realogram`.
+- `countsByLabel` (`counts_by_label` on the wire) is keyed by detector
+  class (`sku_single`, `sku_multipack`, price tag, promo, poster), not by
+  product or SKU. Shelf, row and slot positions are in
+  `NLMultiBayResult.realogram` (`NLStitchedRealogram`).
 - Use `NLMultiBayResult.productCount` for a product tally — it sums only
   `sku_single` + `sku_multipack`; `countsByLabel` also carries
   price/promo/poster buckets, so summing every label over-counts
@@ -549,7 +632,18 @@ Reading merged results:
   `multiBay: NLNativeMultiBayResultSummary` with `countsByLabel`,
   `baysCount`, `dedupTrusted`, and `previewImageFileUri`. Preview bytes
   are intentionally not sent over the bridge; the file URI is present
-  only when a stable spilled file exists.
+  only when a stable spilled file exists. It also carries the optional
+  `realogram` (`NLStitchedRealogram` with camelCase keys: `version`,
+  `coordinateSpace`, `sdkVersion`, `bays`, `shelves[{shelfIndex,
+  rows[{rowIndex, slots[{slotIndex, xMin, yMin, xMax, yMax, bayIndex,
+  detectorClass, trackId, productId?, stackIndex?, score?}]}]}]`,
+  `truncated`, `omittedProductCount`) and `segments`
+  (`[{fromBay, toBay, trusted, countsByLabel}]`). Each is absent when the
+  SDK built none.
+- On the bridge, `arAppearanceWithoutRecognition` (`Bool?`) on
+  `NLNativeCaptureOptions` and `NLNativeCaptureConfig` resolves options,
+  then config, then `true`, into
+  `NLCameraConfiguration.arAppearanceWithoutRecognition`.
 
 Meaning of `dedupTrusted`:
 - `true` — counts and `mergedProducts` are on-device deduped: each
@@ -564,8 +658,10 @@ Upload semantics:
 - On `stopSession` the mission submit attaches a compact merge summary
   (`{bays, counts_by_label, dedup_trusted, sdk_version,
   ref_homographies}`) as structured `client_metadata.device_dedup` plus,
-  transitionally, a `notes` duplicate for older backends — so the
-  backend can re-dedup authoritatively.
+  transitionally, a `notes` duplicate for older backends. The backend
+  stores the summary and serves `counts_by_label` only when
+  `dedup_trusted` is true. It does not re-dedup from `ref_homographies`
+  today.
 - SDK-managed flows (`openNativeCaptureUI`, `openCustomCameraUI`,
   bridge-driven capture) record that summary automatically. Only hosts
   presenting their own custom capture UI must pass
@@ -646,8 +742,11 @@ once for every capture it saves, after trying to queue it:
   "Capture saved and queued for upload.".
 - `success` is `false` when it could not be queued. `message` says why, and the
   same error also arrives on `didEncounterError`.
-- `detections` are the capture's detections, whether or not they are uploaded
-  (`sendDetectionsMetadata`). `capturedRegions` is empty.
+- `detections` are the capture's detections, whatever
+  `sendDetectionsMetadata` says; that option decides only whether they are
+  uploaded with the capture metadata (section 6, "What reaches the
+  backend"). `captureMetadata` is the capture's recorded metadata.
+  `capturedRegions` is empty.
 - It arrives after `didEnqueue` for the same capture. A capture the queue
   already holds is not reported again.
 
@@ -796,6 +895,13 @@ config.productDetailsSource = detailsSource // names for arLiveLabels
 - `arLiveCount` shows a "~ N products" chip: the distinct stable boxes seen
   this session. It is an estimate; the review keeps the exact deduplicated
   count.
+- With recognition off, there are no product names or unmatched colour,
+  and a box is told apart from its neighbours by its position, not by
+  which product it is: two identical facings that touch can be harder to
+  keep apart. From v1.7.18 `arAppearanceWithoutRecognition` (on by
+  default) adds appearance to that: the same ConvNeXt model, downloaded for
+  appearance only for an org Operations grants it to, or else a colour
+  histogram. The default camera never downloads it.
 
 **12 MP AR stills.** The AR shutter (single, multi-bay, guided and
 continuous) queues ARKit's full-resolution still
@@ -813,5 +919,29 @@ change.
   disabled, so a second tap does nothing and nothing is queued.
 
 ## 14. Notes
+
+### Telemetry and privacy (Sentry)
+
+The SDK reports errors to the Neurolabs Sentry project under this policy,
+the same on iOS, Android and Cordova:
+
+- **Only the SDK's own errors and crashes.** The SDK reports the errors it
+  captures itself, and crashes whose crashed thread runs SDK code. A crash in
+  your own code, an app hang, a watchdog termination or a failed request of
+  your app is never sent.
+- **Your app is never instrumented.** No swizzling, and no network,
+  app-hang, watchdog, breadcrumb or session tracking. The SDK's errors go
+  through a private Sentry client, so your own Sentry setup is untouched.
+  The one process-global path is `NLSentryCrashReporter.bootstrap(...)`,
+  which installs a crash handler only when your app (or the Cordova plugin)
+  calls it; it applies the same filter.
+- **No credentials or personal data.** `sendDefaultPii` is off. Messages are
+  scrubbed before they are sent: a URL keeps only its scheme, host and path,
+  so a signed URL's credentials never leave the device.
+- **Opt out** with `sentryEnabled: false` (or `analyticsEnabled: false`) on
+  `NLConfiguration`. Nothing is sent from an XCTest process.
+
+### Other notes
+
 - Per-session routing is supported via native capture config task UUID overrides.
 - Ensure `NSCameraUsageDescription` is present in app `Info.plist`.

@@ -236,6 +236,22 @@ NLConfiguration.retainedPhotoExpiryDays = 14   // default null (off); photos kep
 - From 80% of `maxRetainedPhotos` the SDK calls `NeurolabsSDKDelegate.onRetainedPhotosHigh(retained, limit)` once per crossing. `NLQueueStatus.retainedCount` / `retainedBytes` report the kept photos.
 - A new capture is refused with `NLCaptureErrorCodes.STORAGE_LOW` (retryable) when the queue's storage has under 500 MB free. It reaches the host through `onError` and the failed `onCaptureResult`, as `QUEUE_FULL` does.
 
+### Uploads after the app is backgrounded
+
+The queue's WorkManager drain keeps uploading while the app's process lives, also in the background. After the process is killed, uploads resume when the host next initialises the SDK (for most apps, the next open). iOS differs: a flush there gets iOS's background grace period (about 30 s), then resumes on the next foreground.
+
+### What reaches the backend
+
+What the operations upload carries:
+- Per capture: the JPEG (the full frame, sized by `maxImageDimension` / `imageCompressionQuality`), with its task and bay (`subsection_name`).
+- Per capture, after the JPEG uploads: its capture metadata (capture contract v1, `PUT .../images/{imageId}/capture-metadata`), for captures the SDK camera took: shutter time, SDK/device/OS, camera mode, photo size, an EXIF subset (no GPS, no serial numbers), device attitude, camera intrinsics and, on the AR camera, its pose. The detector's boxes only with `sendDetectionsMetadata`. Location only with `NLConfiguration.captureGeolocation` AND a location permission your app declares (`ACCESS_FINE_LOCATION` or `ACCESS_COARSE_LOCATION`) and holds; the SDK declares none and never asks. The ARCore depth map only with `NLConfiguration.captureDepth`. Both default off. It goes up from its own retrying outbox and never holds up the photo or the submit. Your app reads the same record on `NLNativeCaptureResult.captureMetadata`.
+- Per session: the mission submit's `client_metadata.device_dedup` summary for a multi-bay session (section 8).
+
+What stays on the device:
+- The capture's detections always reach your app (`CapturedImageData.detections`, `onCapture`, the capture result); `sendDetectionsMetadata` decides only whether they are kept in the queue record and uploaded with the capture metadata.
+- `enablePreviewCropping` trims only the review thumbnail, to the area the detections cover. The uploaded photo is always the full frame, as on iOS. Up to 1.7.17 Android uploaded the trimmed photo.
+- AR session recordings (`.nlrec`, the AR component's recording API) are tooling for replay and calibration. They are not a capture output and are never uploaded.
+
 ## 7. Open Custom Camera (Native Capture UI)
 
 ```kotlin
@@ -301,6 +317,16 @@ The default and AR camera show a small chip while the upload queue sees no netwo
 
 Under `arBoxStyle = NLARBoxStyle.HIGHLIGHT`, with `arLiveLabels` on and a ready recognition provider, a stable box that has been looked at and has no product name latched on it (no match, or every look below 0.6) is drawn in `arBoxUnmatchedColor` (`#RRGGBB`, default `#FACC15`) instead of `arBoxHighlightColor`. A box not looked at yet keeps the highlight colour. The key is on `NLCameraConfiguration` and, as `String?`, on `NLNativeCaptureConfig` / `NLNativeCaptureOptions` (options, then config, then the default). Nothing changes while `arLiveLabels` is off.
 
+With recognition off there are no product names or unmatched colour, and a box is told apart from its neighbours by its position, not by which product it is: two identical facings that touch can be harder to keep apart. From 1.7.18 appearance helps there; see the next subsection.
+
+### AR box identity with recognition off (1.7.18)
+
+With on-device recognition off, the AR overlay tells touching boxes apart by appearance as well as position. `CaptureScreenConfig.arAppearanceWithoutRecognition` (default `true`; `Boolean?` of the same name on `NLNativeCaptureConfig` / `NLNativeCaptureOptions`, options, then config, then `true`) uses the same ConvNeXt model as recognition, downloaded for appearance only through `GET /v1/device-models` for an org Operations grants it to (on-device recognition on, or the org's `ar_appearance_embedder` flag), and a colour histogram until the model is on the device, if it cannot be fetched, or for any other org. `NLDetectorModels.prefetchPolicy` applies to the download. Only the AR camera starts it; the default camera never does.
+
+### Full-resolution AR stills (1.7.18, experimental)
+
+`arHighResolutionStills = true` (on `CaptureScreenConfig` and `NLCameraConfiguration`; `Boolean?` on the bridge types, then `false`) takes each AR photo as a JPEG still of up to 4032 px through ARCore's Shared Camera, beside tracking, instead of ARCore's CPU image (about 2.1 MP). The org's `sdkCapture.arHighResolutionStills = false` vetoes it. It needs API 29+ and a Shared Camera session the phone accepts; anything else, and any failure at capture time, keeps the CPU image for that photo, so a capture never fails because of it. Two failed stills in a row switch it off for the session. Off by default until the device spike passes.
+
 Names for the live labels come from `NLCameraConfiguration.productDetailsSource` (an `NLProductDetailsResolver`). It is in-process only, never in the bridge's JSON: it reaches `NLCustomCameraView(cameraConfiguration = …)` and `NLCaptureActivity.open` / `createIntent(context, sessionId, cameraConfiguration)`. (iOS sets the same source on `NeurolabsSDKCore.productDetailsSource` for `openNativeCaptureUI`.)
 
 ## 8. Multi-Bay Capture (Long Shelves)
@@ -345,17 +371,24 @@ The bay cap depends on the session's mode: a continuous sweep (`captureMode = NL
 - No API change.
 
 Reading merged results:
-- Activity Result / bridge: `NLNativeCaptureResultPayload.multiBay` (`NLNativeMultiBayResultSummary?`, null unless the session ran multi-bay) carries `countsByLabel: Map<String, Int>`, `baysCount`, `dedupTrusted`, and `previewImageFileUri`.
+- Activity Result / bridge: `NLNativeCaptureResultPayload.multiBay` (`NLNativeMultiBayResultSummary?`, null unless the session ran multi-bay) carries `countsByLabel: Map<String, Int>`, `baysCount`, `dedupTrusted`, and `previewImageFileUri`. It also carries the optional `realogram` (`NLStitchedRealogram` with camelCase keys: `version`, `coordinateSpace`, `sdkVersion`, `bays`, `shelves[{shelfIndex, rows[{rowIndex, slots[{slotIndex, xMin, yMin, xMax, yMax, bayIndex, detectorClass, trackId, productId, stackIndex, score}]}]}]`, `truncated`, `omittedProductCount`) and `segments` (`[{fromBay, toBay, trusted, countsByLabel}]`), each left out when the SDK built none. The realogram never crosses Binder: the WebView bridge carries it inline, while the Activity result carries `realogramFileUri` instead, a `file://` URI to `<cacheDir>/neurolabs/realogram-<sessionId>.json` holding the same JSON. Read it, then delete it; the SDK deletes any left older than 24 h at init.
+- Bridge: `arAppearanceWithoutRecognition` (`Boolean?`) on `NLNativeCaptureOptions` / `NLNativeCaptureConfig` resolves options, then config, then `true`, into `CaptureScreenConfig.arAppearanceWithoutRecognition`. `arHighResolutionStills` (`Boolean?`) resolves the same way, then `false`.
 - Compose: `NLCaptureScreen` / `NLCustomCameraView` accept an `onMultiBayResult: ((NLMultiBayResult) -> Unit)?` callback delivering the full result — `bays: List<NLBaySummary>`, `mergedProducts: List<NLMergedProduct>` (one entry per physical product instance after cross-bay dedup), `countsByLabel`, the stitched preview (`previewImageData`), and `dedupTrusted`.
 - Use `NLMultiBayResult.productCount` for a product tally — it sums only `sku_single` + `sku_multipack`; `countsByLabel` also carries price/promo/poster buckets, so summing every label over-counts products.
+- `countsByLabel` (`counts_by_label` on the wire) is keyed by detector class (`sku_single`, `sku_multipack`, price tag, promo, poster), not by product or SKU. Shelf, row and slot positions are in `NLMultiBayResult.realogram` (`NLStitchedRealogram`).
 
 Meaning of `dedupTrusted`:
 - `true` — counts and `mergedProducts` are on-device deduped: each physical product instance is counted once across overlapping bays.
 - `false` — an adjacent-pair alignment broke, the dedup timed out, or `onDeviceDedup` was disabled; counts are then the per-bay sum (an upper bound), not a deduped count.
 
+### Segments and the stitched realogram (1.7.18)
+
+- A broken link between two adjacent bays no longer leaves every later bay unmerged: it starts a new segment, and the dedup runs inside each run of linked bays. `NLMultiBayResult.segments` (`NLDedupSegment`: `fromBay`, `toBay`, `trusted`, `countsByLabel`) lists them. `dedupTrusted` is still true only for one trusted segment. When every segment is trusted and they tile the walk, the submit sends `client_metadata.device_dedup` v2 (`version: 2`, `segments`); otherwise v1. "Review shelf" marks each broken link.
+- `NLMultiBayResult.realogram` (`NLStitchedRealogram`) groups the walk's merged products into shelves, rows and slots in the first bay's frame, by geometry alone, so it exists with recognition off. SDK-managed flows send it as the mission submit's top-level `realogram`; a custom capture UI's `submitNotesJSON()` never carries it. Older backends ignore it.
+
 Upload semantics:
 - Each bay photo uploads as a normal capture through the operations queue (resumable mission flow, one image per capture).
-- On `stopSession` the mission submit attaches a compact merge summary (`{bays, counts_by_label, dedup_trusted, ref_homographies, sdk_version}`) as structured `client_metadata.device_dedup` plus, transitionally, a `notes` duplicate for older backends — so the backend can re-dedup authoritatively.
+- On `stopSession` the mission submit attaches a compact merge summary (`{bays, counts_by_label, dedup_trusted, ref_homographies, sdk_version}`) as structured `client_metadata.device_dedup` plus, transitionally, a `notes` duplicate for older backends. The backend stores the summary and serves `counts_by_label` only when `dedup_trusted` is true. It does not re-dedup from `ref_homographies` today.
 - SDK-managed capture flows record that summary automatically. Only hosts presenting their own custom capture UI must pass `NLMultiBayResult.submitNotesJSON()` to `sdk.setMultiBaySubmitNotes(notes, sessionId)` before `stopSession`.
 
 Config-only mode:
@@ -478,6 +511,25 @@ Tap-to-product-card: captures expose per-detection matches via
 Offline or unresolved products fall back to a UUID + similarity row.
 
 ## 12. Notes
+
+### Telemetry and privacy (Sentry)
+
+The SDK reports errors to the Neurolabs Sentry project under this policy,
+the same on Android, iOS and Cordova:
+
+- **Only the SDK's own errors.** The SDK reports the errors it captures
+  itself. It never calls `SentryAndroid.init` or `Sentry.init`: its client is
+  private, so no uncaught-exception handler, ANR, network, session or
+  lifecycle integration is installed in your app, a crash or ANR in your own
+  code is never sent, and your own Sentry setup is untouched.
+- **No credentials or personal data.** `isSendDefaultPii` is off. Messages
+  are scrubbed before they are sent: a URL keeps only its scheme, host and
+  path, so a signed URL's credentials never leave the device.
+- **Opt out** with `sentryEnabled = false` (or `analyticsEnabled = false`) on
+  `NLConfiguration`. Nothing is sent from a unit or instrumented test run.
+
+### Other notes
+
 - Per-session upload routing is supported with `options.taskUUID`.
 - `autoCloseAfterCapture=true` closes after Save from preview/review flow.
 - Use `allowManualFinish = true` with `minCapturesBeforeDone` and `maxCaptures` when you want "at least X, up to Y" capture sequences.

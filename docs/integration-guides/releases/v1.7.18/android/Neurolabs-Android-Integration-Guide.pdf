@@ -1,0 +1,978 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+4 0 obj
+<< /Length 4781 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 1) Tj ET
+0.000000 0.000000 0.000000 rg
+0.929412 0.333333 0.000000 rg
+BT /F2 24.00 Tf 1 0 0 1 56.69 771.89 Tm (Neurolabs Android SDK Integration Guide) Tj ET
+0.000000 0.000000 0.000000 rg
+BT /F2 14.00 Tf 1 0 0 1 56.69 743.89 Tm (Technical Integration Specification) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 719.89 Tm (Document ID: NLB-ANDROID-INTEGRATION-GUIDE) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 705.89 Tm (Version: v1.7.18) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 691.89 Tm (Date: 2026-10-12) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 677.89 Tm (Status: Partner integration reference) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 663.89 Tm (Owner: Neurolabs) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 639.89 Tm (1. Scope) Tj ET
+BT 1 0 0 1 56.69 617.89 Tm /F1 10.50 Tf (This guide is for partner Android apps integrating `neurolabs-android-sdk` directly.) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 597.89 Tm (2. Release History) Tj ET
+BT 1 0 0 1 56.69 575.89 Tm /F1 10.50 Tf (No public API contract has been broken since v1.1.9. New options have been added with) Tj ET
+BT 1 0 0 1 56.69 561.89 Tm /F1 10.50 Tf (backwards-compatible defaults; integrations on v1.1.9 keep working as is. Recommended) Tj ET
+BT 1 0 0 1 56.69 547.89 Tm /F1 10.50 Tf (defaults: strict shelf guidance with `validationPreset = IOS_PARITY`,) Tj ET
+BT 1 0 0 1 56.69 533.89 Tm /F1 10.50 Tf (`liveQualityChecksEnabled = true`, `autoCloseAfterCapture = true` for single-capture) Tj ET
+BT 1 0 0 1 56.69 519.89 Tm /F1 10.50 Tf (parity flows.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 499.89 Tm (v1.3.2) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 481.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 481.89 Tm /F1 10.50 Tf (Mixpanel ingestion endpoint now resolves via) Tj ET
+BT 1 0 0 1 70.69 467.89 Tm /F1 10.50 Tf (`NLAnalyticsDefaults.MIXPANEL_ENDPOINT_EU` at SDK construction; events flow into the) Tj ET
+BT 1 0 0 1 70.69 453.89 Tm /F1 10.50 Tf (EU region project as expected. The standalone `MixpanelAnalyticsTracker` class keeps) Tj ET
+BT 1 0 0 1 70.69 439.89 Tm /F1 10.50 Tf (the US endpoint as its default so partners reusing it for their own US-region) Tj ET
+BT 1 0 0 1 70.69 425.89 Tm /F1 10.50 Tf (projects are unaffected.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 407.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 407.89 Tm /F1 10.50 Tf (`CaptureViewModel.onFinishPressed` now claims `isFinishing` synchronously, wraps) Tj ET
+BT 1 0 0 1 70.69 393.89 Tm /F1 10.50 Tf (every disk read \(pending review reload, capture reload, temp-file cleanup\) in) Tj ET
+BT 1 0 0 1 70.69 379.89 Tm /F1 10.50 Tf (`withContext\(Dispatchers.IO\)`, and offloads `spillCaptureToDisk` from) Tj ET
+BT 1 0 0 1 70.69 365.89 Tm /F1 10.50 Tf (`commitCapture` - the Done button stays responsive throughout multi-capture) Tj ET
+BT 1 0 0 1 70.69 351.89 Tm /F1 10.50 Tf (sequences and shows an inline `CircularProgressIndicator` while persistence is in) Tj ET
+BT 1 0 0 1 70.69 337.89 Tm /F1 10.50 Tf (flight.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 319.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 319.89 Tm /F1 10.50 Tf (Embedded custom-camera demo gained an in-app settings sheet \(gear icon, top-right of) Tj ET
+BT 1 0 0 1 70.69 305.89 Tm /F1 10.50 Tf (the camera\). Sliders for detection thresholds, capture min / max, live-quality FPS;) Tj ET
+BT 1 0 0 1 70.69 291.89 Tm /F1 10.50 Tf (switches for every boolean knob; SharedPreferences-backed persistence across) Tj ET
+BT 1 0 0 1 70.69 277.89 Tm /F1 10.50 Tf (launches.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 259.89 Tm (v1.3.1) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 241.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 241.89 Tm /F1 10.50 Tf (Fix for an uncatchable native `SIGSEGV` in) Tj ET
+BT 1 0 0 1 70.69 227.89 Tm /F1 10.50 Tf (`com.google.ai.edge.litert.Model.nativeLoadAsset` that triggered when the TFLite) Tj ET
+BT 1 0 0 1 70.69 213.89 Tm /F1 10.50 Tf (asset was stored compressed in the APK, missing, or zero length.) Tj ET
+BT 1 0 0 1 70.69 199.89 Tm /F1 10.50 Tf (`NLLiteRTYoloDetector` now probes the asset with `AssetManager.openFd` first and, on) Tj ET
+BT 1 0 0 1 70.69 185.89 Tm /F1 10.50 Tf (failure, extracts the asset to `noBackupFilesDir` and loads it via the file-path) Tj ET
+BT 1 0 0 1 70.69 171.89 Tm /F1 10.50 Tf (overload.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 153.89 Tm (v1.3.0) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 135.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 135.89 Tm /F1 10.50 Tf (Relaxed guidance thresholds \(perspective skew floor raised, angle-off warning) Tj ET
+BT 1 0 0 1 70.69 121.89 Tm /F1 10.50 Tf (relaxed\) for less aggressive blocking during normal in-store motion. Android lint) Tj ET
+BT 1 0 0 1 70.69 107.89 Tm /F1 10.50 Tf (passes restored.) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 34 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 4994 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 2) Tj ET
+0.000000 0.000000 0.000000 rg
+BT /F2 11.50 Tf 1 0 0 1 56.69 771.89 Tm (v1.2.8) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 753.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 753.89 Tm /F1 10.50 Tf (Onboarding flow: same-barcode relookup is allowed after a completed attempt so) Tj ET
+BT 1 0 0 1 70.69 739.89 Tm /F1 10.50 Tf (partners can retake without restarting the session.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 721.89 Tm (v1.2.7) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 703.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 703.89 Tm /F1 10.50 Tf (Lint compatibility fix for product capture; no API change.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 685.89 Tm (v1.2.6) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 667.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 667.89 Tm /F1 10.50 Tf (Onboarding: partner-overridable operations lookup client and capture debug exports) Tj ET
+BT 1 0 0 1 70.69 653.89 Tm /F1 10.50 Tf (\(frame dump for offline review\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 635.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 635.89 Tm /F1 10.50 Tf (Demo: scrollable launcher on small devices, nav-bar inset respected on the) Tj ET
+BT 1 0 0 1 70.69 621.89 Tm /F1 10.50 Tf (product-capture back button.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 603.89 Tm (v1.2.5) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 585.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 585.89 Tm /F1 10.50 Tf (`NLNativeCaptureConfig` / `NLCustomCameraView` expose `showsSequenceCounterLabel` to) Tj ET
+BT 1 0 0 1 70.69 571.89 Tm /F1 10.50 Tf (toggle the on-screen sequence counter.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 553.89 Tm (v1.2.4) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 535.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 535.89 Tm /F1 10.50 Tf (New capture range controls: `allowManualFinish`, `minCapturesBeforeDone`, and) Tj ET
+BT 1 0 0 1 70.69 521.89 Tm /F1 10.50 Tf (`maxCaptures` plumbed through `NLNativeCaptureConfig` for bounded multi-capture) Tj ET
+BT 1 0 0 1 70.69 507.89 Tm /F1 10.50 Tf (flows with a Done button.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 489.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 489.89 Tm /F1 10.50 Tf (iOS-camera parity work: tap-to-focus, lens-switcher hardening, tightened quality) Tj ET
+BT 1 0 0 1 70.69 475.89 Tm /F1 10.50 Tf (validation thresholds.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 457.89 Tm (v1.2.3) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 439.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 439.89 Tm /F1 10.50 Tf (`NLNativeCaptureConfig.cameraMode = AR | DEFAULT` lets partners pick between the) Tj ET
+BT 1 0 0 1 70.69 425.89 Tm /F1 10.50 Tf (ARKit/ARCore pipeline and the AVFoundation/CameraX 0.5/1 lens-switcher path.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 407.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 407.89 Tm /F1 10.50 Tf (`init` accepts `analyticsEnabled`, `sentryEnabled`, `sentryDsn` so partner apps can) Tj ET
+BT 1 0 0 1 70.69 393.89 Tm /F1 10.50 Tf (opt out of telemetry or point Sentry at their own project.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 375.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 375.89 Tm /F1 10.50 Tf (Default validation thresholds \(blur, glare, perspective\) tightened.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 357.89 Tm (v1.2.2) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 339.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 339.89 Tm /F1 10.50 Tf (Internal: Android plugin integration handling refactor; no public API change.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 321.89 Tm (v1.2.1) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 303.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 303.89 Tm /F1 10.50 Tf (iOS camera-style UI parity polish, lens-switcher state machine hardening, demo) Tj ET
+BT 1 0 0 1 70.69 289.89 Tm /F1 10.50 Tf (Sentry auto-init disabled.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 271.89 Tm (v1.2.0) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 253.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 253.89 Tm /F1 10.50 Tf (Internal scaffolding for v1.2.x: capture range controls landed in v1.2.4, lens) Tj ET
+BT 1 0 0 1 70.69 239.89 Tm /F1 10.50 Tf (switcher in v1.2.4-v1.2.5, missions policy preset, retry + idempotency conformance) Tj ET
+BT 1 0 0 1 70.69 225.89 Tm /F1 10.50 Tf (fixture.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 207.89 Tm (v1.1.9 \(baseline\)) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 189.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 189.89 Tm /F1 10.50 Tf (No public API contract break.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 171.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 171.89 Tm /F1 10.50 Tf (Default task routing config uses `taskUUID`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 153.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 153.89 Tm /F1 10.50 Tf (Recommended custom-camera shelf payload remains strict shelf guidance with) Tj ET
+BT 1 0 0 1 70.69 139.89 Tm /F1 10.50 Tf (`validationPreset = IOS_PARITY`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 121.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 121.89 Tm /F1 10.50 Tf (`liveQualityChecksEnabled` remains the key switch for pill / rotation / warning /) Tj ET
+BT 1 0 0 1 70.69 107.89 Tm /F1 10.50 Tf (error guidance behavior.) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 34 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 4542 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 3) Tj ET
+0.000000 0.000000 0.000000 rg
+BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (`autoCloseAfterCapture = true` remains the recommended parity flow for single) Tj ET
+BT 1 0 0 1 70.69 757.89 Tm /F1 10.50 Tf (accepted captures.) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 739.89 Tm (3. Requirements) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 717.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 717.89 Tm /F1 10.50 Tf (`minSdk 26`) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 699.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 699.89 Tm /F1 10.50 Tf (JDK 17) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 681.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 681.89 Tm /F1 10.50 Tf (Kotlin 2.x) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 663.89 Tm (4. Install) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 589.89 481.89 62.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 629.89 Tm (// app/build.gradle.kts) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 618.89 Tm (dependencies {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 607.89 Tm (    implementation\(files\("libs/neurolabs-android-sdk-v1.1.x.aar"\)\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 596.89 Tm (}) Tj ET
+BT 1 0 0 1 56.69 577.89 Tm /F1 10.50 Tf (If you consume a local `.aar`, include required runtime deps) Tj ET
+BT 1 0 0 1 56.69 563.89 Tm /F1 10.50 Tf (\(Compose/CameraX/serialization/etc.\) or use the provided integration gradle script) Tj ET
+BT 1 0 0 1 56.69 549.89 Tm /F1 10.50 Tf (from the Cordova plugin setup.) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 529.89 Tm (5. SDK Initialization + Warmup) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 246.89 481.89 271.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 495.89 Tm (import ai.neurolabs.sdk.core.*) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 484.89 Tm (import kotlinx.coroutines.launch) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 473.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 462.89 Tm (class MainApp : Application\(\) {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 451.89 Tm (    override fun onCreate\(\) {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 440.89 Tm (        super.onCreate\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 429.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 418.89 Tm (        val config = NLConfiguration.production\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 407.89 Tm (            apiKey = BuildConfig.NL_API_KEY,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 396.89 Tm (            taskUUID = BuildConfig.NL_TASK_UUID,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 385.89 Tm (            debugLogging = BuildConfig.DEBUG) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 374.89 Tm (        \)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 363.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 352.89 Tm (        NeurolabsSDKCore.configure\(this, config\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 341.89 Tm (    }) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 330.89 Tm (}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 319.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 308.89 Tm (// e.g. in first Activity/VM) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 297.89 Tm (val sdk = NeurolabsSDKCore.shared ?: return) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 286.89 Tm (lifecycleScope.launch {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 275.89 Tm (    sdk.initialize\(\)   // the SDK's one detector, all_in_one) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 264.89 Tm (    sdk.waitForFullyLoaded\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 253.89 Tm (}) Tj ET
+BT 1 0 0 1 56.69 234.89 Tm /F2 10.50 Tf (The detector is downloaded, not bundled \(1.7.13+\). ) Tj /F1 10.50 Tf (The SDK ships no model, so it adds) Tj ET
+BT 1 0 0 1 56.69 220.89 Tm /F1 10.50 Tf (about 6.5 MB to your app. Its one detector, `all_in_one` \(YOLO11l-Seg at 960 px, 12) Tj ET
+BT 1 0 0 1 56.69 206.89 Tm /F1 10.50 Tf (classes: SKUs, `sinc` multipacks, prices, promos, posters, gaps, every row type and) Tj ET
+BT 1 0 0 1 56.69 192.89 Tm /F1 10.50 Tf (`shelf_strip`\), comes from the Operations API, per org, with the operations key \(or) Tj ET
+BT 1 0 0 1 56.69 178.89 Tm /F1 10.50 Tf (auth provider\) you already configure: a signed URL, a sha256-verified, resumable,) Tj ET
+BT 1 0 0 1 56.69 164.89 Tm /F1 10.50 Tf (cached 55.6 MB download. The SDK prefetches it at start-up, when the credential) Tj ET
+BT 1 0 0 1 56.69 150.89 Tm /F1 10.50 Tf (changes and when a capture session opens. The old model names \(`NLBModel.tflite`,) Tj ET
+BT 1 0 0 1 56.69 136.89 Tm /F1 10.50 Tf (`yolo11l_seg_sam.tflite`, ...\) and every `NLYoloModelVariant` now mean `all_in_one`.) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 34 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Length 4519 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 4) Tj ET
+0.000000 0.000000 0.000000 rg
+BT 1 0 0 1 56.69 771.89 Tm /F2 10.50 Tf (The first launch needs network for detection. ) Tj /F1 10.50 Tf (Until the model is on the device,) Tj ET
+BT 1 0 0 1 56.69 757.89 Tm /F1 10.50 Tf (capture works without a detector: the shutter, the queue and the light/glare/contrast) Tj ET
+BT 1 0 0 1 56.69 743.89 Tm /F1 10.50 Tf (checks work, `waitForFullyLoaded\(\)` returns, `modelPreparationState` stays `LOADING`,) Tj ET
+BT 1 0 0 1 56.69 729.89 Tm /F1 10.50 Tf (detection throws the retryable `DETECTOR_UNAVAILABLE`, and the capture screen shows) Tj ET
+BT 1 0 0 1 56.69 715.89 Tm /F1 10.50 Tf ("Detector downloading. You can still capture." \(no boxes, no "Point at a shelf", no AR) Tj ET
+BT 1 0 0 1 56.69 701.89 Tm /F1 10.50 Tf (anchors\). When the model lands it is swapped in mid-session.) Tj ET
+BT 1 0 0 1 56.69 687.89 Tm /F1 10.50 Tf (`NLDetectorModels.status\(context\)` gives the state and, after a failure, the failure) Tj ET
+BT 1 0 0 1 56.69 673.89 Tm /F1 10.50 Tf (and its code in `reason`, the same codes as iOS: `no_credentials`, `not_entitled`,) Tj ET
+BT 1 0 0 1 56.69 659.89 Tm /F1 10.50 Tf (`unknown_model`, `pin_mismatch`, `sha_mismatch` \(an hour before the API is asked) Tj ET
+BT 1 0 0 1 56.69 645.89 Tm /F1 10.50 Tf (again\) and `api_unavailable`, `download_failed` \(60 s; `compile_failed` is iOS-only\),) Tj ET
+BT 1 0 0 1 56.69 631.89 Tm /F1 10.50 Tf (plus `insufficient_storage` \(no wait: the next capture session or `prefetch` asks) Tj ET
+BT 1 0 0 1 56.69 617.89 Tm /F1 10.50 Tf (again\) and `load_failed` \(a fresh copy that still will not load; not retried until the) Tj ET
+BT 1 0 0 1 56.69 603.89 Tm /F1 10.50 Tf (next launch\). New operations credentials clear the wait. With no operations credential) Tj ET
+BT 1 0 0 1 56.69 589.89 Tm /F1 10.50 Tf (and no model on the device, the SDK does not fetch on its own and the status stays) Tj ET
+BT 1 0 0 1 56.69 575.89 Tm /F1 10.50 Tf (`NOT_DOWNLOADED` until a credential is set \(1.7.14\). To have it before the first) Tj ET
+BT 1 0 0 1 56.69 561.89 Tm /F1 10.50 Tf (session \(on Wi-Fi, after the operations credential is set\):) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 522.89 481.89 29.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 529.89 Tm (lifecycleScope.launch { NLDetectorModels.prefetch\(context\) }) Tj ET
+BT 1 0 0 1 56.69 510.89 Tm /F2 10.50 Tf (Keep the SDK's own download off cellular \(1.7.16+\). ) Tj /F1 10.50 Tf (By default the SDK downloads the) Tj ET
+BT 1 0 0 1 56.69 496.89 Tm /F1 10.50 Tf (detector on any network. Set `NLDetectorModels.prefetchPolicy =) Tj ET
+BT 1 0 0 1 56.69 482.89 Tm /F1 10.50 Tf (NLDetectorPrefetchNetworkPolicy.UNMETERED_ONLY` before) Tj ET
+BT 1 0 0 1 56.69 468.89 Tm /F1 10.50 Tf (`NeurolabsSDKCore.configure\(...\)` and its own downloads \(start-up, credential change,) Tj ET
+BT 1 0 0 1 56.69 454.89 Tm /F1 10.50 Tf (a waiting `initialize`, a capture session opening\) wait for an unmetered network) Tj ET
+BT 1 0 0 1 56.69 440.89 Tm /F1 10.50 Tf (\(Wi-Fi, Ethernet; a carrier's temporarily unmetered network only with Data Saver off\)) Tj ET
+BT 1 0 0 1 56.69 426.89 Tm /F1 10.50 Tf (and start by themselves when one becomes the default network. Meanwhile `status` is) Tj ET
+BT 1 0 0 1 56.69 412.89 Tm /F1 10.50 Tf (`NOT_DOWNLOADED` with `reason` `waiting_for_unmetered_network`, and the camera runs) Tj ET
+BT 1 0 0 1 56.69 398.89 Tm /F1 10.50 Tf (without a detector \("Detector unavailable. You can still capture."\). An explicit) Tj ET
+BT 1 0 0 1 56.69 384.89 Tm /F1 10.50 Tf (`NLDetectorModels.prefetch\(context\)` ignores the policy, so call it when you do want) Tj ET
+BT 1 0 0 1 56.69 370.89 Tm /F1 10.50 Tf (the cellular download \(for example when the rep opens the camera with no detector) Tj ET
+BT 1 0 0 1 56.69 356.89 Tm /F1 10.50 Tf (yet\).) Tj ET
+BT 1 0 0 1 56.69 336.89 Tm /F1 10.50 Tf (Allow `api.operations.neurolabs.ai` and `storage.googleapis.com` in any egress) Tj ET
+BT 1 0 0 1 56.69 322.89 Tm /F1 10.50 Tf (allowlist. The detector reads its input size and class order from the model, and live) Tj ET
+BT 1 0 0 1 56.69 308.89 Tm /F1 10.50 Tf (frames are sized to it. It costs about 2.25 the pixels per frame of a 640-px model, so) Tj ET
+BT 1 0 0 1 56.69 294.89 Tm /F1 10.50 Tf (check the live frame rate on your lowest-end device first.) Tj ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 34 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 10 0 R >>
+endobj
+12 0 obj
+<< /Length 4418 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 5) Tj ET
+0.000000 0.000000 0.000000 rg
+BT /F2 13.00 Tf 1 0 0 1 56.69 771.89 Tm (6. Queue Management) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 554.89 481.89 205.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 737.89 Tm (val sdk = NeurolabsSDKCore.shared ?: return) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 726.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 715.89 Tm (// runtime queue behavior) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 704.89 Tm (sdk.setAutoSyncEnabled\(true\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 693.89 Tm (sdk.setWifiOnlyUploadsEnabled\(false\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 682.89 Tm (sdk.setDeletePhotosOnUploadSuccess\(true\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 671.89 Tm (sdk.setMaxQueueSize\(200\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 660.89 Tm (sdk.setUploadRetryCount\(5\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 649.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 638.89 Tm (// lifecycle actions) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 627.89 Tm (lifecycleScope.launch {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 616.89 Tm (    sdk.flushQueue\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 605.89 Tm (    sdk.retryFailedUploads\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 594.89 Tm (}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 583.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 572.89 Tm (val status = sdk.getQueueStatus\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 561.89 Tm (println\("pending=${status.pendingCount} failed=${status.failedCount}"\)) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 542.89 Tm (Inspecting the queue at launch) Tj ET
+BT 1 0 0 1 56.69 524.89 Tm /F1 10.50 Tf (After `configure\(\)` the queue loads the records an earlier process left on disk in the) Tj ET
+BT 1 0 0 1 56.69 510.89 Tm /F1 10.50 Tf (background. Until that pass ends, `getQueuedItems\(\)` can be empty or partial, and) Tj ET
+BT 1 0 0 1 56.69 496.89 Tm /F1 10.50 Tf (`removeQueuedItem\(id\)` or `clearUploadQueue\(\)` can miss records that are still on) Tj ET
+BT 1 0 0 1 56.69 482.89 Tm /F1 10.50 Tf (disk. Before you inspect, withdraw or discard queued work at launch, wait for the) Tj ET
+BT 1 0 0 1 56.69 468.89 Tm /F1 10.50 Tf (pass:) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 352.89 481.89 106.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 436.89 Tm (import ai.neurolabs.sdk.core.awaitQueueHydrated) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 425.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 414.89 Tm (lifecycleScope.launch {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 403.89 Tm (    sdk.awaitQueueHydrated\(\) // the whole pass; returns at once once it has run) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 392.89 Tm (    sdk.getQueuedItems\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 381.89 Tm (        .filter { it.sessionId == abandonedSessionId }) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 370.89 Tm (        .forEach { sdk.removeQueuedItem\(it.id\) }) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 359.89 Tm (}) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 340.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 340.89 Tm /F1 10.50 Tf (It returns once the whole pass has finished, also when the load failed \(the queue) Tj ET
+BT 1 0 0 1 70.69 326.89 Tm /F1 10.50 Tf (then holds what it could read\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 308.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 308.89 Tm /F1 10.50 Tf (A setter that rebuilds the queue \(`setOperationsAuthApiKey`, `setOperationsBaseUrl`,) Tj ET
+BT 1 0 0 1 70.69 294.89 Tm /F1 10.50 Tf (`setMaxQueueSize`, `setUploadRetryCount`\) starts a new pass; the call waits for the) Tj ET
+BT 1 0 0 1 70.69 280.89 Tm /F1 10.50 Tf (queue that is current when it returns.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 262.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 262.89 Tm /F1 10.50 Tf (On an instance that was released \(`release\(\)`, or replaced by a `configure\(\)` with a) Tj ET
+BT 1 0 0 1 70.69 248.89 Tm /F1 10.50 Tf (different configuration\) it throws `IllegalStateException`. Call it on the instance) Tj ET
+BT 1 0 0 1 70.69 234.89 Tm /F1 10.50 Tf (`configure\(\)` returned.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 216.89 Tm (Visits, owners and submits \(1.7.15\)) Tj ET
+BT 1 0 0 1 56.69 198.89 Tm /F1 10.50 Tf (A host that tracks visits, or signs several users in on one device, can use these) Tj ET
+BT 1 0 0 1 56.69 184.89 Tm /F1 10.50 Tf (calls \(see the 1.7.15 changelog entry for the full rules\):) Tj ET
+endstream
+endobj
+13 0 obj
+<< /Type /Page /Parent 34 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 12 0 R >>
+endobj
+14 0 obj
+<< /Length 5846 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 6) Tj ET
+0.000000 0.000000 0.000000 rg
+0.929412 0.333333 0.000000 RG
+56.69 554.89 481.89 227.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 759.89 Tm (import ai.neurolabs.sdk.core.*) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 748.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 737.89 Tm (lifecycleScope.launch {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 726.89 Tm (    // One queue per user and environment instead of per apiKey. Returns the new core;) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 715.89 Tm (    // set credentials on it. The previous owner's work stays on the device, untouched.) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 704.89 Tm (    val sdk = NeurolabsSDKCore.switchQueueOwner\(context, config, "prod:$userId"\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 693.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 682.89 Tm (    // Asked once when a call is refused \(409/403\) because the mission's claim was lost.) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 671.89 Tm (    sdk.setOperationsReclaimHandler { missionId -> reclaimMission\(missionId\) }) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 660.89 Tm (    launch { sdk.submitEvents.collect { event -> /* NLSubmitEvent.Submitted / Abandoned */ } ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 649.89 Tm (}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 638.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 627.89 Tm (    sdk.openSession\(sessionId\)        // the orphan sweep never submits it on its own) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 616.89 Tm (    sdk.openOperationsSessions\(\)      // at launch: stop or discard each open session) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 605.89 Tm (    sdk.queuedSessions\(\)              // every session until its submit is confirmed) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 594.89 Tm (    sdk.owedSubmits\(\)                 // submits the SDK still owes) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 583.89 Tm (    sdk.retryQueuedItems\(listOf\(id\)\)  // retry chosen failed items only) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 572.89 Tm (    sdk.discardOperationsSession\(sessionId\) // or discardAllOperationsWork\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 561.89 Tm (}) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 542.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 542.89 Tm /F1 10.50 Tf (Each queued photo carries `NLQueuedItem.missionId` \(the session's mission, stamped) Tj ET
+BT 1 0 0 1 70.69 528.89 Tm /F1 10.50 Tf (at enqueue\), `lastErrorCode` / `lastErrorMessage` and `bytesSent`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 510.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 510.89 Tm /F1 10.50 Tf (`clearUploadQueue\(\)` drops queued items and notes only. To drop a visit for good,) Tj ET
+BT 1 0 0 1 70.69 496.89 Tm /F1 10.50 Tf (uploaded image ids and owed submits included, use `discardOperationsSession` or) Tj ET
+BT 1 0 0 1 70.69 482.89 Tm /F1 10.50 Tf (`discardAllOperationsWork`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 464.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 464.89 Tm /F1 10.50 Tf (The embedded camera \(`NLCustomCameraView`, `NLCaptureScreen`\) takes `onCapture:) Tj ET
+BT 1 0 0 1 70.69 450.89 Tm /F1 10.50 Tf (\(\(CapturedImageData\) -> Unit\)?`, called once per photo as it joins the session; key) Tj ET
+BT 1 0 0 1 70.69 436.89 Tm /F1 10.50 Tf (copies by `captureId`.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 418.89 Tm (Kept photos and low storage \(1.7.16\)) Tj ET
+BT 1 0 0 1 56.69 400.89 Tm /F1 10.50 Tf (Uploaded photos no longer take a `maxQueueSize` slot, in any mode. A host that keeps) Tj ET
+BT 1 0 0 1 56.69 386.89 Tm /F1 10.50 Tf (photos after upload \(`setDeletePhotosOnUploadSuccess\(false\)`\) or for a submit can) Tj ET
+BT 1 0 0 1 56.69 372.89 Tm /F1 10.50 Tf (bound them \(see the 1.7.16 changelog entry for the full rules\):) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 278.89 481.89 84.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 340.89 Tm (import ai.neurolabs.sdk.core.NLConfiguration) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 329.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 318.89 Tm (NLConfiguration.maxRetainedPhotos = 500        // default; a warning only, never refuses a ca) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 307.89 Tm (pture) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 296.89 Tm (NLConfiguration.retainedPhotoExpiryDays = 14   // default null \(off\); photos kept for a submi) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 285.89 Tm (t never expire) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 266.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 266.89 Tm /F1 10.50 Tf (From 80% of `maxRetainedPhotos` the SDK calls) Tj ET
+BT 1 0 0 1 70.69 252.89 Tm /F1 10.50 Tf (`NeurolabsSDKDelegate.onRetainedPhotosHigh\(retained, limit\)` once per crossing.) Tj ET
+BT 1 0 0 1 70.69 238.89 Tm /F1 10.50 Tf (`NLQueueStatus.retainedCount` / `retainedBytes` report the kept photos.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 220.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 220.89 Tm /F1 10.50 Tf (A new capture is refused with `NLCaptureErrorCodes.STORAGE_LOW` \(retryable\) when the) Tj ET
+BT 1 0 0 1 70.69 206.89 Tm /F1 10.50 Tf (queue's storage has under 500 MB free. It reaches the host through `onError` and the) Tj ET
+BT 1 0 0 1 70.69 192.89 Tm /F1 10.50 Tf (failed `onCaptureResult`, as `QUEUE_FULL` does.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 174.89 Tm (Uploads after the app is backgrounded) Tj ET
+BT 1 0 0 1 56.69 156.89 Tm /F1 10.50 Tf (The queue's WorkManager drain keeps uploading while the app's process lives, also in) Tj ET
+BT 1 0 0 1 56.69 142.89 Tm /F1 10.50 Tf (the background. After the process is killed, uploads resume when the host next) Tj ET
+BT 1 0 0 1 56.69 128.89 Tm /F1 10.50 Tf (initialises the SDK \(for most apps, the next open\). iOS differs: a flush there gets) Tj ET
+BT 1 0 0 1 56.69 114.89 Tm /F1 10.50 Tf (iOS's background grace period \(about 30 s\), then resumes on the next foreground.) Tj ET
+endstream
+endobj
+15 0 obj
+<< /Type /Page /Parent 34 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 14 0 R >>
+endobj
+16 0 obj
+<< /Length 3571 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 7) Tj ET
+0.000000 0.000000 0.000000 rg
+BT /F2 11.50 Tf 1 0 0 1 56.69 771.89 Tm (What reaches the backend) Tj ET
+BT 1 0 0 1 56.69 753.89 Tm /F1 10.50 Tf (What the operations upload carries:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 733.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 733.89 Tm /F1 10.50 Tf (Per capture: the JPEG \(the full frame, sized by `maxImageDimension` /) Tj ET
+BT 1 0 0 1 70.69 719.89 Tm /F1 10.50 Tf (`imageCompressionQuality`\), with its task and bay \(`subsection_name`\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 701.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 701.89 Tm /F1 10.50 Tf (Per capture, after the JPEG uploads: its capture metadata \(capture contract v1, `PUT) Tj ET
+BT 1 0 0 1 70.69 687.89 Tm /F1 10.50 Tf (.../images/{imageId}/capture-metadata`\), for captures the SDK camera took: shutter) Tj ET
+BT 1 0 0 1 70.69 673.89 Tm /F1 10.50 Tf (time, SDK/device/OS, camera mode, photo size, an EXIF subset \(no GPS, no serial) Tj ET
+BT 1 0 0 1 70.69 659.89 Tm /F1 10.50 Tf (numbers\), device attitude, camera intrinsics and, on the AR camera, its pose. The) Tj ET
+BT 1 0 0 1 70.69 645.89 Tm /F1 10.50 Tf (detector's boxes only with `sendDetectionsMetadata`. Location only with) Tj ET
+BT 1 0 0 1 70.69 631.89 Tm /F1 10.50 Tf (`NLConfiguration.captureGeolocation` AND a location permission your app declares) Tj ET
+BT 1 0 0 1 70.69 617.89 Tm /F1 10.50 Tf (\(`ACCESS_FINE_LOCATION` or `ACCESS_COARSE_LOCATION`\) and holds; the SDK declares) Tj ET
+BT 1 0 0 1 70.69 603.89 Tm /F1 10.50 Tf (none and never asks. The ARCore depth map only with `NLConfiguration.captureDepth`.) Tj ET
+BT 1 0 0 1 70.69 589.89 Tm /F1 10.50 Tf (Both default off. It goes up from its own retrying outbox and never holds up the) Tj ET
+BT 1 0 0 1 70.69 575.89 Tm /F1 10.50 Tf (photo or the submit. Your app reads the same record on) Tj ET
+BT 1 0 0 1 70.69 561.89 Tm /F1 10.50 Tf (`NLNativeCaptureResult.captureMetadata`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 543.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 543.89 Tm /F1 10.50 Tf (Per session: the mission submit's `client_metadata.device_dedup` summary for a) Tj ET
+BT 1 0 0 1 70.69 529.89 Tm /F1 10.50 Tf (multi-bay session \(section 8\).) Tj ET
+BT 1 0 0 1 56.69 511.89 Tm /F1 10.50 Tf (What stays on the device:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 491.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 491.89 Tm /F1 10.50 Tf (The capture's detections always reach your app \(`CapturedImageData.detections`,) Tj ET
+BT 1 0 0 1 70.69 477.89 Tm /F1 10.50 Tf (`onCapture`, the capture result\); `sendDetectionsMetadata` decides only whether they) Tj ET
+BT 1 0 0 1 70.69 463.89 Tm /F1 10.50 Tf (are kept in the queue record and uploaded with the capture metadata.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 445.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 445.89 Tm /F1 10.50 Tf (`enablePreviewCropping` trims only the review thumbnail, to the area the detections) Tj ET
+BT 1 0 0 1 70.69 431.89 Tm /F1 10.50 Tf (cover. The uploaded photo is always the full frame, as on iOS. Up to 1.7.17 Android) Tj ET
+BT 1 0 0 1 70.69 417.89 Tm /F1 10.50 Tf (uploaded the trimmed photo.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 399.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 399.89 Tm /F1 10.50 Tf (AR session recordings \(`.nlrec`, the AR component's recording API\) are tooling for) Tj ET
+BT 1 0 0 1 70.69 385.89 Tm /F1 10.50 Tf (replay and calibration. They are not a capture output and are never uploaded.) Tj ET
+endstream
+endobj
+17 0 obj
+<< /Type /Page /Parent 34 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 16 0 R >>
+endobj
+18 0 obj
+<< /Length 4957 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 8) Tj ET
+0.000000 0.000000 0.000000 rg
+BT /F2 13.00 Tf 1 0 0 1 56.69 771.89 Tm (7. Open Custom Camera \(Native Capture UI\)) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 323.89 481.89 436.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 737.89 Tm (import ai.neurolabs.sdk.models.*) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 726.89 Tm (import ai.neurolabs.sdk.ui.openNativeCaptureUI) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 715.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 704.89 Tm (val sessionId = UUID.randomUUID\(\).toString\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 693.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 682.89 Tm (val config = NLNativeCaptureConfig\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 671.89 Tm (    guidanceMode = NLCaptureGuidanceMode.STRICT,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 660.89 Tm (    validationPreset = NLValidationPreset.IOS_PARITY,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 649.89 Tm (    confidenceThreshold = 0.25f,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 638.89 Tm (    iouThreshold = 0.45f,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 627.89 Tm (    maxCaptures = 5,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 616.89 Tm (    allowManualFinish = true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 605.89 Tm (    minCapturesBeforeDone = 2,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 594.89 Tm (    showsCapturedCountLabel = false,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 583.89 Tm (    showAlignmentGuidance = true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 572.89 Tm (    enableValidation = true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 561.89 Tm (    autoCloseAfterCapture = true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 550.89 Tm (    showDetections = false,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 539.89 Tm (    showCapturedRegions = false,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 528.89 Tm (    liveQualityChecksEnabled = true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 517.89 Tm (    liveQualityTargetFps = 6) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 506.89 Tm (\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 495.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 484.89 Tm (val options = NLNativeCaptureOptions\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 473.89 Tm (    type = NLShelfType.SHELF,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 462.89 Tm (    taskUUID = "<TASK_UUID_FOR_THIS_SESSION>",) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 451.89 Tm (    sendDetectionsMetadata = true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 440.89 Tm (    enablePreviewCropping = true,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 429.89 Tm (    maxImageDimension = 1920,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 418.89 Tm (    imageCompressionQuality = 0.85f) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 407.89 Tm (\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 396.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 385.89 Tm (sdk.openNativeCaptureUI\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 374.89 Tm (    context = this,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 363.89 Tm (    sessionId = sessionId,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 352.89 Tm (    config = config,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 341.89 Tm (    options = options) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 330.89 Tm (\)) Tj ET
+BT 1 0 0 1 56.69 311.89 Tm /F1 10.50 Tf (Recommended capture payload notes:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 291.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 291.89 Tm /F1 10.50 Tf (`liveQualityChecksEnabled = true` is the key for pill/rotation/warning/error) Tj ET
+BT 1 0 0 1 70.69 277.89 Tm /F1 10.50 Tf (guidance behavior.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 259.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 259.89 Tm /F1 10.50 Tf (Keep `type = NLShelfType.SHELF` and `guidanceMode = NLCaptureGuidanceMode.STRICT`) Tj ET
+BT 1 0 0 1 70.69 245.89 Tm /F1 10.50 Tf (for full shelf guidance checks.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 227.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 227.89 Tm /F1 10.50 Tf (Keep `showDetections = false` and `showCapturedRegions = false` to stay on the) Tj ET
+BT 1 0 0 1 70.69 213.89 Tm /F1 10.50 Tf (custom-camera guidance UI path.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 195.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 195.89 Tm /F1 10.50 Tf (`guidanceMode = NLCaptureGuidanceMode.GUIDANCE` should only be used as a temporary) Tj ET
+BT 1 0 0 1 70.69 181.89 Tm /F1 10.50 Tf (fallback if a partner specifically needs looser Android behavior while a) Tj ET
+BT 1 0 0 1 70.69 167.89 Tm /F1 10.50 Tf (strict-guidance regression is being fixed.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 149.89 Tm (End-of-session review \(1.7.16\)) Tj ET
+BT 1 0 0 1 56.69 131.89 Tm /F1 10.50 Tf (`finalReview = true` \(on `NLNativeCaptureConfig` or `NLNativeCaptureOptions`, options) Tj ET
+BT 1 0 0 1 56.69 117.89 Tm /F1 10.50 Tf (first; or `NLCameraConfiguration.finalReview`\) gives the default \(non-AR\) camera) Tj ET
+BT 1 0 0 1 56.69 103.89 Tm /F1 10.50 Tf (without a multi-bay plan one review at the end instead of a per-shot preview:) Tj ET
+endstream
+endobj
+19 0 obj
+<< /Type /Page /Parent 34 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 18 0 R >>
+endobj
+20 0 obj
+<< /Length 5222 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 9) Tj ET
+0.000000 0.000000 0.000000 rg
+BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (Done, or the count where the session would end today \(`maxCaptures`, the auto-close) Tj ET
+BT 1 0 0 1 70.69 757.89 Tm /F1 10.50 Tf (target, or the required count\), opens "Review". A tap on a photo opens it with Crop,) Tj ET
+BT 1 0 0 1 70.69 743.89 Tm /F1 10.50 Tf (Delete and Previous / Next. Delete fires `onCaptureDeleted` with source `REVIEW`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 725.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 725.89 Tm /F1 10.50 Tf (Nothing is queued or uploaded before Confirm. The photos are staged on disk, so they) Tj ET
+BT 1 0 0 1 70.69 711.89 Tm /F1 10.50 Tf (survive the process being killed. Confirm queues the remaining photos in capture) Tj ET
+BT 1 0 0 1 70.69 697.89 Tm /F1 10.50 Tf (order, crops applied.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 679.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 679.89 Tm /F1 10.50 Tf (Default `false`: every other session, and every host that does not set it, is) Tj ET
+BT 1 0 0 1 70.69 665.89 Tm /F1 10.50 Tf (unchanged.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 647.89 Tm (Offline chip \(1.7.17\)) Tj ET
+BT 1 0 0 1 56.69 629.89 Tm /F1 10.50 Tf (The default and AR camera show a small chip while the upload queue sees no network:) Tj ET
+BT 1 0 0 1 56.69 615.89 Tm /F1 10.50 Tf ("Offline uploads queued" \(or "Offline" with nothing queued\), and "Waiting for Wi-Fi) Tj ET
+BT 1 0 0 1 56.69 601.89 Tm /F1 10.50 Tf (uploads queued" while Wi-Fi-only uploads hold photos on a metered network. It hides) Tj ET
+BT 1 0 0 1 56.69 587.89 Tm /F1 10.50 Tf (while the network is unknown and when the host uploads the photos itself) Tj ET
+BT 1 0 0 1 56.69 573.89 Tm /F1 10.50 Tf (\(`uploadsEnabled = false`\). It is informational only and never gates the shutter. On) Tj ET
+BT 1 0 0 1 56.69 559.89 Tm /F1 10.50 Tf (by default; turn it off with `NLCameraConfiguration\(showsOfflineIndicator = false\)`,) Tj ET
+BT 1 0 0 1 56.69 545.89 Tm /F1 10.50 Tf (or on the bridge with `showsOfflineIndicator` \(`Boolean?`\) on `NLNativeCaptureOptions`) Tj ET
+BT 1 0 0 1 56.69 531.89 Tm /F1 10.50 Tf (/ `NLNativeCaptureConfig` \(options, then config, then `true`\).) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 511.89 Tm (AR boxes the live labels have not matched \(1.7.17\)) Tj ET
+BT 1 0 0 1 56.69 493.89 Tm /F1 10.50 Tf (Under `arBoxStyle = NLARBoxStyle.HIGHLIGHT`, with `arLiveLabels` on and a ready) Tj ET
+BT 1 0 0 1 56.69 479.89 Tm /F1 10.50 Tf (recognition provider, a stable box that has been looked at and has no product name) Tj ET
+BT 1 0 0 1 56.69 465.89 Tm /F1 10.50 Tf (latched on it \(no match, or every look below 0.6\) is drawn in `arBoxUnmatchedColor`) Tj ET
+BT 1 0 0 1 56.69 451.89 Tm /F1 10.50 Tf (\(`#RRGGBB`, default `#FACC15`\) instead of `arBoxHighlightColor`. A box not looked at) Tj ET
+BT 1 0 0 1 56.69 437.89 Tm /F1 10.50 Tf (yet keeps the highlight colour. The key is on `NLCameraConfiguration` and, as) Tj ET
+BT 1 0 0 1 56.69 423.89 Tm /F1 10.50 Tf (`String?`, on `NLNativeCaptureConfig` / `NLNativeCaptureOptions` \(options, then) Tj ET
+BT 1 0 0 1 56.69 409.89 Tm /F1 10.50 Tf (config, then the default\). Nothing changes while `arLiveLabels` is off.) Tj ET
+BT 1 0 0 1 56.69 389.89 Tm /F1 10.50 Tf (With recognition off there are no product names or unmatched colour, and a box is told) Tj ET
+BT 1 0 0 1 56.69 375.89 Tm /F1 10.50 Tf (apart from its neighbours by its position, not by which product it is: two identical) Tj ET
+BT 1 0 0 1 56.69 361.89 Tm /F1 10.50 Tf (facings that touch can be harder to keep apart. From 1.7.18 appearance helps there;) Tj ET
+BT 1 0 0 1 56.69 347.89 Tm /F1 10.50 Tf (see the next subsection.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 327.89 Tm (AR box identity with recognition off \(1.7.18\)) Tj ET
+BT 1 0 0 1 56.69 309.89 Tm /F1 10.50 Tf (With on-device recognition off, the AR overlay tells touching boxes apart by) Tj ET
+BT 1 0 0 1 56.69 295.89 Tm /F1 10.50 Tf (appearance as well as position. `CaptureScreenConfig.arAppearanceWithoutRecognition`) Tj ET
+BT 1 0 0 1 56.69 281.89 Tm /F1 10.50 Tf (\(default `true`; `Boolean?` of the same name on `NLNativeCaptureConfig` /) Tj ET
+BT 1 0 0 1 56.69 267.89 Tm /F1 10.50 Tf (`NLNativeCaptureOptions`, options, then config, then `true`\) uses the same ConvNeXt) Tj ET
+BT 1 0 0 1 56.69 253.89 Tm /F1 10.50 Tf (model as recognition, downloaded for appearance only through `GET /v1/device-models`) Tj ET
+BT 1 0 0 1 56.69 239.89 Tm /F1 10.50 Tf (for an org Operations grants it to \(on-device recognition on, or the org's) Tj ET
+BT 1 0 0 1 56.69 225.89 Tm /F1 10.50 Tf (`ar_appearance_embedder` flag\), and a colour histogram until the model is on the) Tj ET
+BT 1 0 0 1 56.69 211.89 Tm /F1 10.50 Tf (device, if it cannot be fetched, or for any other org.) Tj ET
+BT 1 0 0 1 56.69 197.89 Tm /F1 10.50 Tf (`NLDetectorModels.prefetchPolicy` applies to the download. Only the AR camera starts) Tj ET
+BT 1 0 0 1 56.69 183.89 Tm /F1 10.50 Tf (it; the default camera never does.) Tj ET
+endstream
+endobj
+21 0 obj
+<< /Type /Page /Parent 34 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 20 0 R >>
+endobj
+22 0 obj
+<< /Length 5636 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 10) Tj ET
+0.000000 0.000000 0.000000 rg
+BT /F2 11.50 Tf 1 0 0 1 56.69 771.89 Tm (Full-resolution AR stills \(1.7.18, experimental\)) Tj ET
+BT 1 0 0 1 56.69 753.89 Tm /F1 10.50 Tf (`arHighResolutionStills = true` \(on `CaptureScreenConfig` and `NLCameraConfiguration`;) Tj ET
+BT 1 0 0 1 56.69 739.89 Tm /F1 10.50 Tf (`Boolean?` on the bridge types, then `false`\) takes each AR photo as a JPEG still of) Tj ET
+BT 1 0 0 1 56.69 725.89 Tm /F1 10.50 Tf (up to 4032 px through ARCore's Shared Camera, beside tracking, instead of ARCore's CPU) Tj ET
+BT 1 0 0 1 56.69 711.89 Tm /F1 10.50 Tf (image \(about 2.1 MP\). The org's `sdkCapture.arHighResolutionStills = false` vetoes it.) Tj ET
+BT 1 0 0 1 56.69 697.89 Tm /F1 10.50 Tf (It needs API 29+ and a Shared Camera session the phone accepts; anything else, and any) Tj ET
+BT 1 0 0 1 56.69 683.89 Tm /F1 10.50 Tf (failure at capture time, keeps the CPU image for that photo, so a capture never fails) Tj ET
+BT 1 0 0 1 56.69 669.89 Tm /F1 10.50 Tf (because of it. Two failed stills in a row switch it off for the session. Off by) Tj ET
+BT 1 0 0 1 56.69 655.89 Tm /F1 10.50 Tf (default until the device spike passes.) Tj ET
+BT 1 0 0 1 56.69 635.89 Tm /F1 10.50 Tf (Names for the live labels come from `NLCameraConfiguration.productDetailsSource` \(an) Tj ET
+BT 1 0 0 1 56.69 621.89 Tm /F1 10.50 Tf (`NLProductDetailsResolver`\). It is in-process only, never in the bridge's JSON: it) Tj ET
+BT 1 0 0 1 56.69 607.89 Tm /F1 10.50 Tf (reaches `NLCustomCameraView\(cameraConfiguration = ...\)` and `NLCaptureActivity.open` /) Tj ET
+BT 1 0 0 1 56.69 593.89 Tm /F1 10.50 Tf (`createIntent\(context, sessionId, cameraConfiguration\)`. \(iOS sets the same source on) Tj ET
+BT 1 0 0 1 56.69 579.89 Tm /F1 10.50 Tf (`NeurolabsSDKCore.productDetailsSource` for `openNativeCaptureUI`.\)) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 559.89 Tm (8. Multi-Bay Capture \(Long Shelves\)) Tj ET
+BT 1 0 0 1 56.69 537.89 Tm /F1 10.50 Tf (Multi-bay capture handles shelves too long for a single photo: the user side-steps) Tj ET
+BT 1 0 0 1 56.69 523.89 Tm /F1 10.50 Tf (along the shelf and captures one overlapping photo per bay, the SDK guides the) Tj ET
+BT 1 0 0 1 56.69 509.89 Tm /F1 10.50 Tf (side-step, dedups the overlap on device, and reports merged product counts across bays) Tj ET
+BT 1 0 0 1 56.69 495.89 Tm /F1 10.50 Tf (in a single session result.) Tj ET
+BT 1 0 0 1 56.69 475.89 Tm /F1 10.50 Tf (Enable it by setting `multiBay` on the capture config \(`null` = feature off, the) Tj ET
+BT 1 0 0 1 56.69 461.89 Tm /F1 10.50 Tf (default\):) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 125.89 481.89 326.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 429.89 Tm (import ai.neurolabs.sdk.models.*) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 418.89 Tm (import ai.neurolabs.sdk.multibay.NLMultiBayOptions) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 407.89 Tm (import ai.neurolabs.sdk.ui.openNativeCaptureUI) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 396.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 385.89 Tm (val config = NLNativeCaptureConfig\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 374.89 Tm (    guidanceMode = NLCaptureGuidanceMode.STRICT,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 363.89 Tm (    multiBay = NLMultiBayOptions\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 352.89 Tm (        minBays = 2,                   // minimum bays before the session can finish \(default) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 341.89 Tm ( 1\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 330.89 Tm (        maxBays = 4,                   // maximum bays per session \(default 8; cap 8, or 30 f) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 319.89 Tm (or a continuous AR sweep\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 308.89 Tm (        targetOverlapFraction = 0.30,  // fraction of the previous bay kept visible \(default ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 297.89 Tm (0.30\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 286.89 Tm (        minDetectionConfidence = 0.5,  // confidence floor for merge/count participation \(def) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 275.89 Tm (ault 0.5\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 264.89 Tm (        onDeviceDedup = true,          // run overlap dedup at session finish \(default true\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 253.89 Tm (        generatePreview = true,        // compose the display-only stitched preview \(default ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 242.89 Tm (true\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 231.89 Tm (        previewMaxDimension = 2048     // preview long-edge cap \(default 2048, clamped 512..4) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 220.89 Tm (096\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 209.89 Tm (    \)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 198.89 Tm (\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 187.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 176.89 Tm (sdk.openNativeCaptureUI\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 165.89 Tm (    context = this,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 154.89 Tm (    sessionId = sessionId,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 143.89 Tm (    config = config) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 132.89 Tm (\)) Tj ET
+BT 1 0 0 1 56.69 113.89 Tm /F1 10.50 Tf (The same `multiBay` field exists on `NLCameraConfiguration` for the custom-camera) Tj ET
+BT 1 0 0 1 56.69 99.89 Tm /F1 10.50 Tf (config path, and on the WebView/Cordova bridge payload \(camelCase field names) Tj ET
+BT 1 0 0 1 56.69 85.89 Tm /F1 10.50 Tf (identical across iOS, Android, and Cordova; absent fields take the defaults above\).) Tj ET
+endstream
+endobj
+23 0 obj
+<< /Type /Page /Parent 34 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 22 0 R >>
+endobj
+24 0 obj
+<< /Length 6237 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 11) Tj ET
+0.000000 0.000000 0.000000 rg
+BT 1 0 0 1 56.69 771.89 Tm /F1 10.50 Tf (The bay cap depends on the session's mode: a continuous sweep \(`captureMode =) Tj ET
+BT 1 0 0 1 56.69 757.89 Tm /F1 10.50 Tf (NLCaptureMode.CONTINUOUS`\) on the AR camera may plan up to) Tj ET
+BT 1 0 0 1 56.69 743.89 Tm /F1 10.50 Tf (`NLMultiBayOptions.MAX_SUPPORTED_CONTINUOUS_BAYS` \(30\) bays; every other session, and) Tj ET
+BT 1 0 0 1 56.69 729.89 Tm /F1 10.50 Tf (a continuous sweep that falls back to CameraX, keeps 8. A value outside the cap is) Tj ET
+BT 1 0 0 1 56.69 715.89 Tm /F1 10.50 Tf (clamped and logged when the camera opens. From v1.7.17 the WebView bridge resolves) Tj ET
+BT 1 0 0 1 56.69 701.89 Tm /F1 10.50 Tf (`maxBays` the same way; in v1.7.16 it clamped to 8 on every mode. Cordova's) Tj ET
+BT 1 0 0 1 56.69 687.89 Tm /F1 10.50 Tf (`NLCaptureActivity` launch already followed the mode in v1.7.16.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 667.89 Tm ("Review shelf" for long sweeps and "On this shelf" \(1.7.17\)) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 649.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 649.89 Tm /F1 10.50 Tf (Past 8 bays the AR flow's review shows the shelf as pages of consecutive bays \(9 5 +) Tj ET
+BT 1 0 0 1 70.69 635.89 Tm /F1 10.50 Tf (4, 30 8 + 8 + 7 + 7\), each stitched when the rep turns to it, with Previous / Next) Tj ET
+BT 1 0 0 1 70.69 621.89 Tm /F1 10.50 Tf (and a swipe. Up to 8 bays nothing changes, and `NLMultiBayResult.previewImageData`) Tj ET
+BT 1 0 0 1 70.69 607.89 Tm /F1 10.50 Tf (is still the one panorama.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 589.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 589.89 Tm /F1 10.50 Tf (The same review lists the walk's facings by brand, with each brand's share of the) Tj ET
+BT 1 0 0 1 70.69 575.89 Tm /F1 10.50 Tf (recognised products, and by SKU. A facing counts as recognised at a match of 0.6 or) Tj ET
+BT 1 0 0 1 70.69 561.89 Tm /F1 10.50 Tf (more. It needs on-device recognition \(section 11\) and a `productDetailsSource` for) Tj ET
+BT 1 0 0 1 70.69 547.89 Tm /F1 10.50 Tf (names and brands; without recognition it shows the product total only.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 529.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 529.89 Tm /F1 10.50 Tf (No API change.) Tj ET
+BT 1 0 0 1 56.69 511.89 Tm /F1 10.50 Tf (Reading merged results:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 491.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 491.89 Tm /F1 10.50 Tf (Activity Result / bridge: `NLNativeCaptureResultPayload.multiBay`) Tj ET
+BT 1 0 0 1 70.69 477.89 Tm /F1 10.50 Tf (\(`NLNativeMultiBayResultSummary?`, null unless the session ran multi-bay\) carries) Tj ET
+BT 1 0 0 1 70.69 463.89 Tm /F1 10.50 Tf (`countsByLabel: Map<String, Int>`, `baysCount`, `dedupTrusted`, and) Tj ET
+BT 1 0 0 1 70.69 449.89 Tm /F1 10.50 Tf (`previewImageFileUri`. It also carries the optional `realogram`) Tj ET
+BT 1 0 0 1 70.69 435.89 Tm /F1 10.50 Tf (\(`NLStitchedRealogram` with camelCase keys: `version`, `coordinateSpace`,) Tj ET
+BT 1 0 0 1 70.69 421.89 Tm /F1 10.50 Tf (`sdkVersion`, `bays`, `shelves[{shelfIndex, rows[{rowIndex, slots[{slotIndex, xMin,) Tj ET
+BT 1 0 0 1 70.69 407.89 Tm /F1 10.50 Tf (yMin, xMax, yMax, bayIndex, detectorClass, trackId, productId, stackIndex,) Tj ET
+BT 1 0 0 1 70.69 393.89 Tm /F1 10.50 Tf (score}]}]}]`, `truncated`, `omittedProductCount`\) and `segments` \(`[{fromBay, toBay,) Tj ET
+BT 1 0 0 1 70.69 379.89 Tm /F1 10.50 Tf (trusted, countsByLabel}]`\), each left out when the SDK built none. The realogram) Tj ET
+BT 1 0 0 1 70.69 365.89 Tm /F1 10.50 Tf (never crosses Binder: the WebView bridge carries it inline, while the Activity) Tj ET
+BT 1 0 0 1 70.69 351.89 Tm /F1 10.50 Tf (result carries `realogramFileUri` instead, a `file://` URI to) Tj ET
+BT 1 0 0 1 70.69 337.89 Tm /F1 10.50 Tf (`<cacheDir>/neurolabs/realogram-<sessionId>.json` holding the same JSON. Read it,) Tj ET
+BT 1 0 0 1 70.69 323.89 Tm /F1 10.50 Tf (then delete it; the SDK deletes any left older than 24 h at init.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 305.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 305.89 Tm /F1 10.50 Tf (Bridge: `arAppearanceWithoutRecognition` \(`Boolean?`\) on `NLNativeCaptureOptions` /) Tj ET
+BT 1 0 0 1 70.69 291.89 Tm /F1 10.50 Tf (`NLNativeCaptureConfig` resolves options, then config, then `true`, into) Tj ET
+BT 1 0 0 1 70.69 277.89 Tm /F1 10.50 Tf (`CaptureScreenConfig.arAppearanceWithoutRecognition`. `arHighResolutionStills`) Tj ET
+BT 1 0 0 1 70.69 263.89 Tm /F1 10.50 Tf (\(`Boolean?`\) resolves the same way, then `false`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 245.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 245.89 Tm /F1 10.50 Tf (Compose: `NLCaptureScreen` / `NLCustomCameraView` accept an `onMultiBayResult:) Tj ET
+BT 1 0 0 1 70.69 231.89 Tm /F1 10.50 Tf (\(\(NLMultiBayResult\) -> Unit\)?` callback delivering the full result - `bays:) Tj ET
+BT 1 0 0 1 70.69 217.89 Tm /F1 10.50 Tf (List<NLBaySummary>`, `mergedProducts: List<NLMergedProduct>` \(one entry per physical) Tj ET
+BT 1 0 0 1 70.69 203.89 Tm /F1 10.50 Tf (product instance after cross-bay dedup\), `countsByLabel`, the stitched preview) Tj ET
+BT 1 0 0 1 70.69 189.89 Tm /F1 10.50 Tf (\(`previewImageData`\), and `dedupTrusted`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 171.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 171.89 Tm /F1 10.50 Tf (Use `NLMultiBayResult.productCount` for a product tally - it sums only `sku_single`) Tj ET
+BT 1 0 0 1 70.69 157.89 Tm /F1 10.50 Tf (+ `sku_multipack`; `countsByLabel` also carries price/promo/poster buckets, so) Tj ET
+BT 1 0 0 1 70.69 143.89 Tm /F1 10.50 Tf (summing every label over-counts products.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 125.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 125.89 Tm /F1 10.50 Tf (`countsByLabel` \(`counts_by_label` on the wire\) is keyed by detector class) Tj ET
+BT 1 0 0 1 70.69 111.89 Tm /F1 10.50 Tf (\(`sku_single`, `sku_multipack`, price tag, promo, poster\), not by product or SKU.) Tj ET
+BT 1 0 0 1 70.69 97.89 Tm /F1 10.50 Tf (Shelf, row and slot positions are in `NLMultiBayResult.realogram`) Tj ET
+BT 1 0 0 1 70.69 83.89 Tm /F1 10.50 Tf (\(`NLStitchedRealogram`\).) Tj ET
+endstream
+endobj
+25 0 obj
+<< /Type /Page /Parent 34 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 24 0 R >>
+endobj
+26 0 obj
+<< /Length 5552 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 12) Tj ET
+0.000000 0.000000 0.000000 rg
+BT 1 0 0 1 56.69 771.89 Tm /F1 10.50 Tf (Meaning of `dedupTrusted`:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 751.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 751.89 Tm /F1 10.50 Tf (`true` - counts and `mergedProducts` are on-device deduped: each physical product) Tj ET
+BT 1 0 0 1 70.69 737.89 Tm /F1 10.50 Tf (instance is counted once across overlapping bays.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 719.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 719.89 Tm /F1 10.50 Tf (`false` - an adjacent-pair alignment broke, the dedup timed out, or `onDeviceDedup`) Tj ET
+BT 1 0 0 1 70.69 705.89 Tm /F1 10.50 Tf (was disabled; counts are then the per-bay sum \(an upper bound\), not a deduped count.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 687.89 Tm (Segments and the stitched realogram \(1.7.18\)) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 669.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 669.89 Tm /F1 10.50 Tf (A broken link between two adjacent bays no longer leaves every later bay unmerged:) Tj ET
+BT 1 0 0 1 70.69 655.89 Tm /F1 10.50 Tf (it starts a new segment, and the dedup runs inside each run of linked bays.) Tj ET
+BT 1 0 0 1 70.69 641.89 Tm /F1 10.50 Tf (`NLMultiBayResult.segments` \(`NLDedupSegment`: `fromBay`, `toBay`, `trusted`,) Tj ET
+BT 1 0 0 1 70.69 627.89 Tm /F1 10.50 Tf (`countsByLabel`\) lists them. `dedupTrusted` is still true only for one trusted) Tj ET
+BT 1 0 0 1 70.69 613.89 Tm /F1 10.50 Tf (segment. When every segment is trusted and they tile the walk, the submit sends) Tj ET
+BT 1 0 0 1 70.69 599.89 Tm /F1 10.50 Tf (`client_metadata.device_dedup` v2 \(`version: 2`, `segments`\); otherwise v1. "Review) Tj ET
+BT 1 0 0 1 70.69 585.89 Tm /F1 10.50 Tf (shelf" marks each broken link.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 567.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 567.89 Tm /F1 10.50 Tf (`NLMultiBayResult.realogram` \(`NLStitchedRealogram`\) groups the walk's merged) Tj ET
+BT 1 0 0 1 70.69 553.89 Tm /F1 10.50 Tf (products into shelves, rows and slots in the first bay's frame, by geometry alone,) Tj ET
+BT 1 0 0 1 70.69 539.89 Tm /F1 10.50 Tf (so it exists with recognition off. SDK-managed flows send it as the mission submit's) Tj ET
+BT 1 0 0 1 70.69 525.89 Tm /F1 10.50 Tf (top-level `realogram`; a custom capture UI's `submitNotesJSON\(\)` never carries it.) Tj ET
+BT 1 0 0 1 70.69 511.89 Tm /F1 10.50 Tf (Older backends ignore it.) Tj ET
+BT 1 0 0 1 56.69 493.89 Tm /F1 10.50 Tf (Upload semantics:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 473.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 473.89 Tm /F1 10.50 Tf (Each bay photo uploads as a normal capture through the operations queue \(resumable) Tj ET
+BT 1 0 0 1 70.69 459.89 Tm /F1 10.50 Tf (mission flow, one image per capture\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 441.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 441.89 Tm /F1 10.50 Tf (On `stopSession` the mission submit attaches a compact merge summary \(`{bays,) Tj ET
+BT 1 0 0 1 70.69 427.89 Tm /F1 10.50 Tf (counts_by_label, dedup_trusted, ref_homographies, sdk_version}`\) as structured) Tj ET
+BT 1 0 0 1 70.69 413.89 Tm /F1 10.50 Tf (`client_metadata.device_dedup` plus, transitionally, a `notes` duplicate for older) Tj ET
+BT 1 0 0 1 70.69 399.89 Tm /F1 10.50 Tf (backends. The backend stores the summary and serves `counts_by_label` only when) Tj ET
+BT 1 0 0 1 70.69 385.89 Tm /F1 10.50 Tf (`dedup_trusted` is true. It does not re-dedup from `ref_homographies` today.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 367.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 367.89 Tm /F1 10.50 Tf (SDK-managed capture flows record that summary automatically. Only hosts presenting) Tj ET
+BT 1 0 0 1 70.69 353.89 Tm /F1 10.50 Tf (their own custom capture UI must pass `NLMultiBayResult.submitNotesJSON\(\)` to) Tj ET
+BT 1 0 0 1 70.69 339.89 Tm /F1 10.50 Tf (`sdk.setMultiBaySubmitNotes\(notes, sessionId\)` before `stopSession`.) Tj ET
+BT 1 0 0 1 56.69 321.89 Tm /F1 10.50 Tf (Config-only mode:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 301.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 301.89 Tm /F1 10.50 Tf (There is no partner-facing in-camera mode toggle. The Single Multi-bay capture-mode) Tj ET
+BT 1 0 0 1 70.69 287.89 Tm /F1 10.50 Tf (chip and sheet are internal demo/debug chrome gated behind) Tj ET
+BT 1 0 0 1 70.69 273.89 Tm /F1 10.50 Tf (`NLSDKDebug.internalCameraToolsEnabled` \(default `false`; never enable it in partner) Tj ET
+BT 1 0 0 1 70.69 259.89 Tm /F1 10.50 Tf (builds\). Partners control the mode purely via configuration: `multiBay` set =) Tj ET
+BT 1 0 0 1 70.69 245.89 Tm /F1 10.50 Tf (multi-bay session, `multiBay = null` = single-bay session - programmatic `multiBay`) Tj ET
+BT 1 0 0 1 70.69 231.89 Tm /F1 10.50 Tf (configuration is unaffected by the gate.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 213.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 213.89 Tm /F1 10.50 Tf (The Neurolabs demo app enables that chrome only in local debug builds;) Tj ET
+BT 1 0 0 1 70.69 199.89 Tm /F1 10.50 Tf (Firebase/release demo builds default to single-bay exactly like partner builds. The) Tj ET
+BT 1 0 0 1 70.69 185.89 Tm /F1 10.50 Tf (multi-bay feature itself is fully available in all builds via configuration - only) Tj ET
+BT 1 0 0 1 70.69 171.89 Tm /F1 10.50 Tf (the demo defaults changed.) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 153.89 Tm (9. Post-Processing Hooks) Tj ET
+BT 1 0 0 1 56.69 131.89 Tm /F1 10.50 Tf (Use Activity Result API and process captures when camera returns.) Tj ET
+endstream
+endobj
+27 0 obj
+<< /Type /Page /Parent 34 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 26 0 R >>
+endobj
+28 0 obj
+<< /Length 4496 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 13) Tj ET
+0.000000 0.000000 0.000000 rg
+0.929412 0.333333 0.000000 RG
+56.69 576.89 481.89 205.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 759.89 Tm (private val captureLauncher = registerForActivityResult\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 748.89 Tm (    NLCaptureActivity.Contract\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 737.89 Tm (\) { result ->) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 726.89 Tm (    when \(result\) {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 715.89 Tm (        is NLCaptureActivityResult.Success -> {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 704.89 Tm (            // capture metadata is in result.payload) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 693.89 Tm (            val count = result.payload.captures.size) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 682.89 Tm (            Log.d\("NLB", "camera returned with $count captures"\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 671.89 Tm (        }) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 660.89 Tm (        is NLCaptureActivityResult.Cancelled -> {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 649.89 Tm (            Log.d\("NLB", "camera cancelled"\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 638.89 Tm (        }) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 627.89 Tm (        is NLCaptureActivityResult.Error -> {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 616.89 Tm (            Log.e\("NLB", "camera error: ${result.error.message}"\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 605.89 Tm (        }) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 594.89 Tm (    }) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 583.89 Tm (}) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 552.89 Tm (10. Delegate/Event Callbacks) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 412.89 481.89 128.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 518.89 Tm (sdk.delegate = object : NeurolabsSDKDelegate {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 507.89 Tm (    override fun onCaptureResult\(result: NLNativeCaptureResult, captureId: String, sessionId:) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 496.89 Tm ( String\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 485.89 Tm (    override fun onError\(error: NLError, sessionId: String?, messageId: String?\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 474.89 Tm (    override fun onQueueStatusChange\(status: NLQueueStatus\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 463.89 Tm (    override fun onLoadingProgress\(progress: NLLoadingProgress\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 452.89 Tm (    override fun onQueueItemEnqueued\(item: NLQueuedItem\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 441.89 Tm (    override fun onUploadSucceeded\(item: NLQueuedItem\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 430.89 Tm (    override fun onUploadFailed\(item: NLQueuedItem, error: NLError\) {}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 419.89 Tm (}) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 388.89 Tm (11. On-Device Recognition \(v1.7.1\)) Tj ET
+BT 1 0 0 1 56.69 366.89 Tm /F1 10.50 Tf (Per-account, config-gated: your operations API key resolves YOUR org's recognition) Tj ET
+BT 1 0 0 1 56.69 352.89 Tm /F1 10.50 Tf (config and vector dataset - enabling an account is a backend flip, no app change.) Tj ET
+BT 1 0 0 1 56.69 338.89 Tm /F1 10.50 Tf (Every stage degrades gracefully; capture is never blocked by recognition.) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 178.89 481.89 150.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 306.89 Tm (import ai.neurolabs.sdk.recognition.NLRecognitionBootstrap) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 295.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 284.89 Tm (val bootstrap = NLRecognitionBootstrap\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 273.89 Tm (    context,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 262.89 Tm (    NLRecognitionBootstrap.Configuration\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 251.89 Tm (        operationsApiKey = "<your operations key>",) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 240.89 Tm (        operationsBaseUrl = "https://api.operations.neurolabs.ai/v1",) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 229.89 Tm (    \),) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 218.89 Tm (\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 207.89 Tm (bootstrap.start\(sdk, applicationScope\) // safe to call again; see below) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 196.89 Tm (// bootstrap.status \(StateFlow\)  "provider: ready \(N items\)" etc.) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 185.89 Tm (// bootstrap.statusSummary  also says when the chain was built offline) Tj ET
+endstream
+endobj
+29 0 obj
+<< /Type /Page /Parent 34 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 28 0 R >>
+endobj
+30 0 obj
+<< /Length 5781 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 14) Tj ET
+0.000000 0.000000 0.000000 rg
+BT 1 0 0 1 56.69 771.89 Tm /F2 10.50 Tf (Offline. ) Tj /F1 10.50 Tf (Every build that completes online saves the recognition config and the) Tj ET
+BT 1 0 0 1 56.69 757.89 Tm /F1 10.50 Tf (snapshot's signed manifest for that operations key \(the file is named by a one-way) Tj ET
+BT 1 0 0 1 56.69 743.89 Tm /F1 10.50 Tf (fingerprint of the key; the key is never stored\). When a later build cannot reach the) Tj ET
+BT 1 0 0 1 56.69 729.89 Tm /F1 10.50 Tf (Operations API \(no signal, a timeout, a captive portal, a 5xx\), it builds from that) Tj ET
+BT 1 0 0 1 56.69 715.89 Tm /F1 10.50 Tf (record for up to 7 days after the last full sync \(`bootstrap.offlineCacheTTL`\), as) Tj ET
+BT 1 0 0 1 56.69 701.89 Tm /F1 10.50 Tf (long as the embedder and every snapshot shard are still on the device and pass their) Tj ET
+BT 1 0 0 1 56.69 687.89 Tm /F1 10.50 Tf (sha256 checks. `bootstrap.offlineSnapshotDate` is then the time of that sync, and) Tj ET
+BT 1 0 0 1 56.69 673.89 Tm /F1 10.50 Tf (`statusSummary` reads `provider: ready \(offline, 42 items, snapshot from 2026-10-01\)`.) Tj ET
+BT 1 0 0 1 56.69 659.89 Tm /F1 10.50 Tf (A 401 or 403 still switches recognition off and forgets the record.) Tj ET
+BT 1 0 0 1 56.69 639.89 Tm /F2 10.50 Tf (Short-lived tokens. ) Tj /F1 10.50 Tf (If your bearer is a session token rather than a fixed key, build) Tj ET
+BT 1 0 0 1 56.69 625.89 Tm /F1 10.50 Tf (the configuration with your `NLOperationsAuthProvider` and a stable identity for the) Tj ET
+BT 1 0 0 1 56.69 611.89 Tm /F1 10.50 Tf (rep or org instead:) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 517.89 481.89 84.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 579.89 Tm (NLRecognitionBootstrap.Configuration\() Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 568.89 Tm (    authProvider = myAuthProvider, // e.g. NLRefreshableAuthProvider { exchangeSessionToken\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 557.89 Tm ( }) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 546.89 Tm (    offlineIdentity = repId,       // stable across tokens; must not be blank) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 535.89 Tm (    operationsBaseUrl = "https://api.operations.neurolabs.ai/v1",) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 524.89 Tm (\)) Tj ET
+BT 1 0 0 1 56.69 505.89 Tm /F1 10.50 Tf (Every request takes the provider's current token. A 401 drops it and the request is) Tj ET
+BT 1 0 0 1 56.69 491.89 Tm /F1 10.50 Tf (made once more with a fresh one; only a second 401 switches recognition off and) Tj ET
+BT 1 0 0 1 56.69 477.89 Tm /F1 10.50 Tf (forgets the record. The offline record is named after a one-way hash of) Tj ET
+BT 1 0 0 1 56.69 463.89 Tm /F1 10.50 Tf (`offlineIdentity` \(never stored as is\), so a record saved under yesterday's token) Tj ET
+BT 1 0 0 1 56.69 449.89 Tm /F1 10.50 Tf (serves today's, and a cold start with no network \(and so no token\) still builds from) Tj ET
+BT 1 0 0 1 56.69 435.89 Tm /F1 10.50 Tf (it. A provider that cannot give a token counts as offline. A blank identity throws) Tj ET
+BT 1 0 0 1 56.69 421.89 Tm /F1 10.50 Tf (`IllegalArgumentException`. `copy\(\)` on this configuration returns an API-key) Tj ET
+BT 1 0 0 1 56.69 407.89 Tm /F1 10.50 Tf (configuration: build a new one instead.) Tj ET
+BT 1 0 0 1 56.69 387.89 Tm /F2 10.50 Tf (Retries. ) Tj /F1 10.50 Tf (A build that ended unavailable is not final: calling `start` again builds) Tj ET
+BT 1 0 0 1 56.69 373.89 Tm /F1 10.50 Tf (again once 60 s have passed after a network-type failure, or 1 h after a definitive) Tj ET
+BT 1 0 0 1 56.69 359.89 Tm /F1 10.50 Tf (one \(disabled, refused, mismatched\). After a network-type failure the bootstrap also) Tj ET
+BT 1 0 0 1 56.69 345.89 Tm /F1 10.50 Tf (rebuilds by itself when the device's network comes back \(at most 5 times per) Tj ET
+BT 1 0 0 1 56.69 331.89 Tm /F1 10.50 Tf (instance\). A later ready build injects its provider into the SDK like the first.) Tj ET
+BT 1 0 0 1 56.69 311.89 Tm /F1 10.50 Tf (The embedder `.tflite` \(DINOv3 ConvNeXt-Tiny\) downloads through the Operations API) Tj ET
+BT 1 0 0 1 56.69 297.89 Tm /F1 10.50 Tf (\(`GET /v1/device-models/dinov3-convnext-tiny-android-tflite-v1`, sha256 and size) Tj ET
+BT 1 0 0 1 56.69 283.89 Tm /F1 10.50 Tf (pinned in the SDK\) once recognition-config has enabled recognition for your org, and) Tj ET
+BT 1 0 0 1 56.69 269.89 Tm /F1 10.50 Tf (is cached, so later launches need no network. It is the only embedder the SDK runs: a) Tj ET
+BT 1 0 0 1 56.69 255.89 Tm /F1 10.50 Tf (model your app ships as an asset is never used. When the model cannot be had,) Tj ET
+BT 1 0 0 1 56.69 241.89 Tm /F1 10.50 Tf (recognition is off with the reason, for example `embedder unavailable \(not_entitled\)`.) Tj ET
+BT 1 0 0 1 56.69 227.89 Tm /F1 10.50 Tf (The release AAR carries the Qdrant Edge native libraries; the default index remains) Tj ET
+BT 1 0 0 1 56.69 213.89 Tm /F1 10.50 Tf (the built-in brute-force this release.) Tj ET
+BT 1 0 0 1 56.69 193.89 Tm /F1 10.50 Tf (Tap-to-product-card: captures expose per-detection matches via) Tj ET
+BT 1 0 0 1 56.69 179.89 Tm /F1 10.50 Tf (`sdk.recognitionMatches\(forCaptureId:\)`; pair the SDK's) Tj ET
+BT 1 0 0 1 56.69 165.89 Tm /F1 10.50 Tf (`DetectionOverlay\(onDetectionTap = ...\)` with `NLDetectionInspectorSheet\(detection,) Tj ET
+BT 1 0 0 1 56.69 151.89 Tm /F1 10.50 Tf (match, resolver, onDismiss\)` and an `NLProductDetailsResolver` built over) Tj ET
+BT 1 0 0 1 56.69 137.89 Tm /F1 10.50 Tf (`NLOperationsCatalogClient`. Offline or unresolved products fall back to a UUID +) Tj ET
+BT 1 0 0 1 56.69 123.89 Tm /F1 10.50 Tf (similarity row.) Tj ET
+endstream
+endobj
+31 0 obj
+<< /Type /Page /Parent 34 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 30 0 R >>
+endobj
+32 0 obj
+<< /Length 3008 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 15) Tj ET
+0.000000 0.000000 0.000000 rg
+BT /F2 13.00 Tf 1 0 0 1 56.69 771.89 Tm (12. Notes) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 749.89 Tm (Telemetry and privacy \(Sentry\)) Tj ET
+BT 1 0 0 1 56.69 731.89 Tm /F1 10.50 Tf (The SDK reports errors to the Neurolabs Sentry project under this policy, the same on) Tj ET
+BT 1 0 0 1 56.69 717.89 Tm /F1 10.50 Tf (Android, iOS and Cordova:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 697.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 697.89 Tm /F2 10.50 Tf (Only the SDK's own errors. ) Tj /F1 10.50 Tf (The SDK reports the errors it captures itself. It never) Tj ET
+BT 1 0 0 1 70.69 683.89 Tm /F1 10.50 Tf (calls `SentryAndroid.init` or `Sentry.init`: its client is private, so no) Tj ET
+BT 1 0 0 1 70.69 669.89 Tm /F1 10.50 Tf (uncaught-exception handler, ANR, network, session or lifecycle integration is) Tj ET
+BT 1 0 0 1 70.69 655.89 Tm /F1 10.50 Tf (installed in your app, a crash or ANR in your own code is never sent, and your own) Tj ET
+BT 1 0 0 1 70.69 641.89 Tm /F1 10.50 Tf (Sentry setup is untouched.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 623.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 623.89 Tm /F2 10.50 Tf (No credentials or personal data. ) Tj /F1 10.50 Tf (`isSendDefaultPii` is off. Messages are scrubbed) Tj ET
+BT 1 0 0 1 70.69 609.89 Tm /F1 10.50 Tf (before they are sent: a URL keeps only its scheme, host and path, so a signed URL's) Tj ET
+BT 1 0 0 1 70.69 595.89 Tm /F1 10.50 Tf (credentials never leave the device.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 577.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 577.89 Tm /F2 10.50 Tf (Opt out ) Tj /F1 10.50 Tf (with `sentryEnabled = false` \(or `analyticsEnabled = false`\) on) Tj ET
+BT 1 0 0 1 70.69 563.89 Tm /F1 10.50 Tf (`NLConfiguration`. Nothing is sent from a unit or instrumented test run.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 545.89 Tm (Other notes) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 527.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 527.89 Tm /F1 10.50 Tf (Per-session upload routing is supported with `options.taskUUID`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 509.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 509.89 Tm /F1 10.50 Tf (`autoCloseAfterCapture=true` closes after Save from preview/review flow.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 491.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 491.89 Tm /F1 10.50 Tf (Use `allowManualFinish = true` with `minCapturesBeforeDone` and `maxCaptures` when) Tj ET
+BT 1 0 0 1 70.69 477.89 Tm /F1 10.50 Tf (you want "at least X, up to Y" capture sequences.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 459.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 459.89 Tm /F1 10.50 Tf (Set `showsCapturedCountLabel = false` to hide the `N captured` chip in the top bar.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 441.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 441.89 Tm /F1 10.50 Tf (For partner apps, avoid passing base64 images across process boundaries.) Tj ET
+endstream
+endobj
+33 0 obj
+<< /Type /Page /Parent 34 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 32 0 R >>
+endobj
+34 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R 21 0 R 23 0 R 25 0 R 27 0 R 29 0 R 31 0 R 33 0 R] /Count 15 >>
+endobj
+35 0 obj
+<< /Type /Catalog /Pages 34 0 R >>
+endobj
+xref
+0 36
+0000000000 65535 f 
+0000000015 00000 n 
+0000000085 00000 n 
+0000000160 00000 n 
+0000000228 00000 n 
+0000005061 00000 n 
+0000005214 00000 n 
+0000010260 00000 n 
+0000010413 00000 n 
+0000015007 00000 n 
+0000015160 00000 n 
+0000019732 00000 n 
+0000019887 00000 n 
+0000024358 00000 n 
+0000024513 00000 n 
+0000030412 00000 n 
+0000030567 00000 n 
+0000034191 00000 n 
+0000034346 00000 n 
+0000039356 00000 n 
+0000039511 00000 n 
+0000044786 00000 n 
+0000044941 00000 n 
+0000050630 00000 n 
+0000050785 00000 n 
+0000057075 00000 n 
+0000057230 00000 n 
+0000062835 00000 n 
+0000062990 00000 n 
+0000067539 00000 n 
+0000067694 00000 n 
+0000073528 00000 n 
+0000073683 00000 n 
+0000076744 00000 n 
+0000076899 00000 n 
+0000077054 00000 n 
+trailer
+<< /Size 36 /Root 35 0 R >>
+startxref
+77105
+%%EOF

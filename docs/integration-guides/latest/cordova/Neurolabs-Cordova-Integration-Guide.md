@@ -11,6 +11,18 @@ listed here come from the underlying `neurolabs-android-sdk` and
 `scripts/prepare-sdk.js` at install time. No public JS API has been broken
 since v1.1.9.
 
+### v1.7.18
+- Plugin pins the native SDKs' 1.7.18 on both platforms.
+- Native: each capture's metadata record (capture contract v1: shutter time, device, camera, image size, attitude, intrinsics, an EXIF subset, the AR pose) is uploaded after its image, off the image path; a metadata failure never holds up the image or the submit. The detections go in it only with `sendDetectionsMetadata: true` (item 19).
+- Native: a multi-bay walk with a pair of bays the SDK could not link no longer leaves the rest of the walk unmerged: the dedup runs inside each linked segment, "Review shelf" marks the broken link ("Couldn't link bay N — retake it to join", with "Open bay N"), and the submit also sends the walk's stitched realogram (shelves, rows and slots). `dedupTrusted` is still true only for one trusted segment.
+- Native: with on-device recognition off (`recognition: false`), the AR boxes keep their identity from appearance as well as position (a colour histogram, or the ConvNeXt model for an organisation Operations grants it to). It is on by default and changes the overlay only, not counts or uploads.
+- Android: `enablePreviewCropping: true` is display only, as on iOS: uploads carry the full frame, and only the thumbnail is trimmed (item 18). With `sendDetectionsMetadata: false`, `captureResult.detections` is no longer empty, and a multi-bay session's `countsByLabel` and submitted `device_dedup` counts come from the real detections (they were empty before).
+- iOS: an upload in flight when the app goes to the background gets iOS's grace period (about 30 s), and `init({ analyticsEnabled: false })` now also stops the SDK camera's analytics events (Android already did).
+- New `init({ captureGeolocation, captureDepth })` and `captureResult.captureMetadata`: each capture's metadata (capture contract v1) is uploaded after its image and handed to the host. Location and depth are opt-in, and the host app owns the location permission (see 4a).
+- New `openCamera({ arHighResolutionStills: true })`, Android only and experimental: full-resolution AR photos through ARCore's Shared Camera. iOS accepts the key and ignores it (see 6b).
+- New `openCamera({ arAppearanceWithoutRecognition })` (default on): AR box identity from appearance with on-device recognition off (see 6b).
+- `cameraClosed.multiBay` adds `realogram` (the walk's shelves, rows and slots) and `segments` (its dedup segments), the same shape on both platforms (see 6a).
+
 ### v1.7.17
 - Plugin pins the native SDKs' 1.7.17 on both platforms.
 - Native: the default and AR cameras show an offline chip while there is no network ("Offline", plus "uploads queued" when photos wait), or "Waiting for Wi-Fi" while Wi-Fi-only uploads hold photos on cellular. It is on by default and never blocks the shutter; `openCamera({ showsOfflineIndicator: false })` hides it (see 6).
@@ -237,6 +249,8 @@ await Neurolabs.init({
   sentryEnabled: true,             // Sentry crash reporting (default true)
   // maxRetainedPhotos: 500,       // kept uploaded photos before retainedPhotosHigh warns (see §5)
   // retainedPhotoExpiryDays: 14,  // delete kept uploaded photos after N days (default off)
+  // captureGeolocation: false,    // location in each capture's metadata; the app owns the permission (see §4a)
+  // captureDepth: false,          // AR depth map with each AR capture (see §4a)
   // sentryDsn: 'https://...',     // optional custom Sentry DSN
   // yoloModelVariant: 'all_in_one', // the only detector; see below
 });
@@ -286,6 +300,56 @@ Neurolabs.addListener('loadingProgress', (payload) => {
 });
 ```
 
+## 4a. Per-capture metadata, location and depth (native SDK 1.7.18)
+
+From native SDK 1.7.18 the SDK camera records a metadata record for every
+photo it takes (capture contract v1): shutter time, device and OS, camera
+mode, image size, the detector's boxes, an EXIF subset (never GPS or a
+serial number), the device's attitude, the camera intrinsics and, on the AR
+camera, the camera pose. The record goes up after its image, off the image
+path: a metadata failure never holds up or fails the image or the mission
+submit. The detections go up only with `sendDetectionsMetadata: true`.
+
+The same record reaches your app as `captureResult.captureMetadata`, in
+camelCase with epoch-millisecond times (the `CaptureMetadata` type in
+`types/index.d.ts`). It is absent for a capture the SDK camera did not take.
+
+Two `init` opt-ins add more, both off by default:
+
+- `captureGeolocation: true` adds the device's location (`geolocation:
+  { lat, lon, accuracyM, timestamp }`, and `consent.geolocation: true`).
+  **Your app owns the location permission.** The plugin declares none and
+  never asks for it. iOS: add `NSLocationWhenInUseUsageDescription` to the
+  app's Info.plist and request When In Use access before opening the
+  camera. Android: declare `ACCESS_FINE_LOCATION` (or
+  `ACCESS_COARSE_LOCATION`) in the app's manifest and request it at runtime.
+  Without the permission, or without a fix, there is no location and no
+  error. Location is sent only with your opt-in and the OS permission.
+- `captureDepth: true` adds the AR camera's depth map to each AR capture,
+  uploaded as a side file and described by `depth: { depthId?, source,
+  format, encoding, width, height, hasConfidence }`. iOS: LiDAR scene depth,
+  on LiDAR iPhones only (`source: "lidar"`). Android: the ARCore Depth API,
+  depth from motion, on devices that support it (`source: "arcore_depth"`);
+  it is noisier than LiDAR and has no confidence plane. A device without
+  depth records none, without error.
+
+Both are process-wide on the native side, so every `init` sets them: an
+omitted key turns the opt-in off. Anything but a boolean rejects with
+`INVALID_ARGUMENT`. Coordinates, depth values and EXIF fields are never
+logged by the plugin or the SDKs. The backend endpoints that receive the
+record must be live on your Operations environment; until then the record is
+dropped quietly and the images upload as before.
+
+```js
+await Neurolabs.init({ apiKey: '<API_KEY>', captureGeolocation: true });
+Neurolabs.addListener('captureResult', ({ captureId, captureMetadata }) => {
+  if (captureMetadata?.consent.geolocation) {
+    const { lat, lon } = captureMetadata.geolocation ?? {};
+    // store with your own record of captureId; do not log it
+  }
+});
+```
+
 ## 5. Queue Management
 
 ```js
@@ -303,6 +367,41 @@ console.log('queue status', status);
 await Neurolabs.flushQueue();
 await Neurolabs.retryFailedUploads();
 ```
+
+### Uploads in the background and after the app is closed
+
+- **Android:** the native queue keeps uploading while the app's process
+  lives, also in the background. The plugin initialises the SDK from
+  JavaScript, so after the app is swiped away or killed, uploads resume
+  the next time the app is opened and `init` runs.
+- **iOS:** uploads run while the app is in the foreground. From native
+  SDK 1.7.18, an upload in flight when the app is backgrounded gets iOS's
+  grace period (about 30 s), usually enough for one photo.
+  Whatever is left resumes when the app returns or is next opened.
+- On both, queued photos survive a kill. Not every photo reaches the
+  backend: a full queue or low storage refuses a new capture
+  (`QUEUE_FULL` / `STORAGE_LOW`, reported as `uploadFailed`), a terminal
+  refusal or `clearUploadQueue()` removes a queued photo, and an
+  already-uploaded photo kept on the device is deleted by
+  `retainedPhotoExpiryDays` (see below).
+
+### What reaches the backend
+
+- Per capture: the photo (the full frame, sized by `maxImageDimension` /
+  `imageCompressionQuality`) with its `taskUUID` and bay. Exception: on
+  native Android up to 1.7.17 with `enablePreviewCropping: true`, the
+  uploaded photo was the detection trim; the full frame from native 1.7.18
+  (item 18).
+- Per multi-bay session: the submit's `device_dedup` summary (section 6a),
+  and from native SDK 1.7.18 the walk's stitched realogram (section 6a).
+- Per capture, from native SDK 1.7.18: the capture's metadata record, after
+  the image (section 4a). Detections in it only with
+  `sendDetectionsMetadata: true`; location and depth only with their `init`
+  opt-ins.
+- Not uploaded: detections up to native 1.7.17 (`sendDetectionsMetadata`,
+  item 19 in section 6c), the `enablePreviewCropping` trim (display only,
+  except on native Android up to 1.7.17, item 18), and AR session recordings
+  (`.nlrec`, native AR tooling, not a capture output).
 
 ### Kept uploaded photos (native SDK 1.7.16)
 
@@ -436,7 +535,7 @@ each one in this order:
 3. the SDK default: a **4032 px long edge at JPEG quality 0.9** (native SDK
    1.7.16).
 
-The plugin pins native 1.7.17 (the default dates from 1.7.16), so on both platforms an omitted value means
+The plugin pins native 1.7.18 (the default dates from 1.7.16), so on both platforms an omitted value means
 4032 px at 0.9 unless your organisation overrides it. Invalid values (`<= 0`, or a
 quality outside `0..1`) reject with `INVALID_ARGUMENT` on both platforms.
 
@@ -529,17 +628,19 @@ await Neurolabs.setMultiBaySubmitNotes('Aisle 4, promo end-cap', sessionId);
 ```
 
 When a multi-bay session completes, the `cameraClosed` payload carries an
-extra `multiBay` summary (forwarded untouched from the native SDK). The
-per-photo `captureQueued` / upload events are unchanged:
+extra `multiBay` summary (forwarded from the native SDK, the same shape on
+both platforms). The per-photo `captureQueued` / upload events are unchanged:
 
 ```js
 Neurolabs.addListener('cameraClosed', ({ sessionId, cancelled, captureCount, message, multiBay }) => {
   if (!multiBay) return; // single-bay session
   const {
-    countsByLabel,        // { [label]: count } de-duplicated across bays
+    countsByLabel,        // { [detector class]: count } de-duplicated across bays
     baysCount,            // number of bays captured
     dedupTrusted,         // false if the cross-bay alignment chain broke
-    previewImageFileUri   // 'file://...' when generatePreview: true (optional)
+    previewImageFileUri,  // 'file://...' when generatePreview: true (optional)
+    realogram,            // native 1.7.18: shelves -> rows -> slots (optional)
+    segments              // native 1.7.18: [{ fromBay, toBay, trusted, countsByLabel }] (optional)
   } = multiBay;
   console.log('multi-bay summary', baysCount, dedupTrusted, countsByLabel);
 });
@@ -552,6 +653,31 @@ bound). Treat `countsByLabel` as an over-count in that case: the backend
 serves the raw per-image results unchanged (no server-side re-deduplication
 exists today — the uploaded alignment homographies make one possible later,
 but on-device dedup is currently the only cross-bay dedup).
+
+`countsByLabel` is keyed by detector class (`sku_single`, `sku_multipack`,
+price tag, promo, poster), not by product or SKU.
+
+From native SDK 1.7.18 the summary adds:
+
+- `segments`: the walk's dedup segments. A pair of adjacent bays the SDK
+  could not link starts a new segment, and the dedup runs inside each
+  segment, so one broken link no longer leaves the rest of the walk
+  unmerged. Each is `{ fromBay, toBay, trusted, countsByLabel }` (bays
+  0-based, inclusive). `dedupTrusted` is still true only for one trusted
+  segment.
+- `realogram`: the walk's stitched realogram (capture contract v1), its
+  merged products grouped into shelves, rows and slots by geometry, so it
+  exists with recognition off too. `{ version, coordinateSpace, sdkVersion,
+  bays, shelves: [{ shelfIndex, rows: [{ rowIndex, slots: [...] }] }],
+  truncated, omittedProductCount }`; a slot is `{ slotIndex, xMin, yMin,
+  xMax, yMax, bayIndex, detectorClass, trackId, productId?, stackIndex?,
+  score? }`. Shelf 0 is the top shelf, row 0 the row on the shelf board,
+  slots run left to right, and coordinates are normalised to the first
+  bay's frame (later bays can read past 1). The same realogram goes up with
+  the submit. It is absent when the merge timed out or failed. On Android
+  the native result hands it over as a cache file; the plugin reads it off
+  the main thread, puts it into `realogram` and deletes the file, so JS sees
+  the same object on both platforms.
 
 There is no partner-facing in-camera bay-mode switch: the Single ↔
 Multi-bay toggle shown in Neurolabs demo builds is internal debug chrome
@@ -602,6 +728,37 @@ SDKs decode it. They apply on the AR camera, with or without the preset.
 - Colours are `#RRGGBB` strings, forwarded as given; a malformed value draws
   the default colour.
 
+### AR box identity with recognition off (`arAppearanceWithoutRecognition`, native SDK 1.7.18)
+
+- With on-device recognition off (`init({ recognition: false })`, no
+  provider, or the remote kill switch), the AR boxes used to keep their
+  identity from position alone, and touching facings of one product swapped
+  identities. From native 1.7.18 they also use appearance: the ConvNeXt model
+  the recognition stack uses, downloaded for appearance only for an
+  organisation Operations grants it to, and a colour histogram until it is on
+  the device or when it is not granted.
+- `arAppearanceWithoutRecognition` (default `true`) turns this on; `false`
+  keeps position-only identity. Forwarded on both platforms, plain and under
+  the `multiBayAR` preset. Presentation only: counts and uploads are
+  unchanged.
+
+### High-resolution AR stills (Android, experimental, native SDK 1.7.18)
+
+- `arHighResolutionStills: true` (default `false`) runs ARCore on a Shared
+  Camera session and takes each AR photo as a JPEG still of up to 4032 px
+  (the 12 MP class) instead of ARCore's CPU image (about 2.1 MP), then sizes
+  it by `maxImageDimension` / `imageCompressionQuality` like every other
+  photo. Forwarded plain and under the `multiBayAR` preset.
+- The device decides whether a phone gets it: Android 10 (API 29) or later,
+  a Shared Camera session ARCore accepts, a JPEG size larger than the CPU
+  image, and the organisation's remote switch (which can veto it). Any
+  failure takes the CPU image for that capture, so a capture never fails
+  because of it; two failed stills in a row switch it off for the session.
+- **iOS accepts the key and ignores it.** iOS takes a full-resolution still
+  on every AR capture already, so there is nothing to switch on.
+- It stays off by default until the device checks on more Android phones
+  pass. Try it on your target devices before turning it on for reps.
+
 ### AR live labels and count (experimental, native SDK 1.7.16)
 
 - `arLiveLabels: true` shows the top-1 product name on each stable box, at a
@@ -617,6 +774,12 @@ SDKs decode it. They apply on the AR camera, with or without the preset.
   source, so its boxes stay unnamed.
 - `arLiveCount: true` shows a "~ N products" chip: the distinct boxes seen
   stable this session. It is an estimate; the review keeps the exact count.
+- With recognition off (`recognition: false`) there are no names or
+  unmatched colour, and a box is told apart from its neighbours by its
+  position, not by which product it is: two identical facings that touch
+  can be harder to keep apart. From native SDK 1.7.18 the boxes also use
+  appearance in that case (on by default): a colour histogram, or the
+  ConvNeXt model for an organisation Operations grants it to.
 - The native `productDetailsSource` (the catalogue resolver behind the
   names) is an in-process object, so it is **not a Cordova option**. The
   plugin passes its own resolver, the one behind `getProductDetails(ids)`.
@@ -779,8 +942,8 @@ While the detector is missing, the camera shows "Detector unavailable. You can s
 15. **Android ARCore (1.7.9).** The AAR is built against ARCore 1.56.0.
 16. **Recognition at `init` (1.7.1 / 1.7.2).** Since 1.7.1, `init` builds the on-device recognition bootstrap whenever it has an operations key, which is always (the key falls back to `apiKey`). The bootstrap asks the operations API whether the org has device recognition and, if it does, downloads the catalog snapshot and the embedder. Pass `recognition: false` to keep the 1.6.6 behaviour: no recognition at all.
 17. **Queue capacity with kept photos (changed in 1.7.16).** Only pending, uploading and failed items take a `maxQueueSize` slot (default 100). With `deletePhotosOnUploadSuccess: false`, an uploaded photo stays on the device as `completed` until you `deletePhoto` it, but it no longer counts toward `maxQueueSize` (it did up to 1.7.15). Kept photos are bounded by `maxRetainedPhotos` (default 500) instead: from 80% of it the `retainedPhotosHigh` event fires, as a warning that never refuses a capture. Two codes refuse a new capture, both reported as `uploadFailed`: `QUEUE_FULL` when the pending, uploading and failed items reach `maxQueueSize`, and `STORAGE_LOW` (retryable) when the device has under 500 MB free. Delete each photo once you have it (`getPhoto`, then `deletePhoto`) or set `retainedPhotoExpiryDays`, and watch `uploadFailed` for both codes.
-18. **Review and crop (1.6.6; `finalReview` from 1.7.16).** With `autoCloseAfterCapture: false`, `showCapturePreview: false` is honoured. There is no per-capture review screen, and so no per-capture crop editor ("Crop to region of interest"), on either platform. A rep can crop each shot only with `showCapturePreview: true`. From native 1.7.16, `finalReview: true` (off by default) adds an end-of-session review with tap-to-crop on the default (non-AR) camera with no multi-bay plan, so a host that keeps `showCapturePreview: false` can still let the rep crop or drop photos before **Confirm**. `enablePreviewCropping: true` is not the crop editor: it trims each capture to the area the detections cover, so it does nothing until the detector is ready. On Android the trimmed image is the one that is queued and uploaded. On iOS it is used for display only, and the full frame is uploaded.
-19. **Detection metadata before the detector (unchanged since 1.6.6).** With `sendDetectionsMetadata: true` and no detector yet, the capture is queued with an empty detection list, exactly as with `false`. The upload does not fail or wait for the detector.
+18. **Review and crop (1.6.6; `finalReview` from 1.7.16).** With `autoCloseAfterCapture: false`, `showCapturePreview: false` is honoured. There is no per-capture review screen, and so no per-capture crop editor ("Crop to region of interest"), on either platform. A rep can crop each shot only with `showCapturePreview: true`. From native 1.7.16, `finalReview: true` (off by default) adds an end-of-session review with tap-to-crop on the default (non-AR) camera with no multi-bay plan, so a host that keeps `showCapturePreview: false` can still let the rep crop or drop photos before **Confirm**. `enablePreviewCropping: true` is not the crop editor: it trims each capture's thumbnail to the area the detections cover, so it does nothing until the detector is ready. It is display only: the uploaded photo is the full frame on iOS, and on Android from native 1.7.18 (native Android up to 1.7.17 queued and uploaded the trimmed photo, so with this option on, Android uploads from native 1.7.18 carry the whole frame: more shelf context per photo, somewhat larger files).
+19. **Detection metadata and per-capture metadata (changed in native 1.7.18).** `sendDetectionsMetadata: true` keeps each capture's detections in its queue record and in the `captureResult` event (on iOS, `captureResult` carries them even with `false`). Up to native 1.7.17 they are **not uploaded**: the operations upload is the photo only, plus a multi-bay session's `device_dedup` summary at submit. From native SDK 1.7.18 each capture's metadata record goes up after its image (section 4a), with the detections only when `sendDetectionsMetadata` is true, and Android's `captureResult.detections` is no longer emptied when it is false. With no detector yet, the capture is queued with an empty detection list, exactly as with `false`; the upload does not fail or wait for the detector.
 20. **`taskUUID` per session (unchanged since 1.6.6).** `openCamera({ taskUUID })` is stored on each queued capture and sent as that image's `task_uuid` on the operations upload (`upload/complete`), on both platforms. The mission submit carries the request-level `operationsTaskUuid` instead. Since 1.7.13, a re-init with an equal configuration keeps the camera's task, and the next `openCamera` sends the task it needs.
 21. **Image size (changed since 1.6.6).** Plugin 1.6.6 sent `maxImageDimension: 1920` and `imageCompressionQuality: 0.85` whenever you omitted them. The plugin now forwards only the values you set: an omitted value falls back to the organisation's remote config, then to the SDK default (4032 px at 0.9 from native 1.7.16), on both platforms. Set them only when upload size matters more than recognition accuracy, since the crops, the price matcher and OCR read the uploaded photo.
 22. **Telemetry (opt-out).** `analyticsEnabled` and `sentryEnabled` default to `true`. Pass `false` to turn them off.
@@ -816,11 +979,13 @@ Neurolabs.addListener('captureQueued', ({ captureId, queueItemId, sessionId, ima
 // DISTANCE_TOO_CLOSE | DISTANCE_TOO_FAR | ANGLE_OFF | PANNING_TOO_FAST.
 Neurolabs.addListener('guidanceStateChanged', (payload) => console.log('guidance', payload));
 
-// Fires after the Neurolabs server has processed an uploaded photo and returned an analysis result.
-// This is a server-side callback — it does NOT fire when the photo is taken locally.
-// Payload: { captureId, sessionId, success, message, detectionCount, capturedRegionCount }
-Neurolabs.addListener('captureResult', (payload) => {
-  console.log('captureResult', payload);
+// Fires once per photo with what the SDK saw on the device (buffered like captureQueued).
+// Payload: { captureId, sessionId, success, message, detectionCount, capturedRegionCount,
+//            detections, recognitionMatches?, captureMetadata? }
+// captureMetadata (native SDK 1.7.18) is the capture's metadata record (see §4a).
+// It can carry the device's location: never log it.
+Neurolabs.addListener('captureResult', ({ captureId, success, detectionCount }) => {
+  console.log('captureResult', captureId, success, detectionCount);
 });
 
 Neurolabs.addListener('uploadSucceeded', (item) => console.log('uploaded', item));
