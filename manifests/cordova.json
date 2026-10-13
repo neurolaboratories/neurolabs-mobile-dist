@@ -3,19 +3,19 @@
   "product": "ai.neurolabs.cordova",
   "distribution": "github_release_asset",
   "latest": {
-    "version": "v1.7.18",
-    "asset_name": "neurolabs-cordova-sdk-v1.7.18.tgz",
-    "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.18/neurolabs-cordova-sdk-v1.7.18.tgz",
-    "checksum_sha256": "314e639c12326e2795d81fef617f4130b250fd12ba8d11f553f569bb8d42f06c",
-    "install_example": "cordova plugin add https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.18/neurolabs-cordova-sdk-v1.7.18.tgz"
+    "version": "v1.7.19",
+    "asset_name": "neurolabs-cordova-sdk-v1.7.19.tgz",
+    "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.19/neurolabs-cordova-sdk-v1.7.19.tgz",
+    "checksum_sha256": "313d43e23417a069b4c5ae67378c8b2822cabf0bc07e061896c97de237a54eab",
+    "install_example": "cordova plugin add https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.19/neurolabs-cordova-sdk-v1.7.19.tgz"
   },
   "lines": {
     "1.7": {
-      "version": "v1.7.18",
-      "asset_name": "neurolabs-cordova-sdk-v1.7.18.tgz",
-      "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.18/neurolabs-cordova-sdk-v1.7.18.tgz",
-      "checksum_sha256": "314e639c12326e2795d81fef617f4130b250fd12ba8d11f553f569bb8d42f06c",
-      "install_example": "cordova plugin add https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.18/neurolabs-cordova-sdk-v1.7.18.tgz"
+      "version": "v1.7.19",
+      "asset_name": "neurolabs-cordova-sdk-v1.7.19.tgz",
+      "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.19/neurolabs-cordova-sdk-v1.7.19.tgz",
+      "checksum_sha256": "313d43e23417a069b4c5ae67378c8b2822cabf0bc07e061896c97de237a54eab",
+      "install_example": "cordova plugin add https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.19/neurolabs-cordova-sdk-v1.7.19.tgz"
     }
   }
 }
