@@ -309,6 +309,34 @@ Recommended capture payload notes:
 - Nothing is queued or uploaded before Confirm. The photos are staged on disk, so they survive the process being killed. Confirm queues the remaining photos in capture order, crops applied.
 - Default `false`: every other session, and every host that does not set it, is unchanged.
 
+### Embedded camera: who owns the photo files (1.7.19)
+
+`NLCaptureActivity` / `openNativeCaptureUI` queue the photos themselves; nothing below applies to them. When you embed the camera (`NLCustomCameraView`, `NLCaptureScreen`), `onCaptureComplete` hands the session's photos to you:
+
+- Each `CapturedImageData.imageFilePath` stays on disk after the camera leaves the composition. Read it, show it, or pass its bytes to `enqueueCapture` (which copies them into the upload queue) whenever you are ready, including after you have closed the camera.
+- The files are yours from then on. Release them once you are done: `sdk.acknowledgeCaptures(sessionId)` for the whole session, or `sdk.releaseCapture(captureId)` one by one.
+- Files you never release are deleted at the next SDK start or capture session once they are 24 hours old, so disk cannot leak.
+- Photos the session discarded before `onCaptureComplete` (a retake, a deletion, ✕ before Done) are never delivered; the SDK deletes them.
+
+```kotlin
+NLCustomCameraView(
+    sdk = sdk,
+    sessionId = sessionId,
+    onClose = { showCamera = false },
+    onCaptureComplete = { captures ->
+        showCamera = false                       // closing first is safe
+        scope.launch(Dispatchers.IO) {
+            captures.forEach { capture ->
+                sdk.enqueueCapture(sessionId, capture.captureId, capture.resolveImageData(), capture.detections, NLCaptureContext())
+            }
+            sdk.acknowledgeCaptures(sessionId)   // done with the files
+        }
+    },
+)
+```
+
+Before 1.7.19 the camera deleted these files when it left the composition, so a host that enqueued or read them after closing it lost the photos without an error.
+
 ### Offline chip (1.7.17)
 
 The default and AR camera show a small chip while the upload queue sees no network: "Offline · uploads queued" (or "Offline" with nothing queued), and "Waiting for Wi-Fi · uploads queued" while Wi-Fi-only uploads hold photos on a metered network. It hides while the network is unknown and when the host uploads the photos itself (`uploadsEnabled = false`). It is informational only and never gates the shutter. On by default; turn it off with `NLCameraConfiguration(showsOfflineIndicator = false)`, or on the bridge with `showsOfflineIndicator` (`Boolean?`) on `NLNativeCaptureOptions` / `NLNativeCaptureConfig` (options, then config, then `true`).
@@ -386,6 +414,13 @@ Meaning of `dedupTrusted`:
 - A broken link between two adjacent bays no longer leaves every later bay unmerged: it starts a new segment, and the dedup runs inside each run of linked bays. `NLMultiBayResult.segments` (`NLDedupSegment`: `fromBay`, `toBay`, `trusted`, `countsByLabel`) lists them. `dedupTrusted` is still true only for one trusted segment. When every segment is trusted and they tile the walk, the submit sends `client_metadata.device_dedup` v2 (`version: 2`, `segments`); otherwise v1. "Review shelf" marks each broken link.
 - `NLMultiBayResult.realogram` (`NLStitchedRealogram`) groups the walk's merged products into shelves, rows and slots in the first bay's frame, by geometry alone, so it exists with recognition off. SDK-managed flows send it as the mission submit's top-level `realogram`; a custom capture UI's `submitNotesJSON()` never carries it. Older backends ignore it.
 
+### Registration, retakes and the shelf's bay order (1.7.19)
+
+- Adjacent bays register with a full homography (rotation, scale and perspective), as on iOS, so a rep who turns, steps in or tilts between bays keeps the link. `ref_homographies` keep their shape. Registration has a 1.5 s share of the merge's 4 s timeout: on a slow phone a long walk breaks its last links instead of losing the whole merge, and "Review shelf" marks such a break "Bay N not linked — split here to keep up".
+- A link that broke because the photos did not register is marked "Couldn't link bay N — retake it to join", with "Retake bay N". The camera opens with a "Retaking bay N" banner; the next photo replaces bay N in place (same bay index) and the review merges again. A retake is offered only while the session still holds the bay: a bay already handed to the upload queue cannot be replaced.
+- A walk that folds back across a broken link (the next bay revisits an earlier one, within 0.75 m by AR position) is registered to that earlier bay, so its products count once. CameraX walks, which have no AR positions, make no attempt.
+- A split walk's `device_dedup` v2 also sends `seams` (one per break, with the device's bound on products counted on both sides) and, with them, `links`. Every multi-bay submit whose bays have their spatial inputs sends `bay_order`, v1 or v2 (the bays left to right on the shelf; bay indexes everywhere else keep their capture order). The bays reach the merge and the submit in capture order (before 1.7.19, parallel commits could shuffle them).
+
 Upload semantics:
 - Each bay photo uploads as a normal capture through the operations queue (resumable mission flow, one image per capture).
 - On `stopSession` the mission submit attaches a compact merge summary (`{bays, counts_by_label, dedup_trusted, ref_homographies, sdk_version}`) as structured `client_metadata.device_dedup` plus, transitionally, a `notes` duplicate for older backends. The backend stores the summary and serves `counts_by_label` only when `dedup_trusted` is true. It does not re-dedup from `ref_homographies` today.
@@ -458,8 +493,10 @@ bootstrap.start(sdk, applicationScope) // safe to call again; see below
 and the snapshot's signed manifest for that operations key (the file is named
 by a one-way fingerprint of the key; the key is never stored). When a later
 build cannot reach the Operations API (no signal, a timeout, a captive portal,
-a 5xx), it builds from that record for up to 7 days after the last full sync
-(`bootstrap.offlineCacheTTL`), as long as the embedder and every snapshot shard
+a 5xx), it builds from that record for up to the org's offline expiry after
+the last full sync (`offline_ttl_days` in the recognition config, 1 to 30 days;
+else `bootstrap.offlineCacheTTL`, 7 days; records saved before 1.7.19 read as
+7 days), as long as the embedder and every snapshot shard
 are still on the device and pass their sha256 checks. `bootstrap.offlineSnapshotDate`
 is then the time of that sync, and `statusSummary` reads
 `provider: ready (offline, 42 items, snapshot from 2026-10-01)`. A 401 or 403

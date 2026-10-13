@@ -14,6 +14,31 @@ custom-camera flows that need a minimum capture count and a higher
 maximum cap. `showsCapturedCountLabel` hides the `N captured` chip in
 custom camera and multi-capture flow UIs.
 
+### v1.7.19
+No initialiser changes. One additive static method and one stored
+property set after `init`, both additive for the ABI.
+
+Behaviour changes, with no opt-in:
+- A queued photo's bytes go up through an iOS background `URLSession`, so
+  they keep uploading after the app is suspended or terminated by iOS, and
+  while the phone is locked (not after a user force-quit; see section 6). Forward the app-delegate wake to the SDK to finish
+  sooner (section 6, "Uploads after the app is backgrounded").
+- "Review shelf" offers "Retake bay N" on a broken bay link, and an AR
+  multi-bay walk that folds back across a broken link is no longer
+  double-counted (a walk without AR positions makes no attempt).
+- The offline recognition build expires after the org's configured
+  number of days (7 by default) instead of a fixed 7 days.
+- The SDK's process-global Sentry client (started by the Cordova plugin)
+  reports only the SDK's own errors and crashes, and never replaces a
+  Sentry client your app started first (section 14).
+
+New APIs:
+- `NeurolabsSDKCore.handleEventsForBackgroundURLSession(_:completionHandler:)`,
+  optional (section 6).
+- `NLCameraConfiguration.analyticsEnabled` (`Bool?`, `nil` by default:
+  follow the core), so a camera-only app can opt in to camera analytics
+  (section 7, "Camera analytics setting").
+
 ### v1.7.18
 No initialiser changes. The new options and result fields are stored
 properties and are additive for the ABI.
@@ -301,13 +326,63 @@ print("kept=\(status.retainedCount) bytes=\(status.retainedBytes)")
 
 ### Uploads after the app is backgrounded
 
-A flush with photos to upload holds an iOS background task
-(`beginBackgroundTask`) until it ends, so an upload in flight when the rep
-locks the phone or switches app gets iOS's grace period (about 30 s), which
-is usually enough for one photo to finish. The task ends when the flush ends
-or when iOS expires it. A photo that does not finish stays queued and resumes
-from its confirmed offset when the app returns to the foreground or is next
-opened. There is no upload after the app is killed. No API change.
+Since 1.7.19 the SDK hands each queued photo's bytes to iOS: a background
+`URLSession` (one per queue partition) sends them to the photo's Google
+Cloud Storage upload session, so the transfer continues while the app is
+suspended, after iOS terminates it (memory pressure, for example), and
+while the phone is locked. A user force-quit (swiping the app away) makes
+iOS cancel the app's background transfers: nothing is lost, and the next
+launch resumes each photo from the offset GCS confirmed. The rest stays in
+your app's process:
+
+| Step | Where it runs | Credential |
+|---|---|---|
+| `upload/init-resumable`, opening the GCS session | the app, when it flushes | operations Bearer |
+| Sending the photo's bytes | iOS (`nsurlsessiond`) | none: the GCS session URL itself |
+| `upload/complete`, the mission submit | the app, on the wake or the next foreground | operations Bearer |
+
+The OS request carries no operations credential. iOS stores the GCS session
+URL with the request; it can write that one photo only and expires within
+7 days. To send while the phone is locked, the SDK gives iOS a temporary copy
+of the photo protected `completeUntilFirstUserAuthentication` (readable once
+the phone has been unlocked after a restart). The queue's own copy keeps
+`completeUnlessOpen`. The temporary copy is deleted as soon as the transfer
+finishes or fails, and any copy older than 7 days is swept at launch and on
+every flush.
+
+Forward the app-delegate wake to the SDK (optional, recommended):
+
+```swift
+func application(_ application: UIApplication,
+                 handleEventsForBackgroundURLSession identifier: String,
+                 completionHandler: @escaping () -> Void) {
+    if NeurolabsSDKCore.handleEventsForBackgroundURLSession(identifier, completionHandler: completionHandler) {
+        return
+    }
+    completionHandler() // not the SDK's session: your own handling
+}
+```
+
+Without it the uploads still finish in the background; the SDK learns of
+them the next time the app runs. `upload/complete` and the submit need the
+operations credential, so they run in the wake only when your app configures
+the SDK at launch (`NeurolabsSDKCore.configure` and the operations key or
+auth provider in `application(_:didFinishLaunchingWithOptions:)`); otherwise
+on the next foreground. A photo whose bytes are with iOS counts as uploading
+in the queue and spends none of its retry attempts. Nothing is lost when the
+transfer fails: the photo stays queued and resumes from its confirmed offset.
+
+A flush also still holds an iOS background task (`beginBackgroundTask`)
+until it ends, so the in-app steps get iOS's grace period (about 30 s) when
+the rep locks the phone or switches app.
+
+Cordova: plugin 1.7.19 forwards the wake itself. If your app's own
+`AppDelegate` implements
+`application(_:handleEventsForBackgroundURLSession:completionHandler:)`,
+yours wins: forward to `NeurolabsSDKCore.handleEventsForBackgroundURLSession`
+as above, and in Swift mark the method `override` (needed from plugin
+1.7.19). With an older plugin the uploads still finish in the background and
+complete on the next foreground.
 
 ### What reaches the backend
 
@@ -374,7 +449,9 @@ let handlers = NLCustomCameraHandlers(
     onSave: { capture in
         // Custom post-processing hook for each accepted capture
         // return .performDefault -> SDK also enqueues upload
-        // return .skipDefault -> app takes full ownership
+        // return .skipDefault -> the SDK does not queue it; the photo is
+        //   yours to process, but capture.imageFilePath is only valid until
+        //   this handler returns. Copy the file first (see section 10).
         return .performDefault
     },
     onSaveAll: { captures in
@@ -491,6 +568,17 @@ NLDetectorModels.setCredentials(apiKey: operationsKey)              // productio
 The call is idempotent (the same key again changes nothing, so a failure's retry wait still holds), a new key retries at once, and the most recent call wins, this one or a core's. A base that is not absolute https with a host is refused.
 
 **Camera analytics (1.7.18).** An SDK camera follows the `analyticsEnabled` of the `NeurolabsSDKCore` that opened it, or, for a camera your app builds itself, of the most recently created core. A camera opened before any `NeurolabsSDKCore` exists sends no analytics (no Mixpanel events, no event-bus `sdk_event`) for its whole lifetime, even if a core is created later. To have camera analytics, create the core first.
+
+**Camera analytics setting (1.7.19).** `NLCameraConfiguration.analyticsEnabled` (a `Bool?`, set after `init`) overrides the core for that camera. `nil`, the default, follows the core as described above. `true` turns the camera's analytics on: an app that uses the camera without a `NeurolabsSDKCore` sets it to opt in, and the camera then sends to the SDK's default Mixpanel tracker (the token resolves from the core's `NLConfiguration.mixpanelToken` when a core exists, then `NEUROLABS_MIXPANEL_TOKEN`, then the Info.plist key, then the SDK default). `false` turns the camera's analytics off, even when the core's are on. The camera's setting always wins over the core's:
+
+- `nil` (default): off with no core or under a core with analytics off; on, through the core's tracker, under a core with analytics on.
+- `false`: off in every case.
+- `true`: on in every case; through the core's tracker under a core with analytics on, otherwise through the SDK's default Mixpanel tracker.
+
+```swift
+var cameraConfiguration = NLCameraConfiguration(capture: NLCaptureConfiguration())
+cameraConfiguration.analyticsEnabled = true   // camera-only app: opt in
+```
 
 For a signed-in rep's bearer, follow this lifecycle:
 
@@ -693,6 +781,28 @@ let handlers = NLCustomCameraHandlers(
     }
 )
 ```
+
+### Staged file lifetime
+
+`.skipDefault` stops the SDK queueing the photo. It does **not** hand the
+file over: `imageFilePath` / `previewImageFilePath` point at the camera's
+staging folder, and the SDK deletes them once your handler is done with them.
+
+| Handler | The files are valid | The SDK deletes them |
+|---|---|---|
+| `onSave` / `onSaveAll` (sync) | until the handler returns | after it returns: right away for Save All, when the camera closes for a single Save |
+| `onSaveAsync` / `onSaveAllAsync` | until the handler completes | after it completes, and never while it runs, even after the 30 s save watchdog unblocks the camera and the rep closes it |
+
+- Copy or move the files you keep **before your handler returns**. In an
+  async handler, finish reading them before you return; work you hand to
+  another task after returning must use its own copy.
+- An async handler that never completes keeps its files until a later
+  camera's cleanup finds them older than 24 hours.
+- After the watchdog the photos stay in the review, so the rep can Save
+  again. Your late result is ignored (no double save); a retry may call
+  your handler a second time with the same files.
+- Android differs: an embedded camera's files belong to the host until it
+  acknowledges them (PARITY-DECISIONS "Capture file lifetime").
 
 ### Photo deleted (experimental)
 
@@ -934,7 +1044,12 @@ the same on iOS, Android and Cordova:
   through a private Sentry client, so your own Sentry setup is untouched.
   The one process-global path is `NLSentryCrashReporter.bootstrap(...)`,
   which installs a crash handler only when your app (or the Cordova plugin)
-  calls it; it applies the same filter.
+  calls it; it applies the same filter. It never replaces a Sentry client
+  your app already started: if one is running, `bootstrap` starts nothing
+  and the SDK reports its own errors through its private client only. If
+  your app starts Sentry *after* `bootstrap`, yours replaces the SDK's
+  (Sentry's global start is last-writer-wins), and the SDK's own errors
+  still go through its private client.
 - **No credentials or personal data.** `sendDefaultPii` is off. Messages are
   scrubbed before they are sent: a URL keeps only its scheme, host and path,
   so a signed URL's credentials never leave the device.

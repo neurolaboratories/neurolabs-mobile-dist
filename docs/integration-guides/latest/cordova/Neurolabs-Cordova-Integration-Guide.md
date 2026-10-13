@@ -11,6 +11,15 @@ listed here come from the underlying `neurolabs-android-sdk` and
 `scripts/prepare-sdk.js` at install time. No public JS API has been broken
 since v1.1.9.
 
+### v1.7.19
+- Plugin pins the native SDKs' 1.7.19 on both platforms.
+- iOS: queued photos keep uploading through an iOS background `URLSession` after iOS suspends or terminates the app and while the phone is locked. The plugin hands iOS's background wake to the SDK, so no native code or `Info.plist` change is needed; a host `AppDelegate` that implements `application(_:handleEventsForBackgroundURLSession:completionHandler:)` itself forwards one line (see 5).
+- New `config.xml` preference `NeurolabsSentryEnabled`: `value="false"` turns the SDK's Sentry off from app launch, before any JavaScript runs, and wins over `init({ sentryEnabled })` (item 22).
+- Native: Sentry reports only the SDK's own errors and crashes in SDK code, on both platforms. No host crashes, app hangs, watchdog terminations or failed requests, no host instrumentation, scrubbed URLs, and the iOS crash handler never replaces your app's own Sentry; `sentryEnabled: false` also closes it (item 22).
+- Native: on "Review shelf", a broken bay link offers "Retake bay N", which replaces that bay in place and merges the walk again, and the submit's `device_dedup` adds the seams between segments. A walk that folds back across a broken link to a bay it already took no longer counts it twice, and the submit adds the bays' left-to-right shelf order and their links. iOS: a retaken bay never merges with the next bay. Android: bays keep the order they were taken in through the merge and the submit.
+- Native: how long on-device recognition keeps using its last good build while offline is set per organisation by Neurolabs (1 to 30 days, default 7). Until the backend setting ships, every organisation keeps 7 days.
+- Native: a negative `device_dedup` count is never sent; on iOS a slow save no longer loses its photos, and on Android an accepted photo is no longer lost when its session folder was pruned.
+
 ### v1.7.18
 - Plugin pins the native SDKs' 1.7.18 on both platforms.
 - Native: each capture's metadata record (capture contract v1: shutter time, device, camera, image size, attitude, intrinsics, an EXIF subset, the AR pose) is uploaded after its image, off the image path; a metadata failure never holds up the image or the submit. The detections go in it only with `sendDetectionsMetadata: true` (item 19).
@@ -374,10 +383,41 @@ await Neurolabs.retryFailedUploads();
   lives, also in the background. The plugin initialises the SDK from
   JavaScript, so after the app is swiped away or killed, uploads resume
   the next time the app is opened and `init` runs.
-- **iOS:** uploads run while the app is in the foreground. From native
-  SDK 1.7.18, an upload in flight when the app is backgrounded gets iOS's
-  grace period (about 30 s), usually enough for one photo.
-  Whatever is left resumes when the app returns or is next opened.
+- **iOS, from plugin 1.7.19 (native SDK 1.7.19):** each queued photo is
+  uploaded through an iOS background `URLSession`, so it keeps uploading
+  after iOS suspends or terminates the app and while the phone is locked.
+  The OS carries only the photo's bytes to its upload URL, with no
+  operations credential; `upload/complete` and the mission submit run in
+  the app, on the background wake or the next foreground. A user
+  force-quit cancels the transfers (iOS behaviour); nothing is lost, and
+  the next launch resumes them. Native 1.7.18 gave an upload in flight
+  only iOS's grace period (about 30 s) after the app was backgrounded.
+- **iOS background wake (no code needed).** When those uploads finish
+  while the app is not running, iOS relaunches it in the background and
+  calls the app delegate's
+  `application(_:handleEventsForBackgroundURLSession:completionHandler:)`.
+  The plugin adds that method to `CDVAppDelegate`, the extension point
+  cordova-ios gives plugins, and hands the wake to the SDK
+  (`NeurolabsSDKCore.handleEventsForBackgroundURLSession`). For a session
+  that is not the SDK's, it calls the completion handler at once. Nothing
+  goes in `Info.plist`. Two cases need one line in your app:
+  - **Your `AppDelegate` already implements this method** (your own
+    background sessions, or another SDK's). Yours wins over the plugin's,
+    so forward to the SDK first, then handle your own sessions:
+    `if NeurolabsSDKCore.handleEventsForBackgroundURLSession(identifier, completionHandler: completionHandler) { return }`.
+    In Swift, the method needs `override` from plugin 1.7.19 on (the
+    compiler asks for it).
+    An Objective-C `AppDelegate` handles its own sessions and passes any
+    other identifier to the plugin's method with
+    `[super application:application handleEventsForBackgroundURLSession:identifier completionHandler:completionHandler];`
+    (the SDK's Swift API is not visible from Objective-C).
+  - **Another plugin also adds this method to `CDVAppDelegate`.** Two
+    plugins adding the same method is a category conflict: iOS keeps one of
+    them, and which one is not defined. Implement the method in your
+    `AppDelegate` as above and forward to both.
+
+  Without the wake handled, uploads still finish in the background; the
+  SDK learns of them the next time the app runs.
 - On both, queued photos survive a kill. Not every photo reaches the
   backend: a full queue or low storage refuses a new capture
   (`QUEUE_FULL` / `STORAGE_LOW`, reported as `uploadFailed`), a terminal
@@ -535,7 +575,7 @@ each one in this order:
 3. the SDK default: a **4032 px long edge at JPEG quality 0.9** (native SDK
    1.7.16).
 
-The plugin pins native 1.7.18 (the default dates from 1.7.16), so on both platforms an omitted value means
+The plugin pins native 1.7.19 (the default dates from 1.7.16), so on both platforms an omitted value means
 4032 px at 0.9 unless your organisation overrides it. Invalid values (`<= 0`, or a
 quality outside `0..1`) reject with `INVALID_ARGUMENT` on both platforms.
 
@@ -946,7 +986,31 @@ While the detector is missing, the camera shows "Detector unavailable. You can s
 19. **Detection metadata and per-capture metadata (changed in native 1.7.18).** `sendDetectionsMetadata: true` keeps each capture's detections in its queue record and in the `captureResult` event (on iOS, `captureResult` carries them even with `false`). Up to native 1.7.17 they are **not uploaded**: the operations upload is the photo only, plus a multi-bay session's `device_dedup` summary at submit. From native SDK 1.7.18 each capture's metadata record goes up after its image (section 4a), with the detections only when `sendDetectionsMetadata` is true, and Android's `captureResult.detections` is no longer emptied when it is false. With no detector yet, the capture is queued with an empty detection list, exactly as with `false`; the upload does not fail or wait for the detector.
 20. **`taskUUID` per session (unchanged since 1.6.6).** `openCamera({ taskUUID })` is stored on each queued capture and sent as that image's `task_uuid` on the operations upload (`upload/complete`), on both platforms. The mission submit carries the request-level `operationsTaskUuid` instead. Since 1.7.13, a re-init with an equal configuration keeps the camera's task, and the next `openCamera` sends the task it needs.
 21. **Image size (changed since 1.6.6).** Plugin 1.6.6 sent `maxImageDimension: 1920` and `imageCompressionQuality: 0.85` whenever you omitted them. The plugin now forwards only the values you set: an omitted value falls back to the organisation's remote config, then to the SDK default (4032 px at 0.9 from native 1.7.16), on both platforms. Set them only when upload size matters more than recognition accuracy, since the crops, the price matcher and OCR read the uploaded photo.
-22. **Telemetry (opt-out).** `analyticsEnabled` and `sentryEnabled` default to `true`. Pass `false` to turn them off.
+22. **Telemetry (opt-out).** `analyticsEnabled` and `sentryEnabled` default to `true`. Pass `false` to turn them off. What Sentry reports depends on the native SDK version.
+
+    **Up to plugin 1.7.18 (native 1.7.18):**
+    - **Android.** The SDK never starts Sentry globally, and the plugin turns off `io.sentry.auto-init`. Only errors the SDK captures itself are sent, through a private client. Crashes and ANRs in your app are never sent, and your own Sentry setup is untouched. `sentryEnabled: false` or `analyticsEnabled: false` at `init` stops all of it.
+    - **iOS.** The plugin installs a process-wide Sentry crash handler when it loads, before `init` runs, so that a crash before `init` is still caught. That handler reports **every** crash in the app process to the Neurolabs Sentry project, including crashes in your own code. It also reports **app hangs and watchdog terminations**, because they are on by default in Sentry. Sentry's global start is last-writer-wins: a Sentry your app started before the plugin loaded is replaced by this handler, and one your app starts afterwards replaces it. **`sentryEnabled: false` at `init` does not stop this crash handler;** it only stops the SDK's own error reports. To stop it, use the `config.xml` preference below (from plugin 1.7.19). Swizzling, session, network and performance tracking are off, and `sendDefaultPii` is off.
+    - **Both platforms.** The SDK's own error reports carry the error message as-is.
+
+    **From plugin 1.7.19 (native 1.7.19)**, the policy is the same on iOS, Android and the plugin:
+    - **Only the SDK's own errors and crashes.** A filter sends only errors the SDK captures itself and crashes whose crashed thread runs SDK code. A crash in your app's own code, an app hang, a watchdog termination or a failed request of your app is dropped. App-hang, watchdog and breadcrumb tracking are off.
+    - **No credentials or personal data.** `sendDefaultPii` stays off, and messages are scrubbed: a URL keeps only its scheme, host and path.
+    - **Opt out** with `sentryEnabled: false` (or `analyticsEnabled: false`) at `init`. On iOS this also closes the crash handler the plugin installed at load. It never closes a Sentry client your app started.
+    - **Your app's own Sentry is never replaced (iOS).** If your app starts Sentry before the plugin loads, the plugin starts no crash handler of its own, and the SDK reports only its own errors through its private client. If your app starts Sentry *after* the plugin loads, yours replaces the plugin's crash handler (Sentry's global start is last-writer-wins), and the SDK's own errors still go through its private client.
+    - **Known gap (iOS), without the `config.xml` preference below.** The crash handler is installed before `init`. A crash report saved by an earlier run can therefore still be sent at the next launch, before `init` opts out, if it is a crash in SDK code. The preference closes this gap.
+
+    **Silent from launch: the `config.xml` preference** (from plugin 1.7.19). To turn the SDK's Sentry off from app launch, before any JavaScript runs, add this to your `config.xml`:
+
+    ```xml
+    <preference name="NeurolabsSentryEnabled" value="false" />
+    ```
+
+    - **Default: on.** Without the preference, Sentry behaves as described above. Only a clear false (`false`, `0` or `no`, in any case) turns it off. Any other value leaves it on.
+    - **iOS.** The plugin skips its launch-time crash handler entirely. No Sentry client of ours exists from launch, so no crash report saved by an earlier run is sent. This closes the known gap above, and it also covers plugin 1.7.18's host-crash, hang and watchdog reporting.
+    - **Both platforms.** The preference wins over `init`. The SDK's own Sentry stays off whatever `init({ sentryEnabled })` says, because `init` cannot re-enable what you turned off at launch. Android starts no Sentry before `init`, so on Android the preference only forces `sentryEnabled: false`.
+    - `analyticsEnabled` (Mixpanel) is not affected. Use `init({ analyticsEnabled: false })` for that.
+23. **iOS background uploads and the app-delegate wake (plugin 1.7.19, native 1.7.19).** Queued photos upload through an iOS background `URLSession`, so they keep going after iOS suspends or terminates the app and while the phone is locked. The plugin adds `application(_:handleEventsForBackgroundURLSession:completionHandler:)` to `CDVAppDelegate` and hands the wake to the SDK; no `Info.plist` change and no native code are needed. If your `AppDelegate` already implements that method, or another plugin also adds it, forward to `NeurolabsSDKCore.handleEventsForBackgroundURLSession` from your `AppDelegate` (a Swift implementation needs `override`); see section 5, "Uploads in the background and after the app is closed".
 
 ## 7. Post-Processing + Lifecycle Events
 
