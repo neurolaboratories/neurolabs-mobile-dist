@@ -174,6 +174,8 @@ val status = sdk.getQueueStatus()
 println("pending=${status.pendingCount} failed=${status.failedCount}")
 ```
 
+`retryFailedUploads()` gives failed photos a fresh cycle, except a mission refusal that cannot succeed as sent (`wrong_status`, `submission_mismatch`, `mission_not_found`, `invalid_subsection_name`, `invalid_subsection_id`, or any `not_claimed_by_*`); `flushQueue(force = true)` and `retryQueuedItems(ids)` still revive those. Since 1.7.20 a call within 60 s of the previous one does nothing, so a retry button or timer cannot reset every backoff; the SDK reports the calls hourly (`queue_manual_retry`).
+
 ### Inspecting the queue at launch
 
 After `configure()` the queue loads the records an earlier process left on disk in the background. Until that pass ends, `getQueuedItems()` can be empty or partial, and `removeQueuedItem(id)` or `clearUploadQueue()` can miss records that are still on disk. Before you inspect, withdraw or discard queued work at launch, wait for the pass:
@@ -219,7 +221,7 @@ lifecycleScope.launch {
 ```
 
 - Each queued photo carries `NLQueuedItem.missionId` (the session's mission, stamped at enqueue), `lastErrorCode` / `lastErrorMessage` and `bytesSent`.
-- `clearUploadQueue()` drops queued items and notes only. To drop a visit for good, uploaded image ids and owed submits included, use `discardOperationsSession` or `discardAllOperationsWork`.
+- `clearUploadQueue()` drops queued items and notes and, since 1.7.20 (as on iOS), the uploaded-but-unsubmitted image ids with the submits still owed for them. It does not wait for uploads in flight; `discardAllOperationsWork` does (`discardOperationsSession` drops one visit).
 - The embedded camera (`NLCustomCameraView`, `NLCaptureScreen`) takes `onCapture: ((CapturedImageData) -> Unit)?`, called once per photo as it joins the session; key copies by `captureId`.
 
 ### Kept photos and low storage (1.7.16)
@@ -235,6 +237,7 @@ NLConfiguration.retainedPhotoExpiryDays = 14   // default null (off); photos kep
 
 - From 80% of `maxRetainedPhotos` the SDK calls `NeurolabsSDKDelegate.onRetainedPhotosHigh(retained, limit)` once per crossing. `NLQueueStatus.retainedCount` / `retainedBytes` report the kept photos.
 - A new capture is refused with `NLCaptureErrorCodes.STORAGE_LOW` (retryable) when the queue's storage has under 500 MB free. It reaches the host through `onError` and the failed `onCaptureResult`, as `QUEUE_FULL` does.
+- Since 1.7.20 the SDK's own camera asks the queue before it takes a photo: a photo that would be refused for `STORAGE_LOW` or `QUEUE_FULL` is not taken, the camera tells the rep why, and the host gets `onError` with no capture id (no failed `onCaptureResult`, since there is no photo).
 
 ### Uploads after the app is backgrounded
 
@@ -561,7 +564,9 @@ the same on Android, iOS and Cordova:
   code is never sent, and your own Sentry setup is untouched.
 - **No credentials or personal data.** `isSendDefaultPii` is off. Messages
   are scrubbed before they are sent: a URL keeps only its scheme, host and
-  path, so a signed URL's credentials never leave the device.
+  path, so a signed URL's credentials never leave the device. Since 1.7.20
+  an error that came from a server response carries only the HTTP status and
+  the server's `error_code`, never the response body.
 - **Opt out** with `sentryEnabled = false` (or `analyticsEnabled = false`) on
   `NLConfiguration`. Nothing is sent from a unit or instrumented test run.
 

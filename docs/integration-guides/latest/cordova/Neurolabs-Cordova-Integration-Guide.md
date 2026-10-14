@@ -11,6 +11,16 @@ listed here come from the underlying `neurolabs-android-sdk` and
 `scripts/prepare-sdk.js` at install time. No public JS API has been broken
 since v1.1.9.
 
+### v1.7.20
+- Plugin pins the native SDKs' 1.7.20 on both platforms. It ships the REX/Smollan audit fixes; 1.7.19 is unchanged, so upgrade to 1.7.20 to get them.
+- iOS: the plugin adds the background-upload wake method to `CDVAppDelegate` at launch, only if none is there and never replacing one. Plugin 1.7.19 declared it at compile time, which clashed with another plugin declaring the same method (see 5, item 23).
+- Android: the plugin stops early, with one clear message, when cordova-android is older than 15, the Android Gradle Plugin older than 8.9.1 or the JDK older than 17 (see 3, item 24). cordova-android 14 is no longer accepted.
+- Subscribing with `addListener` no longer delivers a fake event at once (for example a `cameraClosed` the moment you subscribe), on both platforms. A host that filtered it out (`status === "listening"`) can drop that check.
+- Native: the default camera tells the rep why it refused a photo for low storage or a full queue. On Android the photo is not taken, and `uploadFailed` comes without a `captureId` and with no failed `captureResult`; iOS takes it and reports both, as before.
+- Native: `retryFailedUploads()` leaves a mission refusal that cannot succeed as sent failed, and a call within 60 s of the previous one does nothing (see 5). On Android, `clearUploadQueue()` also drops the uploaded-but-unsubmitted photos' submits, as on iOS.
+- Native: "Preparing detector…" holds the shutter for 3 s at most, and SDK error reports to Sentry never carry a server response body.
+- iOS: with Wi-Fi-only uploads on, a background transfer never uses cellular data; photos go to iOS's background upload only from the foreground, and the background-wake completion handler is always called.
+
 ### v1.7.19
 - Plugin pins the native SDKs' 1.7.19 on both platforms.
 - iOS: queued photos keep uploading through an iOS background `URLSession` after iOS suspends or terminates the app and while the phone is locked. The plugin hands iOS's background wake to the SDK, so no native code or `Info.plist` change is needed; a host `AppDelegate` that implements `application(_:handleEventsForBackgroundURLSession:completionHandler:)` itself forwards one line (see 5).
@@ -175,20 +185,30 @@ The install hooks download and wire up the native SDKs automatically — no manu
 placement needed.
 
 Native baseline requirements:
-- Android: `minSdkVersion 26`, `compileSdkVersion 36`, JDK 17, Android Gradle Plugin 8.9.1+
-  (the SDK's androidx dependencies require it). The plugin injects
+- Android: cordova-android 15+, JDK 17+, Android Gradle Plugin 8.9.1+ (the SDK's androidx
+  dependencies require it), `minSdkVersion 26`, `compileSdkVersion 36`. cordova-android 15's
+  defaults (AGP 8.10.1, Gradle 8.14.2, SDK 36) meet them. The plugin injects
   `GradlePluginKotlinVersion 2.3.0` and raises the Java source/target compatibility to 17 on
   its own; override the Kotlin version only via a `<platform name="android">`-scoped preference.
 - iOS: deployment target iOS 17.0+, Xcode 16.4+ recommended (release toolchain baseline).
 
-Add to `config.xml` (cordova-android 14 defaults are lower):
+**Android toolchain check (plugin 1.7.20+).** When the plugin is installed and before every
+Android prepare or build, a plugin hook checks cordova-android, the Android Gradle Plugin and
+the JDK. If any of them is too old, it stops with one message that names each unmet
+requirement, what it found and the plugin version. Without it, the build fails much later
+with a Kotlin metadata or Gradle error. It reads the `cordova-android` package your Android
+platform uses, `AndroidGradlePluginVersion` from `config.xml` (else cordova-android's
+default), and `javac -version` from `CORDOVA_JAVA_HOME`, `JAVA_HOME` or `PATH`. It skips a
+value it can't read, and iOS-only projects never run it.
+`NEUROLABS_SKIP_ANDROID_TOOLCHAIN_CHECK=1` turns the failure into a warning; that setup
+isn't supported.
+
+Add to `config.xml` (cordova-android 15; set `AndroidGradlePluginVersion` only to 8.9.1 or later):
 
 ```xml
 <platform name="android">
     <preference name="android-minSdkVersion" value="26" />
     <preference name="android-compileSdkVersion" value="36" />
-    <preference name="AndroidGradlePluginVersion" value="8.9.1" />
-    <preference name="GradleVersion" value="8.13" />
 </platform>
 ```
 
@@ -377,6 +397,13 @@ await Neurolabs.flushQueue();
 await Neurolabs.retryFailedUploads();
 ```
 
+From native 1.7.20, `retryFailedUploads()` gives failed photos a fresh
+cycle except a mission refusal that cannot succeed as sent (`wrong_status`,
+`submission_mismatch`, `mission_not_found`, `invalid_subsection_name`,
+`invalid_subsection_id`, or any `not_claimed_by_*`), and a call
+within 60 s of the previous one does nothing, so a retry button or timer
+cannot reset every backoff.
+
 ### Uploads in the background and after the app is closed
 
 - **Android:** the native queue keeps uploading while the app's process
@@ -396,25 +423,55 @@ await Neurolabs.retryFailedUploads();
   while the app is not running, iOS relaunches it in the background and
   calls the app delegate's
   `application(_:handleEventsForBackgroundURLSession:completionHandler:)`.
-  The plugin adds that method to `CDVAppDelegate`, the extension point
-  cordova-ios gives plugins, and hands the wake to the SDK
-  (`NeurolabsSDKCore.handleEventsForBackgroundURLSession`). For a session
-  that is not the SDK's, it calls the completion handler at once. Nothing
-  goes in `Info.plist`. Two cases need one line in your app:
+  From plugin 1.7.20, when the app starts, the plugin adds that method to `CDVAppDelegate`,
+  but only if `CDVAppDelegate` doesn't already have one; it never
+  replaces or swaps an existing method. It hands the wake to the SDK
+  (`NeurolabsSDKCore.handleEventsForBackgroundURLSession`), and for a
+  session that is not the SDK's it calls the completion handler at once,
+  exactly once. The method is added from an Objective-C `+load`, which
+  runs before `main` and so before UIKit creates the app delegate. That
+  matters because a background relaunch connects no scene and loads no
+  web view or plugin. Nothing goes in `Info.plist`. Two cases need code
+  in your app:
   - **Your `AppDelegate` already implements this method** (your own
     background sessions, or another SDK's). Yours wins over the plugin's,
     so forward to the SDK first, then handle your own sessions:
-    `if NeurolabsSDKCore.handleEventsForBackgroundURLSession(identifier, completionHandler: completionHandler) { return }`.
-    In Swift, the method needs `override` from plugin 1.7.19 on (the
-    compiler asks for it).
+    `if NeurolabsSDKCore.handleEventsForBackgroundURLSession(identifier, completionHandler: completionHandler) { return }`
+    (`import NeurolabsSDK`). The plugin adds nothing at compile time, so
+    your code compiles exactly as it does without the plugin. In Swift,
+    cordova-ios itself requires `override` on this method:
+    `CDVAppDelegate` adopts `UIApplicationDelegate`, so Swift treats
+    every delegate method as inherited. cordova-ios 8's
+    `@objc @implementation extension AppDelegate` accepts only methods
+    declared in `AppDelegate.h`, so put the method in a plain extension:
+
+    ```swift
+    import NeurolabsSDK
+
+    extension AppDelegate {
+        public override func application(_ application: UIApplication,
+                                         handleEventsForBackgroundURLSession identifier: String,
+                                         completionHandler: @escaping () -> Void) {
+            if NeurolabsSDKCore.handleEventsForBackgroundURLSession(identifier, completionHandler: completionHandler) { return }
+            // your own sessions; call completionHandler once for them
+            completionHandler()
+        }
+    }
+    ```
+
     An Objective-C `AppDelegate` handles its own sessions and passes any
     other identifier to the plugin's method with
     `[super application:application handleEventsForBackgroundURLSession:identifier completionHandler:completionHandler];`
     (the SDK's Swift API is not visible from Objective-C).
-  - **Another plugin also adds this method to `CDVAppDelegate`.** Two
-    plugins adding the same method is a category conflict: iOS keeps one of
-    them, and which one is not defined. Implement the method in your
-    `AppDelegate` as above and forward to both.
+  - **Another plugin also handles this wake.** If it declares the method
+    on `CDVAppDelegate` (an Objective-C category or a Swift extension),
+    that method is already there at launch and this plugin adds nothing.
+    That plugin then answers every wake, and the SDK's never get
+    forwarded. Implement the method in your `AppDelegate` as above:
+    forward to the SDK first, then call `super` for the other plugin.
+    Plugin 1.7.19 declared the method in a Swift extension, so another
+    Swift extension with the same selector failed to compile and an
+    Objective-C category made the winner undefined; upgrade to 1.7.20.
 
   Without the wake handled, uploads still finish in the background; the
   SDK learns of them the next time the app runs.
@@ -575,7 +632,7 @@ each one in this order:
 3. the SDK default: a **4032 px long edge at JPEG quality 0.9** (native SDK
    1.7.16).
 
-The plugin pins native 1.7.19 (the default dates from 1.7.16), so on both platforms an omitted value means
+The plugin pins native 1.7.20 (the default dates from 1.7.16), so on both platforms an omitted value means
 4032 px at 0.9 unless your organisation overrides it. Invalid values (`<= 0`, or a
 quality outside `0..1`) reject with `INVALID_ARGUMENT` on both platforms.
 
@@ -1010,7 +1067,8 @@ While the detector is missing, the camera shows "Detector unavailable. You can s
     - **iOS.** The plugin skips its launch-time crash handler entirely. No Sentry client of ours exists from launch, so no crash report saved by an earlier run is sent. This closes the known gap above, and it also covers plugin 1.7.18's host-crash, hang and watchdog reporting.
     - **Both platforms.** The preference wins over `init`. The SDK's own Sentry stays off whatever `init({ sentryEnabled })` says, because `init` cannot re-enable what you turned off at launch. Android starts no Sentry before `init`, so on Android the preference only forces `sentryEnabled: false`.
     - `analyticsEnabled` (Mixpanel) is not affected. Use `init({ analyticsEnabled: false })` for that.
-23. **iOS background uploads and the app-delegate wake (plugin 1.7.19, native 1.7.19).** Queued photos upload through an iOS background `URLSession`, so they keep going after iOS suspends or terminates the app and while the phone is locked. The plugin adds `application(_:handleEventsForBackgroundURLSession:completionHandler:)` to `CDVAppDelegate` and hands the wake to the SDK; no `Info.plist` change and no native code are needed. If your `AppDelegate` already implements that method, or another plugin also adds it, forward to `NeurolabsSDKCore.handleEventsForBackgroundURLSession` from your `AppDelegate` (a Swift implementation needs `override`); see section 5, "Uploads in the background and after the app is closed".
+23. **iOS background uploads and the app-delegate wake (plugin 1.7.19, native 1.7.19; added at runtime from plugin 1.7.20).** Queued photos upload through an iOS background `URLSession`, so they keep going after iOS suspends or terminates the app and while the phone is locked. At launch the plugin adds `application(_:handleEventsForBackgroundURLSession:completionHandler:)` to `CDVAppDelegate`, only if it has none and never replacing one, and hands the wake to the SDK. No `Info.plist` change and no native code are needed. If your `AppDelegate` already implements that method, or another plugin also handles it, forward to `NeurolabsSDKCore.handleEventsForBackgroundURLSession` from your `AppDelegate`. In Swift, cordova-ios requires `override` there with or without this plugin. See section 5, "Uploads in the background and after the app is closed".
+24. **Android toolchain check (plugin 1.7.20).** An Android hook stops the install or prepare early, with one message naming each unmet requirement and the plugin version, when cordova-android is older than 15, the Android Gradle Plugin older than 8.9.1 or the JDK older than 17. Upgrade with `cordova platform rm android && cordova platform add android@15`. See section 3.
 
 ## 7. Post-Processing + Lifecycle Events
 

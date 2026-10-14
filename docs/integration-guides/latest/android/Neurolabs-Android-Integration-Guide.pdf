@@ -22,8 +22,8 @@ BT /F2 24.00 Tf 1 0 0 1 56.69 771.89 Tm (Neurolabs Android SDK Integration Guide
 0.000000 0.000000 0.000000 rg
 BT /F2 14.00 Tf 1 0 0 1 56.69 743.89 Tm (Technical Integration Specification) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 719.89 Tm (Document ID: NLB-ANDROID-INTEGRATION-GUIDE) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 705.89 Tm (Version: v1.7.19) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 691.89 Tm (Date: 2026-10-13) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 705.89 Tm (Version: v1.7.20) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 691.89 Tm (Date: 2026-10-14) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 677.89 Tm (Status: Partner integration reference) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 663.89 Tm (Owner: Neurolabs) Tj ET
 BT /F2 13.00 Tf 1 0 0 1 56.69 639.89 Tm (1. Scope) Tj ET
@@ -258,7 +258,7 @@ endobj
 << /Type /Page /Parent 36 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 10 0 R >>
 endobj
 12 0 obj
-<< /Length 4418 >>
+<< /Length 4944 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
@@ -285,151 +285,164 @@ BT /F3 8.20 Tf 1 0 0 1 66.69 594.89 Tm (}) Tj ET
 BT /F3 8.20 Tf 1 0 0 1 66.69 583.89 Tm ( ) Tj ET
 BT /F3 8.20 Tf 1 0 0 1 66.69 572.89 Tm (val status = sdk.getQueueStatus\(\)) Tj ET
 BT /F3 8.20 Tf 1 0 0 1 66.69 561.89 Tm (println\("pending=${status.pendingCount} failed=${status.failedCount}"\)) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 542.89 Tm (Inspecting the queue at launch) Tj ET
-BT 1 0 0 1 56.69 524.89 Tm /F1 10.50 Tf (After `configure\(\)` the queue loads the records an earlier process left on disk in the) Tj ET
-BT 1 0 0 1 56.69 510.89 Tm /F1 10.50 Tf (background. Until that pass ends, `getQueuedItems\(\)` can be empty or partial, and) Tj ET
-BT 1 0 0 1 56.69 496.89 Tm /F1 10.50 Tf (`removeQueuedItem\(id\)` or `clearUploadQueue\(\)` can miss records that are still on) Tj ET
-BT 1 0 0 1 56.69 482.89 Tm /F1 10.50 Tf (disk. Before you inspect, withdraw or discard queued work at launch, wait for the) Tj ET
-BT 1 0 0 1 56.69 468.89 Tm /F1 10.50 Tf (pass:) Tj ET
+BT 1 0 0 1 56.69 542.89 Tm /F1 10.50 Tf (`retryFailedUploads\(\)` gives failed photos a fresh cycle, except a mission refusal) Tj ET
+BT 1 0 0 1 56.69 528.89 Tm /F1 10.50 Tf (that cannot succeed as sent \(`wrong_status`, `submission_mismatch`,) Tj ET
+BT 1 0 0 1 56.69 514.89 Tm /F1 10.50 Tf (`mission_not_found`, `invalid_subsection_name`, `invalid_subsection_id`, or any) Tj ET
+BT 1 0 0 1 56.69 500.89 Tm /F1 10.50 Tf (`not_claimed_by_*`\); `flushQueue\(force = true\)` and `retryQueuedItems\(ids\)` still) Tj ET
+BT 1 0 0 1 56.69 486.89 Tm /F1 10.50 Tf (revive those. Since 1.7.20 a call within 60 s of the previous one does nothing, so a) Tj ET
+BT 1 0 0 1 56.69 472.89 Tm /F1 10.50 Tf (retry button or timer cannot reset every backoff; the SDK reports the calls hourly) Tj ET
+BT 1 0 0 1 56.69 458.89 Tm /F1 10.50 Tf (\(`queue_manual_retry`\).) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 438.89 Tm (Inspecting the queue at launch) Tj ET
+BT 1 0 0 1 56.69 420.89 Tm /F1 10.50 Tf (After `configure\(\)` the queue loads the records an earlier process left on disk in the) Tj ET
+BT 1 0 0 1 56.69 406.89 Tm /F1 10.50 Tf (background. Until that pass ends, `getQueuedItems\(\)` can be empty or partial, and) Tj ET
+BT 1 0 0 1 56.69 392.89 Tm /F1 10.50 Tf (`removeQueuedItem\(id\)` or `clearUploadQueue\(\)` can miss records that are still on) Tj ET
+BT 1 0 0 1 56.69 378.89 Tm /F1 10.50 Tf (disk. Before you inspect, withdraw or discard queued work at launch, wait for the) Tj ET
+BT 1 0 0 1 56.69 364.89 Tm /F1 10.50 Tf (pass:) Tj ET
 0.929412 0.333333 0.000000 RG
-56.69 352.89 481.89 106.00 re S
-BT /F3 8.20 Tf 1 0 0 1 66.69 436.89 Tm (import ai.neurolabs.sdk.core.awaitQueueHydrated) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 425.89 Tm ( ) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 414.89 Tm (lifecycleScope.launch {) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 403.89 Tm (    sdk.awaitQueueHydrated\(\) // the whole pass; returns at once once it has run) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 392.89 Tm (    sdk.getQueuedItems\(\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 381.89 Tm (        .filter { it.sessionId == abandonedSessionId }) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 370.89 Tm (        .forEach { sdk.removeQueuedItem\(it.id\) }) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 359.89 Tm (}) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 340.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 340.89 Tm /F1 10.50 Tf (It returns once the whole pass has finished, also when the load failed \(the queue) Tj ET
-BT 1 0 0 1 70.69 326.89 Tm /F1 10.50 Tf (then holds what it could read\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 308.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 308.89 Tm /F1 10.50 Tf (A setter that rebuilds the queue \(`setOperationsAuthApiKey`, `setOperationsBaseUrl`,) Tj ET
-BT 1 0 0 1 70.69 294.89 Tm /F1 10.50 Tf (`setMaxQueueSize`, `setUploadRetryCount`\) starts a new pass; the call waits for the) Tj ET
-BT 1 0 0 1 70.69 280.89 Tm /F1 10.50 Tf (queue that is current when it returns.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 262.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 262.89 Tm /F1 10.50 Tf (On an instance that was released \(`release\(\)`, or replaced by a `configure\(\)` with a) Tj ET
-BT 1 0 0 1 70.69 248.89 Tm /F1 10.50 Tf (different configuration\) it throws `IllegalStateException`. Call it on the instance) Tj ET
-BT 1 0 0 1 70.69 234.89 Tm /F1 10.50 Tf (`configure\(\)` returned.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 216.89 Tm (Visits, owners and submits \(1.7.15\)) Tj ET
-BT 1 0 0 1 56.69 198.89 Tm /F1 10.50 Tf (A host that tracks visits, or signs several users in on one device, can use these) Tj ET
-BT 1 0 0 1 56.69 184.89 Tm /F1 10.50 Tf (calls \(see the 1.7.15 changelog entry for the full rules\):) Tj ET
+56.69 248.89 481.89 106.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 332.89 Tm (import ai.neurolabs.sdk.core.awaitQueueHydrated) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 321.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 310.89 Tm (lifecycleScope.launch {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 299.89 Tm (    sdk.awaitQueueHydrated\(\) // the whole pass; returns at once once it has run) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 288.89 Tm (    sdk.getQueuedItems\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 277.89 Tm (        .filter { it.sessionId == abandonedSessionId }) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 266.89 Tm (        .forEach { sdk.removeQueuedItem\(it.id\) }) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 255.89 Tm (}) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 236.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 236.89 Tm /F1 10.50 Tf (It returns once the whole pass has finished, also when the load failed \(the queue) Tj ET
+BT 1 0 0 1 70.69 222.89 Tm /F1 10.50 Tf (then holds what it could read\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 204.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 204.89 Tm /F1 10.50 Tf (A setter that rebuilds the queue \(`setOperationsAuthApiKey`, `setOperationsBaseUrl`,) Tj ET
+BT 1 0 0 1 70.69 190.89 Tm /F1 10.50 Tf (`setMaxQueueSize`, `setUploadRetryCount`\) starts a new pass; the call waits for the) Tj ET
+BT 1 0 0 1 70.69 176.89 Tm /F1 10.50 Tf (queue that is current when it returns.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 158.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 158.89 Tm /F1 10.50 Tf (On an instance that was released \(`release\(\)`, or replaced by a `configure\(\)` with a) Tj ET
+BT 1 0 0 1 70.69 144.89 Tm /F1 10.50 Tf (different configuration\) it throws `IllegalStateException`. Call it on the instance) Tj ET
+BT 1 0 0 1 70.69 130.89 Tm /F1 10.50 Tf (`configure\(\)` returned.) Tj ET
 endstream
 endobj
 13 0 obj
 << /Type /Page /Parent 36 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 12 0 R >>
 endobj
 14 0 obj
-<< /Length 5846 >>
+<< /Length 5698 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
 BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 6) Tj ET
 0.000000 0.000000 0.000000 rg
+BT /F2 11.50 Tf 1 0 0 1 56.69 771.89 Tm (Visits, owners and submits \(1.7.15\)) Tj ET
+BT 1 0 0 1 56.69 753.89 Tm /F1 10.50 Tf (A host that tracks visits, or signs several users in on one device, can use these) Tj ET
+BT 1 0 0 1 56.69 739.89 Tm /F1 10.50 Tf (calls \(see the 1.7.15 changelog entry for the full rules\):) Tj ET
 0.929412 0.333333 0.000000 RG
-56.69 554.89 481.89 227.00 re S
-BT /F3 8.20 Tf 1 0 0 1 66.69 759.89 Tm (import ai.neurolabs.sdk.core.*) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 748.89 Tm ( ) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 737.89 Tm (lifecycleScope.launch {) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 726.89 Tm (    // One queue per user and environment instead of per apiKey. Returns the new core;) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 715.89 Tm (    // set credentials on it. The previous owner's work stays on the device, untouched.) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 704.89 Tm (    val sdk = NeurolabsSDKCore.switchQueueOwner\(context, config, "prod:$userId"\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 693.89 Tm ( ) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 682.89 Tm (    // Asked once when a call is refused \(409/403\) because the mission's claim was lost.) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 671.89 Tm (    sdk.setOperationsReclaimHandler { missionId -> reclaimMission\(missionId\) }) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 660.89 Tm (    launch { sdk.submitEvents.collect { event -> /* NLSubmitEvent.Submitted / Abandoned */ } ) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 649.89 Tm (}) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 638.89 Tm ( ) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 627.89 Tm (    sdk.openSession\(sessionId\)        // the orphan sweep never submits it on its own) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 616.89 Tm (    sdk.openOperationsSessions\(\)      // at launch: stop or discard each open session) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 605.89 Tm (    sdk.queuedSessions\(\)              // every session until its submit is confirmed) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 594.89 Tm (    sdk.owedSubmits\(\)                 // submits the SDK still owes) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 583.89 Tm (    sdk.retryQueuedItems\(listOf\(id\)\)  // retry chosen failed items only) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 572.89 Tm (    sdk.discardOperationsSession\(sessionId\) // or discardAllOperationsWork\(\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 561.89 Tm (}) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 542.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 542.89 Tm /F1 10.50 Tf (Each queued photo carries `NLQueuedItem.missionId` \(the session's mission, stamped) Tj ET
-BT 1 0 0 1 70.69 528.89 Tm /F1 10.50 Tf (at enqueue\), `lastErrorCode` / `lastErrorMessage` and `bytesSent`.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 510.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 510.89 Tm /F1 10.50 Tf (`clearUploadQueue\(\)` drops queued items and notes only. To drop a visit for good,) Tj ET
-BT 1 0 0 1 70.69 496.89 Tm /F1 10.50 Tf (uploaded image ids and owed submits included, use `discardOperationsSession` or) Tj ET
-BT 1 0 0 1 70.69 482.89 Tm /F1 10.50 Tf (`discardAllOperationsWork`.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 464.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 464.89 Tm /F1 10.50 Tf (The embedded camera \(`NLCustomCameraView`, `NLCaptureScreen`\) takes `onCapture:) Tj ET
-BT 1 0 0 1 70.69 450.89 Tm /F1 10.50 Tf (\(\(CapturedImageData\) -> Unit\)?`, called once per photo as it joins the session; key) Tj ET
-BT 1 0 0 1 70.69 436.89 Tm /F1 10.50 Tf (copies by `captureId`.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 418.89 Tm (Kept photos and low storage \(1.7.16\)) Tj ET
-BT 1 0 0 1 56.69 400.89 Tm /F1 10.50 Tf (Uploaded photos no longer take a `maxQueueSize` slot, in any mode. A host that keeps) Tj ET
-BT 1 0 0 1 56.69 386.89 Tm /F1 10.50 Tf (photos after upload \(`setDeletePhotosOnUploadSuccess\(false\)`\) or for a submit can) Tj ET
-BT 1 0 0 1 56.69 372.89 Tm /F1 10.50 Tf (bound them \(see the 1.7.16 changelog entry for the full rules\):) Tj ET
+56.69 502.89 481.89 227.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 707.89 Tm (import ai.neurolabs.sdk.core.*) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 696.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 685.89 Tm (lifecycleScope.launch {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 674.89 Tm (    // One queue per user and environment instead of per apiKey. Returns the new core;) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 663.89 Tm (    // set credentials on it. The previous owner's work stays on the device, untouched.) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 652.89 Tm (    val sdk = NeurolabsSDKCore.switchQueueOwner\(context, config, "prod:$userId"\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 641.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 630.89 Tm (    // Asked once when a call is refused \(409/403\) because the mission's claim was lost.) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 619.89 Tm (    sdk.setOperationsReclaimHandler { missionId -> reclaimMission\(missionId\) }) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 608.89 Tm (    launch { sdk.submitEvents.collect { event -> /* NLSubmitEvent.Submitted / Abandoned */ } ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 597.89 Tm (}) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 586.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 575.89 Tm (    sdk.openSession\(sessionId\)        // the orphan sweep never submits it on its own) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 564.89 Tm (    sdk.openOperationsSessions\(\)      // at launch: stop or discard each open session) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 553.89 Tm (    sdk.queuedSessions\(\)              // every session until its submit is confirmed) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 542.89 Tm (    sdk.owedSubmits\(\)                 // submits the SDK still owes) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 531.89 Tm (    sdk.retryQueuedItems\(listOf\(id\)\)  // retry chosen failed items only) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 520.89 Tm (    sdk.discardOperationsSession\(sessionId\) // or discardAllOperationsWork\(\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 509.89 Tm (}) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 490.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 490.89 Tm /F1 10.50 Tf (Each queued photo carries `NLQueuedItem.missionId` \(the session's mission, stamped) Tj ET
+BT 1 0 0 1 70.69 476.89 Tm /F1 10.50 Tf (at enqueue\), `lastErrorCode` / `lastErrorMessage` and `bytesSent`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 458.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 458.89 Tm /F1 10.50 Tf (`clearUploadQueue\(\)` drops queued items and notes and, since 1.7.20 \(as on iOS\), the) Tj ET
+BT 1 0 0 1 70.69 444.89 Tm /F1 10.50 Tf (uploaded-but-unsubmitted image ids with the submits still owed for them. It does not) Tj ET
+BT 1 0 0 1 70.69 430.89 Tm /F1 10.50 Tf (wait for uploads in flight; `discardAllOperationsWork` does) Tj ET
+BT 1 0 0 1 70.69 416.89 Tm /F1 10.50 Tf (\(`discardOperationsSession` drops one visit\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 398.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 398.89 Tm /F1 10.50 Tf (The embedded camera \(`NLCustomCameraView`, `NLCaptureScreen`\) takes `onCapture:) Tj ET
+BT 1 0 0 1 70.69 384.89 Tm /F1 10.50 Tf (\(\(CapturedImageData\) -> Unit\)?`, called once per photo as it joins the session; key) Tj ET
+BT 1 0 0 1 70.69 370.89 Tm /F1 10.50 Tf (copies by `captureId`.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 352.89 Tm (Kept photos and low storage \(1.7.16\)) Tj ET
+BT 1 0 0 1 56.69 334.89 Tm /F1 10.50 Tf (Uploaded photos no longer take a `maxQueueSize` slot, in any mode. A host that keeps) Tj ET
+BT 1 0 0 1 56.69 320.89 Tm /F1 10.50 Tf (photos after upload \(`setDeletePhotosOnUploadSuccess\(false\)`\) or for a submit can) Tj ET
+BT 1 0 0 1 56.69 306.89 Tm /F1 10.50 Tf (bound them \(see the 1.7.16 changelog entry for the full rules\):) Tj ET
 0.929412 0.333333 0.000000 RG
-56.69 278.89 481.89 84.00 re S
-BT /F3 8.20 Tf 1 0 0 1 66.69 340.89 Tm (import ai.neurolabs.sdk.core.NLConfiguration) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 329.89 Tm ( ) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 318.89 Tm (NLConfiguration.maxRetainedPhotos = 500        // default; a warning only, never refuses a ca) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 307.89 Tm (pture) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 296.89 Tm (NLConfiguration.retainedPhotoExpiryDays = 14   // default null \(off\); photos kept for a submi) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 285.89 Tm (t never expire) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 266.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 266.89 Tm /F1 10.50 Tf (From 80% of `maxRetainedPhotos` the SDK calls) Tj ET
-BT 1 0 0 1 70.69 252.89 Tm /F1 10.50 Tf (`NeurolabsSDKDelegate.onRetainedPhotosHigh\(retained, limit\)` once per crossing.) Tj ET
-BT 1 0 0 1 70.69 238.89 Tm /F1 10.50 Tf (`NLQueueStatus.retainedCount` / `retainedBytes` report the kept photos.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 220.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 220.89 Tm /F1 10.50 Tf (A new capture is refused with `NLCaptureErrorCodes.STORAGE_LOW` \(retryable\) when the) Tj ET
-BT 1 0 0 1 70.69 206.89 Tm /F1 10.50 Tf (queue's storage has under 500 MB free. It reaches the host through `onError` and the) Tj ET
-BT 1 0 0 1 70.69 192.89 Tm /F1 10.50 Tf (failed `onCaptureResult`, as `QUEUE_FULL` does.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 174.89 Tm (Uploads after the app is backgrounded) Tj ET
-BT 1 0 0 1 56.69 156.89 Tm /F1 10.50 Tf (The queue's WorkManager drain keeps uploading while the app's process lives, also in) Tj ET
-BT 1 0 0 1 56.69 142.89 Tm /F1 10.50 Tf (the background. After the process is killed, uploads resume when the host next) Tj ET
-BT 1 0 0 1 56.69 128.89 Tm /F1 10.50 Tf (initialises the SDK \(for most apps, the next open\). iOS differs: a flush there gets) Tj ET
-BT 1 0 0 1 56.69 114.89 Tm /F1 10.50 Tf (iOS's background grace period \(about 30 s\), then resumes on the next foreground.) Tj ET
+56.69 212.89 481.89 84.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 274.89 Tm (import ai.neurolabs.sdk.core.NLConfiguration) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 263.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 252.89 Tm (NLConfiguration.maxRetainedPhotos = 500        // default; a warning only, never refuses a ca) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 241.89 Tm (pture) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 230.89 Tm (NLConfiguration.retainedPhotoExpiryDays = 14   // default null \(off\); photos kept for a submi) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 219.89 Tm (t never expire) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 200.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 200.89 Tm /F1 10.50 Tf (From 80% of `maxRetainedPhotos` the SDK calls) Tj ET
+BT 1 0 0 1 70.69 186.89 Tm /F1 10.50 Tf (`NeurolabsSDKDelegate.onRetainedPhotosHigh\(retained, limit\)` once per crossing.) Tj ET
+BT 1 0 0 1 70.69 172.89 Tm /F1 10.50 Tf (`NLQueueStatus.retainedCount` / `retainedBytes` report the kept photos.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 154.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 154.89 Tm /F1 10.50 Tf (A new capture is refused with `NLCaptureErrorCodes.STORAGE_LOW` \(retryable\) when the) Tj ET
+BT 1 0 0 1 70.69 140.89 Tm /F1 10.50 Tf (queue's storage has under 500 MB free. It reaches the host through `onError` and the) Tj ET
+BT 1 0 0 1 70.69 126.89 Tm /F1 10.50 Tf (failed `onCaptureResult`, as `QUEUE_FULL` does.) Tj ET
 endstream
 endobj
 15 0 obj
 << /Type /Page /Parent 36 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 14 0 R >>
 endobj
 16 0 obj
-<< /Length 3571 >>
+<< /Length 4711 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
 BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 7) Tj ET
 0.000000 0.000000 0.000000 rg
-BT /F2 11.50 Tf 1 0 0 1 56.69 771.89 Tm (What reaches the backend) Tj ET
-BT 1 0 0 1 56.69 753.89 Tm /F1 10.50 Tf (What the operations upload carries:) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 733.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 733.89 Tm /F1 10.50 Tf (Per capture: the JPEG \(the full frame, sized by `maxImageDimension` /) Tj ET
-BT 1 0 0 1 70.69 719.89 Tm /F1 10.50 Tf (`imageCompressionQuality`\), with its task and bay \(`subsection_name`\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 701.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 701.89 Tm /F1 10.50 Tf (Per capture, after the JPEG uploads: its capture metadata \(capture contract v1, `PUT) Tj ET
-BT 1 0 0 1 70.69 687.89 Tm /F1 10.50 Tf (.../images/{imageId}/capture-metadata`\), for captures the SDK camera took: shutter) Tj ET
-BT 1 0 0 1 70.69 673.89 Tm /F1 10.50 Tf (time, SDK/device/OS, camera mode, photo size, an EXIF subset \(no GPS, no serial) Tj ET
-BT 1 0 0 1 70.69 659.89 Tm /F1 10.50 Tf (numbers\), device attitude, camera intrinsics and, on the AR camera, its pose. The) Tj ET
-BT 1 0 0 1 70.69 645.89 Tm /F1 10.50 Tf (detector's boxes only with `sendDetectionsMetadata`. Location only with) Tj ET
-BT 1 0 0 1 70.69 631.89 Tm /F1 10.50 Tf (`NLConfiguration.captureGeolocation` AND a location permission your app declares) Tj ET
-BT 1 0 0 1 70.69 617.89 Tm /F1 10.50 Tf (\(`ACCESS_FINE_LOCATION` or `ACCESS_COARSE_LOCATION`\) and holds; the SDK declares) Tj ET
-BT 1 0 0 1 70.69 603.89 Tm /F1 10.50 Tf (none and never asks. The ARCore depth map only with `NLConfiguration.captureDepth`.) Tj ET
-BT 1 0 0 1 70.69 589.89 Tm /F1 10.50 Tf (Both default off. It goes up from its own retrying outbox and never holds up the) Tj ET
-BT 1 0 0 1 70.69 575.89 Tm /F1 10.50 Tf (photo or the submit. Your app reads the same record on) Tj ET
-BT 1 0 0 1 70.69 561.89 Tm /F1 10.50 Tf (`NLNativeCaptureResult.captureMetadata`.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 543.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 543.89 Tm /F1 10.50 Tf (Per session: the mission submit's `client_metadata.device_dedup` summary for a) Tj ET
-BT 1 0 0 1 70.69 529.89 Tm /F1 10.50 Tf (multi-bay session \(section 8\).) Tj ET
-BT 1 0 0 1 56.69 511.89 Tm /F1 10.50 Tf (What stays on the device:) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 491.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 491.89 Tm /F1 10.50 Tf (The capture's detections always reach your app \(`CapturedImageData.detections`,) Tj ET
-BT 1 0 0 1 70.69 477.89 Tm /F1 10.50 Tf (`onCapture`, the capture result\); `sendDetectionsMetadata` decides only whether they) Tj ET
-BT 1 0 0 1 70.69 463.89 Tm /F1 10.50 Tf (are kept in the queue record and uploaded with the capture metadata.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 445.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 445.89 Tm /F1 10.50 Tf (`enablePreviewCropping` trims only the review thumbnail, to the area the detections) Tj ET
-BT 1 0 0 1 70.69 431.89 Tm /F1 10.50 Tf (cover. The uploaded photo is always the full frame, as on iOS. Up to 1.7.17 Android) Tj ET
-BT 1 0 0 1 70.69 417.89 Tm /F1 10.50 Tf (uploaded the trimmed photo.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 399.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 399.89 Tm /F1 10.50 Tf (AR session recordings \(`.nlrec`, the AR component's recording API\) are tooling for) Tj ET
-BT 1 0 0 1 70.69 385.89 Tm /F1 10.50 Tf (replay and calibration. They are not a capture output and are never uploaded.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (Since 1.7.20 the SDK's own camera asks the queue before it takes a photo: a photo) Tj ET
+BT 1 0 0 1 70.69 757.89 Tm /F1 10.50 Tf (that would be refused for `STORAGE_LOW` or `QUEUE_FULL` is not taken, the camera) Tj ET
+BT 1 0 0 1 70.69 743.89 Tm /F1 10.50 Tf (tells the rep why, and the host gets `onError` with no capture id \(no failed) Tj ET
+BT 1 0 0 1 70.69 729.89 Tm /F1 10.50 Tf (`onCaptureResult`, since there is no photo\).) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 711.89 Tm (Uploads after the app is backgrounded) Tj ET
+BT 1 0 0 1 56.69 693.89 Tm /F1 10.50 Tf (The queue's WorkManager drain keeps uploading while the app's process lives, also in) Tj ET
+BT 1 0 0 1 56.69 679.89 Tm /F1 10.50 Tf (the background. After the process is killed, uploads resume when the host next) Tj ET
+BT 1 0 0 1 56.69 665.89 Tm /F1 10.50 Tf (initialises the SDK \(for most apps, the next open\). iOS differs: a flush there gets) Tj ET
+BT 1 0 0 1 56.69 651.89 Tm /F1 10.50 Tf (iOS's background grace period \(about 30 s\), then resumes on the next foreground.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 631.89 Tm (What reaches the backend) Tj ET
+BT 1 0 0 1 56.69 613.89 Tm /F1 10.50 Tf (What the operations upload carries:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 593.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 593.89 Tm /F1 10.50 Tf (Per capture: the JPEG \(the full frame, sized by `maxImageDimension` /) Tj ET
+BT 1 0 0 1 70.69 579.89 Tm /F1 10.50 Tf (`imageCompressionQuality`\), with its task and bay \(`subsection_name`\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 561.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 561.89 Tm /F1 10.50 Tf (Per capture, after the JPEG uploads: its capture metadata \(capture contract v1, `PUT) Tj ET
+BT 1 0 0 1 70.69 547.89 Tm /F1 10.50 Tf (.../images/{imageId}/capture-metadata`\), for captures the SDK camera took: shutter) Tj ET
+BT 1 0 0 1 70.69 533.89 Tm /F1 10.50 Tf (time, SDK/device/OS, camera mode, photo size, an EXIF subset \(no GPS, no serial) Tj ET
+BT 1 0 0 1 70.69 519.89 Tm /F1 10.50 Tf (numbers\), device attitude, camera intrinsics and, on the AR camera, its pose. The) Tj ET
+BT 1 0 0 1 70.69 505.89 Tm /F1 10.50 Tf (detector's boxes only with `sendDetectionsMetadata`. Location only with) Tj ET
+BT 1 0 0 1 70.69 491.89 Tm /F1 10.50 Tf (`NLConfiguration.captureGeolocation` AND a location permission your app declares) Tj ET
+BT 1 0 0 1 70.69 477.89 Tm /F1 10.50 Tf (\(`ACCESS_FINE_LOCATION` or `ACCESS_COARSE_LOCATION`\) and holds; the SDK declares) Tj ET
+BT 1 0 0 1 70.69 463.89 Tm /F1 10.50 Tf (none and never asks. The ARCore depth map only with `NLConfiguration.captureDepth`.) Tj ET
+BT 1 0 0 1 70.69 449.89 Tm /F1 10.50 Tf (Both default off. It goes up from its own retrying outbox and never holds up the) Tj ET
+BT 1 0 0 1 70.69 435.89 Tm /F1 10.50 Tf (photo or the submit. Your app reads the same record on) Tj ET
+BT 1 0 0 1 70.69 421.89 Tm /F1 10.50 Tf (`NLNativeCaptureResult.captureMetadata`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 403.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 403.89 Tm /F1 10.50 Tf (Per session: the mission submit's `client_metadata.device_dedup` summary for a) Tj ET
+BT 1 0 0 1 70.69 389.89 Tm /F1 10.50 Tf (multi-bay session \(section 8\).) Tj ET
+BT 1 0 0 1 56.69 371.89 Tm /F1 10.50 Tf (What stays on the device:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 351.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 351.89 Tm /F1 10.50 Tf (The capture's detections always reach your app \(`CapturedImageData.detections`,) Tj ET
+BT 1 0 0 1 70.69 337.89 Tm /F1 10.50 Tf (`onCapture`, the capture result\); `sendDetectionsMetadata` decides only whether they) Tj ET
+BT 1 0 0 1 70.69 323.89 Tm /F1 10.50 Tf (are kept in the queue record and uploaded with the capture metadata.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 305.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 305.89 Tm /F1 10.50 Tf (`enablePreviewCropping` trims only the review thumbnail, to the area the detections) Tj ET
+BT 1 0 0 1 70.69 291.89 Tm /F1 10.50 Tf (cover. The uploaded photo is always the full frame, as on iOS. Up to 1.7.17 Android) Tj ET
+BT 1 0 0 1 70.69 277.89 Tm /F1 10.50 Tf (uploaded the trimmed photo.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 259.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 259.89 Tm /F1 10.50 Tf (AR session recordings \(`.nlrec`, the AR component's recording API\) are tooling for) Tj ET
+BT 1 0 0 1 70.69 245.89 Tm /F1 10.50 Tf (replay and calibration. They are not a capture output and are never uploaded.) Tj ET
 endstream
 endobj
 17 0 obj
@@ -950,7 +963,7 @@ endobj
 << /Type /Page /Parent 36 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 32 0 R >>
 endobj
 34 0 obj
-<< /Length 4690 >>
+<< /Length 4926 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
@@ -984,22 +997,24 @@ BT 1 0 0 1 70.69 433.89 Tm /F1 10.50 Tf (Sentry setup is untouched.) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 415.89 Tm (-) Tj ET
 BT 1 0 0 1 70.69 415.89 Tm /F2 10.50 Tf (No credentials or personal data. ) Tj /F1 10.50 Tf (`isSendDefaultPii` is off. Messages are scrubbed) Tj ET
 BT 1 0 0 1 70.69 401.89 Tm /F1 10.50 Tf (before they are sent: a URL keeps only its scheme, host and path, so a signed URL's) Tj ET
-BT 1 0 0 1 70.69 387.89 Tm /F1 10.50 Tf (credentials never leave the device.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 369.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 369.89 Tm /F2 10.50 Tf (Opt out ) Tj /F1 10.50 Tf (with `sentryEnabled = false` \(or `analyticsEnabled = false`\) on) Tj ET
-BT 1 0 0 1 70.69 355.89 Tm /F1 10.50 Tf (`NLConfiguration`. Nothing is sent from a unit or instrumented test run.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 337.89 Tm (Other notes) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 319.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 319.89 Tm /F1 10.50 Tf (Per-session upload routing is supported with `options.taskUUID`.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 301.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 301.89 Tm /F1 10.50 Tf (`autoCloseAfterCapture=true` closes after Save from preview/review flow.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 283.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 283.89 Tm /F1 10.50 Tf (Use `allowManualFinish = true` with `minCapturesBeforeDone` and `maxCaptures` when) Tj ET
-BT 1 0 0 1 70.69 269.89 Tm /F1 10.50 Tf (you want "at least X, up to Y" capture sequences.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 251.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 251.89 Tm /F1 10.50 Tf (Set `showsCapturedCountLabel = false` to hide the `N captured` chip in the top bar.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 233.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 233.89 Tm /F1 10.50 Tf (For partner apps, avoid passing base64 images across process boundaries.) Tj ET
+BT 1 0 0 1 70.69 387.89 Tm /F1 10.50 Tf (credentials never leave the device. Since 1.7.20 an error that came from a server) Tj ET
+BT 1 0 0 1 70.69 373.89 Tm /F1 10.50 Tf (response carries only the HTTP status and the server's `error_code`, never the) Tj ET
+BT 1 0 0 1 70.69 359.89 Tm /F1 10.50 Tf (response body.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 341.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 341.89 Tm /F2 10.50 Tf (Opt out ) Tj /F1 10.50 Tf (with `sentryEnabled = false` \(or `analyticsEnabled = false`\) on) Tj ET
+BT 1 0 0 1 70.69 327.89 Tm /F1 10.50 Tf (`NLConfiguration`. Nothing is sent from a unit or instrumented test run.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 309.89 Tm (Other notes) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 291.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 291.89 Tm /F1 10.50 Tf (Per-session upload routing is supported with `options.taskUUID`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 273.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 273.89 Tm /F1 10.50 Tf (`autoCloseAfterCapture=true` closes after Save from preview/review flow.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 255.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 255.89 Tm /F1 10.50 Tf (Use `allowManualFinish = true` with `minCapturesBeforeDone` and `maxCaptures` when) Tj ET
+BT 1 0 0 1 70.69 241.89 Tm /F1 10.50 Tf (you want "at least X, up to Y" capture sequences.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 223.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 223.89 Tm /F1 10.50 Tf (Set `showsCapturedCountLabel = false` to hide the `N captured` chip in the top bar.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 205.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 205.89 Tm /F1 10.50 Tf (For partner apps, avoid passing base64 images across process boundaries.) Tj ET
 endstream
 endobj
 35 0 obj
@@ -1026,33 +1041,33 @@ xref
 0000015160 00000 n 
 0000019732 00000 n 
 0000019887 00000 n 
-0000024358 00000 n 
-0000024513 00000 n 
-0000030412 00000 n 
-0000030567 00000 n 
-0000034191 00000 n 
-0000034346 00000 n 
-0000039356 00000 n 
-0000039511 00000 n 
-0000044356 00000 n 
-0000044511 00000 n 
-0000050504 00000 n 
-0000050659 00000 n 
-0000056070 00000 n 
-0000056225 00000 n 
-0000061685 00000 n 
-0000061840 00000 n 
-0000068077 00000 n 
-0000068232 00000 n 
-0000073114 00000 n 
-0000073269 00000 n 
-0000078784 00000 n 
-0000078939 00000 n 
-0000083682 00000 n 
-0000083837 00000 n 
-0000083999 00000 n 
+0000024884 00000 n 
+0000025039 00000 n 
+0000030790 00000 n 
+0000030945 00000 n 
+0000035709 00000 n 
+0000035864 00000 n 
+0000040874 00000 n 
+0000041029 00000 n 
+0000045874 00000 n 
+0000046029 00000 n 
+0000052022 00000 n 
+0000052177 00000 n 
+0000057588 00000 n 
+0000057743 00000 n 
+0000063203 00000 n 
+0000063358 00000 n 
+0000069595 00000 n 
+0000069750 00000 n 
+0000074632 00000 n 
+0000074787 00000 n 
+0000080302 00000 n 
+0000080457 00000 n 
+0000085436 00000 n 
+0000085591 00000 n 
+0000085753 00000 n 
 trailer
 << /Size 38 /Root 37 0 R >>
 startxref
-84050
+85804
 %%EOF

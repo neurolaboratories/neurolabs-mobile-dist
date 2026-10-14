@@ -14,6 +14,24 @@ custom-camera flows that need a minimum capture count and a higher
 maximum cap. `showsCapturedCountLabel` hides the `N captured` chip in
 custom camera and multi-capture flow UIs.
 
+### v1.7.20
+No API changes. It ships the REX/Smollan audit fixes; 1.7.19 is unchanged,
+so upgrade to 1.7.20 to get them.
+
+Behaviour changes, with no opt-in:
+- With Wi-Fi-only uploads on, a transfer iOS finishes in the background
+  never uses cellular data. The SDK hands a photo to iOS only while the app
+  is in the foreground, and on the next foreground restarts a transfer that
+  1.7.19 handed off in the background and that has sent nothing (section 6).
+- `retryFailedUploads()` leaves a mission refusal that cannot succeed as sent
+  failed (only `flushQueue(force: true)` re-sends it), and a call within 60 s
+  of the previous one does nothing (section 6).
+- The SDK's default camera tells the rep why it refused a photo for low
+  storage or a full queue; the host signal is unchanged (section 6).
+- "Preparing detector…" holds the shutter for 3 s at most.
+- SDK error reports to Sentry never carry a server response body, only the
+  HTTP status and the server's `error_code` (section 14).
+
 ### v1.7.19
 No initialiser changes. One additive static method and one stored
 property set after `init`, both additive for the ABI.
@@ -270,6 +288,13 @@ Task {
 }
 ```
 
+`retryFailedUploads()` gives failed photos a fresh cycle, except a mission
+refusal that cannot succeed as sent (`wrong_status`, `submission_mismatch`,
+`mission_not_found`, `invalid_subsection_name`, `invalid_subsection_id`, or
+any `not_claimed_by_*`); only `flushQueue(force: true)` re-sends those.
+Since 1.7.20 a call within 60 s of the previous one does nothing, so a retry
+button or timer cannot reset every backoff.
+
 ### Inspecting the queue at launch
 
 Before you inspect, withdraw or discard queued work at launch, wait for the
@@ -322,7 +347,9 @@ print("kept=\(status.retainedCount) bytes=\(status.retainedBytes)")
   directory has under 500 MB free. It reaches you through
   `didEncounterError` and the failed capture result, as `QUEUE_FULL` does,
   and it is a client condition (`NLError.clientConfigurationCodes`), never
-  reported to the SDK's Sentry.
+  reported to the SDK's Sentry. Since 1.7.20 the SDK's default camera
+  (`openNativeCaptureUI`) also tells the rep why it refused the photo, for
+  `STORAGE_LOW` and `QUEUE_FULL`.
 
 ### Uploads after the app is backgrounded
 
@@ -372,17 +399,25 @@ on the next foreground. A photo whose bytes are with iOS counts as uploading
 in the queue and spends none of its retry attempts. Nothing is lost when the
 transfer fails: the photo stays queued and resumes from its confirmed offset.
 
+Since 1.7.20 the SDK hands a photo to iOS only while the app is in the
+foreground; a flush in the background (a wake, the grace period) uploads
+in-process, because iOS may hold a transfer created in the background for
+hours. With Wi-Fi-only uploads on, the transfer never uses cellular data,
+even when iOS finishes it with the app closed.
+
 A flush also still holds an iOS background task (`beginBackgroundTask`)
 until it ends, so the in-app steps get iOS's grace period (about 30 s) when
 the rep locks the phone or switches app.
 
-Cordova: plugin 1.7.19 forwards the wake itself. If your app's own
+Cordova: plugin 1.7.19 and later forward the wake itself. From plugin 1.7.20
+the plugin adds the method at runtime, and only when `CDVAppDelegate` has
+none, so your app compiles as it does without the plugin. If your app's own
 `AppDelegate` implements
 `application(_:handleEventsForBackgroundURLSession:completionHandler:)`,
 yours wins: forward to `NeurolabsSDKCore.handleEventsForBackgroundURLSession`
-as above, and in Swift mark the method `override` (needed from plugin
-1.7.19). With an older plugin the uploads still finish in the background and
-complete on the next foreground.
+as above (in Swift, cordova-ios requires `override` on it in a
+`CDVAppDelegate` subclass). With an older plugin the uploads still finish in
+the background and complete on the next foreground.
 
 ### What reaches the backend
 
@@ -1052,7 +1087,9 @@ the same on iOS, Android and Cordova:
   still go through its private client.
 - **No credentials or personal data.** `sendDefaultPii` is off. Messages are
   scrubbed before they are sent: a URL keeps only its scheme, host and path,
-  so a signed URL's credentials never leave the device.
+  so a signed URL's credentials never leave the device. Since 1.7.20 an
+  error that came from a server response carries only the HTTP status and
+  the server's `error_code`, never the response body.
 - **Opt out** with `sentryEnabled: false` (or `analyticsEnabled: false`) on
   `NLConfiguration`. Nothing is sent from an XCTest process.
 

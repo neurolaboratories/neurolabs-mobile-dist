@@ -1,8 +1,8 @@
 {
-  "version": "v1.7.19",
-  "generated_on": "2026-10-13",
+  "version": "v1.7.20",
+  "generated_on": "2026-10-14",
   "latest_root": "docs/integration-guides/latest",
-  "release_root": "docs/integration-guides/releases/v1.7.19",
+  "release_root": "docs/integration-guides/releases/v1.7.20",
   "guides": {
     "cordova": {
       "title": "Neurolabs Cordova SDK Integration Guide",
@@ -11,13 +11,13 @@
         "markdown": "docs/integration-guides/latest/cordova/Neurolabs-Cordova-Integration-Guide.md",
         "pdf_rules": "docs/integration-guides/latest/cordova/Neurolabs-Cordova-Integration-Guide-PDF-Rules.md",
         "pdf": "docs/integration-guides/latest/cordova/Neurolabs-Cordova-Integration-Guide.pdf",
-        "checksum_sha256": "6c83764971bdb0e2c289db3f9f9eeaf8ab5886c366166fb0e5e3c06545c34786"
+        "checksum_sha256": "72b4a26dbe92127820993a26b5e9dce2df3d8050f04b89212bd2136050edc451"
       },
       "release": {
-        "markdown": "docs/integration-guides/releases/v1.7.19/cordova/Neurolabs-Cordova-Integration-Guide.md",
-        "pdf_rules": "docs/integration-guides/releases/v1.7.19/cordova/Neurolabs-Cordova-Integration-Guide-PDF-Rules.md",
-        "pdf": "docs/integration-guides/releases/v1.7.19/cordova/Neurolabs-Cordova-Integration-Guide.pdf",
-        "checksum_sha256": "6c83764971bdb0e2c289db3f9f9eeaf8ab5886c366166fb0e5e3c06545c34786"
+        "markdown": "docs/integration-guides/releases/v1.7.20/cordova/Neurolabs-Cordova-Integration-Guide.md",
+        "pdf_rules": "docs/integration-guides/releases/v1.7.20/cordova/Neurolabs-Cordova-Integration-Guide-PDF-Rules.md",
+        "pdf": "docs/integration-guides/releases/v1.7.20/cordova/Neurolabs-Cordova-Integration-Guide.pdf",
+        "checksum_sha256": "72b4a26dbe92127820993a26b5e9dce2df3d8050f04b89212bd2136050edc451"
       }
     },
     "android": {
@@ -27,13 +27,13 @@
         "markdown": "docs/integration-guides/latest/android/Neurolabs-Android-Integration-Guide.md",
         "pdf_rules": "docs/integration-guides/latest/android/Neurolabs-Android-Integration-Guide-PDF-Rules.md",
         "pdf": "docs/integration-guides/latest/android/Neurolabs-Android-Integration-Guide.pdf",
-        "checksum_sha256": "227adb9fa1ed89888fa670d1e4f04d517a6640456a13bc8752ef7fec4ce15a5d"
+        "checksum_sha256": "eb009f48ebf5a0da18e65946d2feb1576e5235a867d78b0e7c1e1af189e6e7d3"
       },
       "release": {
-        "markdown": "docs/integration-guides/releases/v1.7.19/android/Neurolabs-Android-Integration-Guide.md",
-        "pdf_rules": "docs/integration-guides/releases/v1.7.19/android/Neurolabs-Android-Integration-Guide-PDF-Rules.md",
-        "pdf": "docs/integration-guides/releases/v1.7.19/android/Neurolabs-Android-Integration-Guide.pdf",
-        "checksum_sha256": "227adb9fa1ed89888fa670d1e4f04d517a6640456a13bc8752ef7fec4ce15a5d"
+        "markdown": "docs/integration-guides/releases/v1.7.20/android/Neurolabs-Android-Integration-Guide.md",
+        "pdf_rules": "docs/integration-guides/releases/v1.7.20/android/Neurolabs-Android-Integration-Guide-PDF-Rules.md",
+        "pdf": "docs/integration-guides/releases/v1.7.20/android/Neurolabs-Android-Integration-Guide.pdf",
+        "checksum_sha256": "eb009f48ebf5a0da18e65946d2feb1576e5235a867d78b0e7c1e1af189e6e7d3"
       }
     },
     "ios": {
@@ -43,13 +43,13 @@
         "markdown": "docs/integration-guides/latest/ios/Neurolabs-IOS-Integration-Guide.md",
         "pdf_rules": "docs/integration-guides/latest/ios/Neurolabs-IOS-Integration-Guide-PDF-Rules.md",
         "pdf": "docs/integration-guides/latest/ios/Neurolabs-IOS-Integration-Guide.pdf",
-        "checksum_sha256": "67099abf00fb905fb15c74ca3b2901299d38afeebdda5185d528a264ff7f0aae"
+        "checksum_sha256": "289723f3b0d713d8fe02581d10567730d28d5de02905e9b9615089b80f351315"
       },
       "release": {
-        "markdown": "docs/integration-guides/releases/v1.7.19/ios/Neurolabs-IOS-Integration-Guide.md",
-        "pdf_rules": "docs/integration-guides/releases/v1.7.19/ios/Neurolabs-IOS-Integration-Guide-PDF-Rules.md",
-        "pdf": "docs/integration-guides/releases/v1.7.19/ios/Neurolabs-IOS-Integration-Guide.pdf",
-        "checksum_sha256": "67099abf00fb905fb15c74ca3b2901299d38afeebdda5185d528a264ff7f0aae"
+        "markdown": "docs/integration-guides/releases/v1.7.20/ios/Neurolabs-IOS-Integration-Guide.md",
+        "pdf_rules": "docs/integration-guides/releases/v1.7.20/ios/Neurolabs-IOS-Integration-Guide-PDF-Rules.md",
+        "pdf": "docs/integration-guides/releases/v1.7.20/ios/Neurolabs-IOS-Integration-Guide.pdf",
+        "checksum_sha256": "289723f3b0d713d8fe02581d10567730d28d5de02905e9b9615089b80f351315"
       }
     }
   }
