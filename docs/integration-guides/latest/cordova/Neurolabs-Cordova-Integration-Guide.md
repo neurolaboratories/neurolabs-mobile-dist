@@ -11,6 +11,20 @@ listed here come from the underlying `neurolabs-android-sdk` and
 `scripts/prepare-sdk.js` at install time. No public JS API has been broken
 since v1.1.9.
 
+### v1.7.21
+- Plugin pins the native SDKs' 1.7.21 on both platforms.
+- Store context and visit KPIs, on both platforms (see 6d):
+  - `prefetchStoreContext`, `getStoreContextStatus`, `setStoreContextIdentity` and `clearStoreContextCache` fetch, check and cache each outlet's targets;
+  - `setVisitKpisEnabled` and `setVisitKpiContext` control the visit KPIs;
+  - the new `visitKpis` event delivers a finished session's on-device KPIs and next best actions.
+- The camera refuses a photo the queue would refuse (`QUEUE_FULL`, `STORAGE_LOW`) before the shutter on both platforms, and says why on screen. `uploadFailed` then has no `captureId`, and there is no `captureResult` or `captureQueued` for that photo (until 1.7.20, iOS took the photo and reported both).
+- A camera that cannot run closes once with `cameraClosed.error` on both platforms: `CAMERA_PERMISSION_DENIED`, `CAMERA_UNAVAILABLE` (new) or `CAMERA_PRESENT_FAILED` (iOS, new). It is never an `uploadFailed`. On iOS, reopening the camera from the `cameraClosed` handler no longer wedges `openCamera`.
+- `captureResult.quality` is the quality verdict the photo was admitted with, in the same shape on both platforms.
+- `flushQueue({ force: true })` re-sends failed photos that `retryFailedUploads()` leaves failed (see 5).
+- `validationPreset: 'minimal'` now reaches the native minimal preset. With both overlays off and no `validationPreset`, both platforms use lenient validation.
+- Android: the toolchain check tests the real requirements (AGP 8.9.1, Gradle 8.11.1, compileSdk 36, minSdk 26, Kotlin 2.2, JDK 17), so cordova-android 14 works once `config.xml` meets them (see 3).
+- Native: the image-quality checks behave the same on iOS and Android, and capture no longer waits 5 s on "Processing capture..." while the detector warms.
+
 ### v1.7.20
 - Plugin pins the native SDKs' 1.7.20 on both platforms. It ships the REX/Smollan audit fixes; 1.7.19 is unchanged, so upgrade to 1.7.20 to get them.
 - iOS: the plugin adds the background-upload wake method to `CDVAppDelegate` at launch, only if none is there and never replacing one. Plugin 1.7.19 declared it at compile time, which clashed with another plugin declaring the same method (see 5, item 23).
@@ -185,28 +199,53 @@ The install hooks download and wire up the native SDKs automatically — no manu
 placement needed.
 
 Native baseline requirements:
-- Android: cordova-android 15+, JDK 17+, Android Gradle Plugin 8.9.1+ (the SDK's androidx
-  dependencies require it), `minSdkVersion 26`, `compileSdkVersion 36`. cordova-android 15's
-  defaults (AGP 8.10.1, Gradle 8.14.2, SDK 36) meet them. The plugin injects
-  `GradlePluginKotlinVersion 2.3.0` and raises the Java source/target compatibility to 17 on
-  its own; override the Kotlin version only via a `<platform name="android">`-scoped preference.
+- Android: Android Gradle Plugin 8.9.1+ (the SDK's androidx dependencies require it) with
+  Gradle 8.11.1+ (AGP 8.9.1's minimum), `compileSdkVersion 36`, `minSdkVersion 26`, JDK 17+,
+  Kotlin Gradle plugin 2.2+. Any cordova-android that builds with these works, 14 included.
+  cordova-android 15's defaults (AGP 8.10.1, Gradle 8.14.2, SDK 36) meet all but minSdk (24);
+  cordova-android 14's (AGP 8.7.3, Gradle 8.13, SDK 35, minSdk 24) need the `config.xml`
+  preferences below. The plugin injects `GradlePluginKotlinVersion 2.3.0` and raises the Java
+  source/target compatibility to 17 on its own; override the Kotlin version only via a
+  `<platform name="android">`-scoped preference, and only to 2.2 or later.
 - iOS: deployment target iOS 17.0+, Xcode 16.4+ recommended (release toolchain baseline).
 
-**Android toolchain check (plugin 1.7.20+).** When the plugin is installed and before every
-Android prepare or build, a plugin hook checks cordova-android, the Android Gradle Plugin and
-the JDK. If any of them is too old, it stops with one message that names each unmet
-requirement, what it found and the plugin version. Without it, the build fails much later
-with a Kotlin metadata or Gradle error. It reads the `cordova-android` package your Android
-platform uses, `AndroidGradlePluginVersion` from `config.xml` (else cordova-android's
-default), and `javac -version` from `CORDOVA_JAVA_HOME`, `JAVA_HOME` or `PATH`. It skips a
-value it can't read, and iOS-only projects never run it.
-`NEUROLABS_SKIP_ANDROID_TOOLCHAIN_CHECK=1` turns the failure into a warning; that setup
-isn't supported.
+**Android toolchain check (plugin 1.7.20+).** Before the plugin is installed and before every
+Android prepare or build, a plugin hook checks the Android Gradle Plugin, Gradle, compileSdk,
+minSdk, the Kotlin Gradle plugin and the JDK. If any of them is too old, it stops with one
+message that names each unmet requirement, what it found and the plugin version. Without it,
+the build fails much later with a Kotlin metadata, manifest-merger or Gradle error. Plugin
+1.7.20 also required cordova-android 15; from 1.7.21 the cordova-android major is not checked.
+From 1.7.21 the check runs before the install, so a failed check installs nothing: fix
+`config.xml` and run `cordova plugin add` again. (Plugin 1.7.20 checked after the install;
+after a failure there, run `cordova plugin rm ai.neurolabs.cordova` before retrying.)
 
-Add to `config.xml` (cordova-android 15; set `AndroidGradlePluginVersion` only to 8.9.1 or later):
+The hook reads `config.xml` the way cordova-android does (the Android-scoped preference wins,
+the last duplicate wins), each else the installed cordova-android's default:
+`AndroidGradlePluginVersion`; `GradleVersion`; `android-compileSdkVersion`, else
+`android-targetSdkVersion`; `android-minSdkVersion`; `GradlePluginKotlinVersion`, else the
+plugin's injected 2.3.0. Where `config.xml` sets none, a value another installed plugin injects into `config.xml` (recorded in `platforms/android/android.json`) applies first, as in cordova-android's merged config; if two plugins inject different values, that check is skipped. The JDK comes from `javac -version` (`CORDOVA_JAVA_HOME`, `JAVA_HOME`
+or `PATH`). It skips a value something else may override: Gradle under
+`CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL`, and an SDK level under a `cdvCompileSdkVersion`
+or `cdvMinSdkVersion` Gradle property (`--gradleArg=-P...`,
+`ORG_GRADLE_PROJECT_*`, a `gradle.properties`). It skips a value it can't read, and iOS-only
+projects never run it. `NEUROLABS_SKIP_ANDROID_TOOLCHAIN_CHECK=1` turns the failure into a
+warning; that setup isn't supported.
+
+Add to `config.xml` on cordova-android 15 (set `AndroidGradlePluginVersion` only to 8.9.1 or
+later):
 
 ```xml
 <platform name="android">
+    <preference name="android-minSdkVersion" value="26" />
+    <preference name="android-compileSdkVersion" value="36" />
+</platform>
+```
+
+On cordova-android 14, also raise AGP (its default Gradle, 8.13, already meets 8.11.1):
+
+```xml
+<platform name="android">
+    <preference name="AndroidGradlePluginVersion" value="8.9.1" />
     <preference name="android-minSdkVersion" value="26" />
     <preference name="android-compileSdkVersion" value="36" />
 </platform>
@@ -217,8 +256,11 @@ Add to `config.xml` (cordova-android 15; set `AndroidGradlePluginVersion` only t
 ```bash
 # Add the Android platform first, then install the plugin
 cordova platform add android
-cordova plugin add /path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz
+cordova plugin add file:/absolute/path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz
 ```
+
+Give the `.tgz` as a `file:` spec with an absolute path. Cordova CLI 12 and 13 hand a bare path
+to npm, which fails with `E404`.
 
 The `before_plugin_install` hook downloads `neurolabs-android-sdk.aar` from the matching GitHub
 release, stores it inside the plugin, and `plugin.xml` copies it to `app/libs/` automatically.
@@ -229,7 +271,7 @@ release, stores it inside the plugin, and `plugin.xml` copies it to `app/libs/` 
 ```bash
 # Add the iOS platform first, then install the plugin
 cordova platform add ios
-cordova plugin add /path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz
+cordova plugin add file:/absolute/path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz
 ```
 
 The hook downloads `NeurolabsSDK.xcframework` from the matching GitHub release and Cordova embeds
@@ -245,17 +287,17 @@ Sentry`, re-run `cordova prepare ios` so the package graph refreshes in the gene
 ```bash
 # Local file
 NEUROLABS_IOS_XCFRAMEWORK_ZIP=/path/to/NeurolabsSDK.xcframework-vX.Y.Z.zip \
-  cordova plugin add /path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz
+  cordova plugin add file:/absolute/path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz
 
 NEUROLABS_ANDROID_AAR_PATH=/path/to/neurolabs-android-sdk-vX.Y.Z.aar \
-  cordova plugin add /path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz
+  cordova plugin add file:/absolute/path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz
 
 # Direct URL
 NEUROLABS_IOS_XCFRAMEWORK_URL=https://github.com/.../NeurolabsSDK.xcframework-vX.Y.Z.zip \
-  cordova plugin add /path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz
+  cordova plugin add file:/absolute/path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz
 
 NEUROLABS_ANDROID_AAR_URL=https://github.com/.../neurolabs-android-sdk-vX.Y.Z.aar \
-  cordova plugin add /path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz
+  cordova plugin add file:/absolute/path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz
 ```
 
 ### iOS + Android (macOS)
@@ -395,6 +437,8 @@ console.log('queue status', status);
 
 await Neurolabs.flushQueue();
 await Neurolabs.retryFailedUploads();
+// Explicit "Retry all": also re-sends terminal refusals.
+await Neurolabs.flushQueue({ force: true });
 ```
 
 From native 1.7.20, `retryFailedUploads()` gives failed photos a fresh
@@ -403,6 +447,12 @@ cycle except a mission refusal that cannot succeed as sent (`wrong_status`,
 `invalid_subsection_id`, or any `not_claimed_by_*`), and a call
 within 60 s of the previous one does nothing, so a retry button or timer
 cannot reset every backoff.
+
+To re-send those refusals too, call `flushQueue({ force: true })`: it gives
+every failed photo a fresh cycle first, on iOS and Android. Use it for an
+explicit user action, not a timer. A failed photo keeps a `maxQueueSize`
+slot until it uploads or you delete it (`deletePhoto`, `clearUploadQueue`),
+so a refusal you will not re-send is best deleted.
 
 ### Uploads in the background and after the app is closed
 
@@ -522,9 +572,11 @@ every new capture into `QUEUE_FULL`.
   or a string rejects with `INVALID_ARGUMENT`.
 - `getQueueStatus()` and `queueStatusChanged` carry `retainedCount` and
   `retainedBytes`.
-- A new capture is refused with `STORAGE_LOW` (retryable) when the queue's
-  storage has under 500 MB free; it wins over `QUEUE_FULL`. Both arrive
-  through `uploadFailed`, the same way on iOS and Android (see 7).
+- A new photo is refused with `STORAGE_LOW` (retryable) when the queue's
+  storage has under 500 MB free; it wins over `QUEUE_FULL`. From native
+  1.7.21 the camera asks the queue before the shutter, so the photo is never
+  taken. Both arrive through `uploadFailed` without a `captureId`, the same
+  way on iOS and Android (see 7).
 
 ```js
 await Neurolabs.init({ apiKey: '<API_KEY>', deletePhotosOnUploadSuccess: false, maxRetainedPhotos: 300 });
@@ -632,7 +684,7 @@ each one in this order:
 3. the SDK default: a **4032 px long edge at JPEG quality 0.9** (native SDK
    1.7.16).
 
-The plugin pins native 1.7.20 (the default dates from 1.7.16), so on both platforms an omitted value means
+The plugin pins native 1.7.21 (the default dates from 1.7.16), so on both platforms an omitted value means
 4032 px at 0.9 unless your organisation overrides it. Invalid values (`<= 0`, or a
 quality outside `0..1`) reject with `INVALID_ARGUMENT` on both platforms.
 
@@ -1006,7 +1058,7 @@ await Neurolabs.openCamera({
 - `detectorPrefetchPolicy: 'unmetered'` needs native SDK 1.7.16. On a metered network (cellular, a metered or personal hotspot, or iOS Low Data Mode) the download waits and starts by itself once the device is on Wi-Fi or Ethernet, even mid-session. Until then `getDetectorModelStatus()` and `detectorModelStatusChanged` report `{ state: "not_downloaded", ready: false, reason: "waiting_for_unmetered_network" }`. That reason is not a failure. Opening the camera on cellular does not download either. To download anyway, call `prefetchDetectorModel()`; an explicit call ignores the policy. A detector already on the device is used on any network. Omitting the key means `'any'`, and the plugin applies it on every `init`.
 - `recognition: false` stops the plugin from building the recognition bootstrap. There is no catalog snapshot or embedder download and no recognition network call, and `captureResult` carries no `recognitionMatches`. `recognitionStatus` reports `{ status: "unavailable", reason: "disabled" }`. A re-init with `false` retires a chain that an earlier init built.
 - `showDetections: false` hides the detection boxes, and `showCapturedRegions: false` hides the captured-region overlay. Neither stops detection: once the detector is on the device, it runs every frame for the guidance below, and for `captureResult.detections` and the detection metadata. This holds on both platforms; on the AR camera (`cameraMode: 'ar'`) `showDetections: false` also hides the world-locked boxes.
-- Android only: with both overlays off, an omitted `validationPreset` or `'minimal'` makes the Android SDK use its `IOS_PARITY` validation options. An explicit `'default'`, `'lenient'` or `'ios_parity'` is not affected.
+- With both overlays off and no `validationPreset`, both platforms use their lenient validation options (from native SDK 1.7.21). Before 1.7.21, Android used its stricter `IOS_PARITY` options in that case and iOS used lenient. An explicit `'default'`, `'lenient'` or `'ios_parity'` was never affected. Before this plugin release, `'minimal'` was sent as no preset, so it was affected like an omitted preset; it now maps to the native minimal preset.
 - `validationPreset: 'lenient'` applies the native SDKs' lenient thresholds on both bridges. Plugin 1.6.6 mapped it to `'default'`, so fewer captures are refused than with 1.6.6.
 
 **Quality checks before and after the detector is ready.**
@@ -1032,9 +1084,9 @@ While the detector is missing, the camera shows "Detector unavailable. You can s
 8. **Boolean options (1.7.13).** Every boolean `init` option takes `true` / `false`, a number (0 is false), or `"true"` / `"false"`, `"1"` / `"0"`, `"yes"` / `"no"`, `"on"` / `"off"`. Any other value keeps the default. On Android, `1`, `"yes"` and `"on"` used to be ignored.
 9. **String options (1.7.12).** On Android, a `null` or non-string option is treated as absent, as on iOS, and a non-string `apiKey` rejects `init`. `getPhoto({ format })` rejects a non-string `format`, and `setRetryPolicy(true)` rejects.
 10. **iOS recognition frameworks (1.7.8).** The plugin always embeds the five recognition xcframeworks: `RecognitionInterface`, `RecognitionEngine`, `RecognitionEngineQdrant`, `NLQdrantEdgeFFI` and `RecognitionBootstrap`. They are linked even with `recognition: false`, and they are dynamic, so keep them embedded.
-11. **Android Kotlin metadata (1.6.8).** Stock Cordova Android apps compile against the Kotlin 2.3 SDK AAR without changes; the plugin injects `GradlePluginKotlinVersion 2.3.0`. Remove any workaround you added for "binary version of its metadata is 2.3.0". The toolchain needs minSdk 26, compileSdk 36, AGP 8.9.1 or later, Gradle 8.13 and JDK 17.
+11. **Android Kotlin metadata (1.6.8).** Stock Cordova Android apps compile against the Kotlin 2.3 SDK AAR without changes; the plugin injects `GradlePluginKotlinVersion 2.3.0`. Remove any workaround you added for "binary version of its metadata is 2.3.0". The toolchain needs minSdk 26, compileSdk 36, AGP 8.9.1 or later, Gradle 8.11.1 or later (AGP 8.9.1's minimum) and JDK 17.
 12. **Events while the camera is open (1.6.8; the rate limit is from 1.7.8).** Capture events (`captureQueued`, `captureResult`, `uploadSucceeded`, `uploadFailed`, `captureDeleted`) are buffered while the native camera is on screen. They are delivered in order after `cameraClosed`. `queueStatusChanged`, `guidanceStateChanged` and `detectorModelStatusChanged` collapse to the latest value, and `queueStatusChanged` fires at most 4 times a second. If `cameraClosed.droppedEventCount` is above 0, re-read the queue.
-13. **`cameraClosed.error` (1.7.9).** A capture screen that failed (`CAMERA_PERMISSION_DENIED` on iOS; `NOT_INITIALIZED`, `CAPTURE_RESULT_MISSING`, `CAPTURE_RESULT_UNREADABLE` or `CAPTURE_FAILED` on Android) arrives as `cameraClosed` with `cancelled: false` and `error: { code, message }`. It used to look like the rep cancelling.
+13. **`cameraClosed.error` (1.7.9).** A capture screen that failed (`CAMERA_PERMISSION_DENIED`, `CAMERA_UNAVAILABLE` on both platforms; `CAMERA_PRESENT_FAILED` on iOS; `NOT_INITIALIZED`, `CAPTURE_RESULT_MISSING`, `CAPTURE_RESULT_UNREADABLE` or `CAPTURE_FAILED` on Android) arrives as `cameraClosed` with `cancelled: false` and `error: { code, message }`. It used to look like the rep cancelling. A refused permission and a camera that would not start are never `uploadFailed` (until 1.7.20 Android sent them there): when the camera showed the rep why (Android's "Camera access is off" pane, the "camera could not start" message on both), the error arrives on that session's `cameraClosed` once the rep closes it, provided nothing was captured.
 14. **Portrait only (1.7.10).** Every capture reaches the server in portrait.
 15. **Android ARCore (1.7.9).** The AAR is built against ARCore 1.56.0.
 16. **Recognition at `init` (1.7.1 / 1.7.2).** Since 1.7.1, `init` builds the on-device recognition bootstrap whenever it has an operations key, which is always (the key falls back to `apiKey`). The bootstrap asks the operations API whether the org has device recognition and, if it does, downloads the catalog snapshot and the embedder. Pass `recognition: false` to keep the 1.6.6 behaviour: no recognition at all.
@@ -1068,7 +1120,73 @@ While the detector is missing, the camera shows "Detector unavailable. You can s
     - **Both platforms.** The preference wins over `init`. The SDK's own Sentry stays off whatever `init({ sentryEnabled })` says, because `init` cannot re-enable what you turned off at launch. Android starts no Sentry before `init`, so on Android the preference only forces `sentryEnabled: false`.
     - `analyticsEnabled` (Mixpanel) is not affected. Use `init({ analyticsEnabled: false })` for that.
 23. **iOS background uploads and the app-delegate wake (plugin 1.7.19, native 1.7.19; added at runtime from plugin 1.7.20).** Queued photos upload through an iOS background `URLSession`, so they keep going after iOS suspends or terminates the app and while the phone is locked. At launch the plugin adds `application(_:handleEventsForBackgroundURLSession:completionHandler:)` to `CDVAppDelegate`, only if it has none and never replacing one, and hands the wake to the SDK. No `Info.plist` change and no native code are needed. If your `AppDelegate` already implements that method, or another plugin also handles it, forward to `NeurolabsSDKCore.handleEventsForBackgroundURLSession` from your `AppDelegate`. In Swift, cordova-ios requires `override` there with or without this plugin. See section 5, "Uploads in the background and after the app is closed".
-24. **Android toolchain check (plugin 1.7.20).** An Android hook stops the install or prepare early, with one message naming each unmet requirement and the plugin version, when cordova-android is older than 15, the Android Gradle Plugin older than 8.9.1 or the JDK older than 17. Upgrade with `cordova platform rm android && cordova platform add android@15`. See section 3.
+24. **Android toolchain check (plugin 1.7.20; real requirements from 1.7.21).** An Android hook stops the install or prepare early, with one message naming each unmet requirement and the plugin version, when the Android Gradle Plugin is older than 8.9.1, Gradle older than 8.11.1, compileSdk older than 36, minSdk older than 26, the Kotlin Gradle plugin older than 2.2 or the JDK older than 17. From 1.7.21 it no longer checks the cordova-android major: cordova-android 14 works once `config.xml` raises AGP, compileSdk and minSdk. From 1.7.21 it runs before the install, so a failed check installs nothing. Plugin 1.7.20 rejected cordova-android 14 even then (on 1.7.20 only, `NEUROLABS_SKIP_ANDROID_TOOLCHAIN_CHECK=1` gets past it), and after a failed install there, run `cordova plugin rm ai.neurolabs.cordova` before retrying. See section 3.
+
+## 6d. Visit KPIs and store context (native SDK 1.7.21)
+
+When a capture session finishes with at least one photo, the SDK computes the visit's KPIs and next best actions on the device and the plugin emits `visitKpis`. KPIs are measured against the outlet's **store context**: its targets, assortment and planograms, plus the org's metric definitions. The SDK downloads it through the Operations API, checks its signature against a key pinned in the SDK, and keeps it on the device for the org's offline TTL, so a visit computes KPIs offline. The calls, arguments, payloads and error messages are the same on iOS and Android.
+
+**1. Cache the route.** At sign-in or on Wi-Fi, fetch the store context for the outlets the rep will visit. It runs on any network, in batches of 50.
+
+```js
+const { statuses, refreshFailure } = await Neurolabs.prefetchStoreContext(routeOutletIds);
+for (const [outletId, status] of Object.entries(statuses)) {
+  if (status.state !== 'ready') console.warn('no store targets for', outletId, status.reason);
+}
+```
+
+It never rejects on network or state. `refreshFailure` (absent when every fetch was applied) is `no_credentials`, `no_offline_identity`, `no_valid_outlet_ids`, `denied`, `unavailable`, `server_error` or `bad_request`. The cache is kept in every case except `denied`.
+
+**2. Tell the SDK which outlet the visit is at.** After `openCamera` resolves (or pass your own `sessionId` to `openCamera` and call this first):
+
+```js
+const { sessionId } = await Neurolabs.openCamera({ type: 'shelf' });
+await Neurolabs.setVisitKpiContext(sessionId, {
+  outletId: visit.outletId,            // Operations outlet UUID (GET /v1/outlets)
+  externalVisitId: visit.id,           // your visit id, 1–128 characters
+  sectionsByCaptureId: {},             // capture id → outlet subsection id (beats the bay's tag)
+  sectionsByBayIndex: { 1: 'drinks' }, // 1-based bay → outlet subsection id
+});
+```
+
+It also starts a background refresh of that outlet's store context when it was not confirmed online within the last hour; the session never waits for it. Calling it again replaces the session's context. Without it, the SDK uses the open collector mission's outlet from `/v1/config`, if there is one, and every KPI row covers the whole visit. It needs `init()` (`NOT_INITIALIZED`). A malformed context rejects with `INVALID_ARGUMENT`.
+
+**3. Show the result.**
+
+```js
+Neurolabs.addListener('visitKpis', (event) => {
+  // { sessionId, provisional, storeContext, offline, willSubmit, actionCount,
+  //   perfectStoreScoreBp?, payloadJson, payload }
+  if (event.storeContext === 'used') {
+    showKpis(event.payload, { label: 'Provisional', score: event.perfectStoreScoreBp });
+  } else {
+    showGapsAndPriceTags(event.payload, { banner: 'Needs store targets' });
+  }
+});
+```
+
+- `payload` is the `nl.visit_kpis` v1 object; `payloadJson` is the same thing as the canonical JSON text.
+- `provisional` is always `true` on the device. Label the result "Provisional" until the backend's recomputed KPIs replace it.
+- `storeContext`: `used` (the outlet's targets applied; `offline` is `true` when the cache was not confirmed online within the hour), `missing` or `expired`. Without a store context the payload has gaps and price-tag presence only, and no Perfect Store score: show "Needs store targets", and ask `getStoreContextStatus(outletId)` why. Treat a value you do not know as `missing`.
+- `perfectStoreScoreBp`: the Perfect Store score in basis points (0–10000); absent when none was computed.
+- `willSubmit`: these exact bytes ride the session's mission submit as `client_metadata.device_kpis`. That happens only with a ready, signature-verified store context and a payload that passes the backend's checks. Otherwise the result stays on the device.
+- One event per session that finished with photos, not cancelled, while visit KPIs are on. It is buffered while the camera is open and replayed after that session's `cameraClosed`. It never fires when the computation fails; the SDK reports that failure itself.
+
+**Status of one outlet.** `getStoreContextStatus(outletId)` reads the cache only:
+
+| Field | Meaning |
+|---|---|
+| `state` | `ready` (the next visit uses it), `expired` or `missing` |
+| `reason` | Absent when `ready`. `expired`: `ttl`, `valid_until`, `clock_skew`. `missing`: `no_outlet`, `not_assigned` (the outlet is not your org's: check the id), `no_context` (no live mission or nothing published), `not_cached`, `org_part_unavailable`, `no_credentials`, `no_offline_identity`, or a refused body's code (`hash_mismatch`, `invalid_signature`, ...). Treat an unknown code as missing. |
+| `offline` | `ready` but not confirmed online within the last hour |
+| `signatureVerified` | `ready` and signature-checked against a pinned key: the only state whose KPIs are submitted |
+| `confirmedAt`, `validUntil`, `usableUntil` | ISO-8601 UTC in whole seconds. `usableUntil` (ready only) is when it stops being usable offline. |
+
+**Other calls.**
+- `setVisitKpisEnabled(false)` turns visit KPIs off: no computation, no `visitKpis`, nothing added to the submit, no background refresh. On by default.
+- `clearStoreContextCache()` deletes every cached store context on the device (sign-out).
+- `setStoreContextIdentity(identity)` names the cache after the signed-in rep. It only matters when the operations credential comes from a host auth provider; with the API key this plugin uses, the key names the cache and the SDK ignores the identity.
+- The store-context calls and `setVisitKpisEnabled` work before `init()`: the reads resolve `missing` / `no_credentials`, a clear runs when `init()` installs the SDK, and the switch and the identity hold across re-inits.
 
 ## 7. Post-Processing + Lifecycle Events
 
@@ -1103,7 +1221,7 @@ Neurolabs.addListener('guidanceStateChanged', (payload) => console.log('guidance
 
 // Fires once per photo with what the SDK saw on the device (buffered like captureQueued).
 // Payload: { captureId, sessionId, success, message, detectionCount, capturedRegionCount,
-//            detections, recognitionMatches?, captureMetadata? }
+//            detections, recognitionMatches?, captureMetadata?, quality? }
 // captureMetadata (native SDK 1.7.18) is the capture's metadata record (see §4a).
 // It can carry the device's location: never log it.
 Neurolabs.addListener('captureResult', ({ captureId, success, detectionCount }) => {
@@ -1114,8 +1232,10 @@ Neurolabs.addListener('uploadSucceeded', (item) => console.log('uploaded', item)
 Neurolabs.addListener('uploadFailed', (payload) => console.warn('uploadFailed', payload));
 
 // QUEUE_FULL and STORAGE_LOW (native SDK 1.7.16: under 500 MB free) refuse a
-// NEW capture before it is queued: its captureResult has success: false and
-// no captureQueued follows. STORAGE_LOW is retryable once space is freed.
+// NEW photo. From native 1.7.21 the camera asks the queue before the shutter,
+// so the photo is never taken: this event has no captureId, and there is no
+// captureResult or captureQueued for it. The camera shows the reason until a
+// press finds room. STORAGE_LOW is retryable once space is freed.
 Neurolabs.addListener('uploadFailed', ({ errorCode }) => {
   if (errorCode === 'STORAGE_LOW') askRepToFreeSpace();
   else if (errorCode === 'QUEUE_FULL') Neurolabs.flushQueue();

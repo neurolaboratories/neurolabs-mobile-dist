@@ -14,6 +14,38 @@ custom-camera flows that need a minimum capture count and a higher
 maximum cap. `showsCapturedCountLabel` hides the `N captured` chip in
 custom camera and multi-capture flow UIs.
 
+### v1.7.21
+No initialiser changes. New APIs are additive. One breaking removal:
+`NLShelfDetector` and `NLCoreMLYoloDetector` are gone. The SDK never
+constructed them; if your app called them directly, use the SDK's built-in
+detection instead.
+
+Behaviour changes, with no opt-in:
+- An embedded camera (`NLCustomCameraView`, `NLCustomCameraViewController`)
+  that leaves the screen (a push, a tab switch, a modal over it) pauses and
+  resumes on return; its staged photos are kept. The session ends on close,
+  Done or `closeNativeCaptureUI`. An embedded controller must pass `onClose`.
+- Opening the SDK camera right after a close waits for the dismissal. An open
+  the SDK cannot present reports `didEncounterError` with the new code
+  `CAMERA_PRESENT_FAILED`, and a camera that cannot start reports
+  `CAMERA_UNAVAILABLE`. Neither is sent to Sentry.
+- In strict mode the camera drops a failed photo before your `onCapture`
+  hears of it. `NLNativeCaptureResult.validationResult` carries the quality
+  verdict (nil when nothing validated the capture).
+- The SDK camera (`openNativeCaptureUI`) refuses a photo before the shutter
+  when the queue would refuse it (`STORAGE_LOW`, `QUEUE_FULL`); you get
+  `didEncounterError` with no capture result.
+- Image quality reads luma as Rec.601, as on Android: a saturated colour can
+  get a different verdict than on 1.7.20. No threshold changed.
+
+New APIs (section 14):
+- Store context: `prefetchStoreContext(outletIds:)`,
+  `storeContextStatus(outletId:)`, `setStoreContextIdentity(_:)`,
+  `clearStoreContextCache()`.
+- Visit KPIs: `neurolabsSDK(_:didComputeVisitKPIs:sessionId:)` (default
+  no-op), `setVisitKPIsEnabled(_:)` (on by default),
+  `setVisitKPIContext(_:forSession:)`, `computeVisitKPIs(for:context:)`.
+
 ### v1.7.20
 No API changes. It ships the REX/Smollan audit fixes; 1.7.19 is unchanged,
 so upgrade to 1.7.20 to get them.
@@ -1064,6 +1096,31 @@ change.
   disabled, so a second tap does nothing and nothing is queued.
 
 ## 14. Notes
+
+### Store context for visit KPIs (since 1.7.21)
+
+A visit's KPIs need the outlet's store context (targets, assortment, planograms and the org's metric definitions). The SDK fetches, verifies and caches it per credential for the org's offline TTL (default 7 days). Outlet ids are Operations outlet UUIDs.
+
+```swift
+let result = await sdk.prefetchStoreContext(outletIds: routeOutletIds)  // never throws; result.refreshFailure is a code
+let status = await sdk.storeContextStatus(outletId: outletId)           // cache only, no network
+sdk.setStoreContextIdentity(currentUser.id)  // only with setOperationsAuthProvider; hashed, never stored or sent
+await sdk.clearStoreContextCache()            // sign-out
+```
+
+`status.state` is `.ready`, `.expired` or `.missing` (switch with `@unknown default`), and `status.reason` is a stable code (`not_assigned` means the outlet id is not your org's; treat an unknown code as missing). `device_kpis` are submitted only for a context that is ready and `isSignatureVerified`; the SDK pins the production key `store-context-v1` and requires signatures. Staging-backed builds verify with the staging key `store-context-v2`, trusted only on a Neurolabs staging operations host; a production base only ever trusts v1. The full code list is in the README ("Store context (visit KPIs)").
+
+### Visit KPIs (since 1.7.21)
+
+After an SDK-managed session finishes with at least one capture, the SDK computes the visit's KPIs on the device and calls `neurolabsSDK(_:didComputeVisitKPIs:sessionId:)` (default no-op, main actor). On by default; `setVisitKPIsEnabled(false)` turns it off.
+
+```swift
+sdk.setVisitKPIContext(NLVisitKPIContext(outletId: outletId, sectionsByCaptureId: [:], sectionsByBayIndex: [:]),
+                       forSession: sessionId)          // before the session finishes; refreshes the store context
+let result = try await sdk.computeVisitKPIs(for: sessionResult, context: context)  // custom capture UI; read-only
+```
+
+`NLVisitKPIResult` carries the canonical `nl.visit_kpis` v1 JSON (`payloadJSON`), `isProvisional` (always true on the device: label it "Provisional"), `storeContext` (`.used(offline:)`, `.missing`, `.expired`), `perfectStoreScoreBp`, `actionCount` and `willSubmit`. Without a store context, show gaps and price-tag presence only, as "Needs store targets". The payload rides the mission submit as `client_metadata.device_kpis` only when the store context was ready and signature-verified and the payload passes the backend's checks; a `400 invalid_device_kpis` makes the SDK resubmit once without it. Details are in the README ("Visit KPIs").
 
 ### Telemetry and privacy (Sentry)
 

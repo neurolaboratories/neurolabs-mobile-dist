@@ -11,6 +11,41 @@ working as is. Recommended defaults: strict shelf guidance with
 `validationPreset = IOS_PARITY`, `liveQualityChecksEnabled = true`,
 `autoCloseAfterCapture = true` for single-capture parity flows.
 
+### v1.7.21
+No `NLConfiguration` changes. New APIs are additive. One breaking removal:
+`NLOnnxYoloDetector`, `NLOnnxYoloConfig` and `ModelExportInstructions` are
+gone. The ONNX detector was a stub that never returned a detection; if your
+app called it directly, use the SDK's built-in detection instead.
+
+Behaviour changes, with no opt-in:
+- An embedded camera (`NLCustomCameraView`, `NLCaptureScreen`) that leaves
+  the composition (a navigation push, a tab switch) pauses and resumes on
+  return; its photos are kept. The session ends on close, Done, a new
+  `sessionId` or the Activity finishing (section 7).
+- A camera that cannot start reports `onError` with the new code
+  `CAMERA_UNAVAILABLE`, once per session. It is not sent to Sentry.
+- `CapturedImageData.validationResult` and
+  `NLNativeCaptureResult.validationResult` carry the quality verdict (null
+  when nothing validated the capture).
+- Image quality reads luma as Rec.601, as on iOS: a saturated colour can get
+  a different verdict than on 1.7.20. No threshold changed. With both
+  overlays off and no preset the camera uses `LENIENT`, as iOS does, and
+  `minDetectionCount` (`FRIDGE`, or a custom value) gates captures.
+- The org's quality knobs, capture-image size and guidance disables follow
+  the remote config during a session; a host's own values still win.
+- Photos of an SDK capture session killed before Done are held and offered
+  at the next SDK capture screen ("Unsaved photos", Save or Discard), not
+  uploaded on their own.
+
+New APIs (section 12):
+- Store context: `prefetchStoreContext(outletIds)`,
+  `storeContextStatus(outletId)`, `setStoreContextIdentity(identity)`,
+  `clearStoreContextCache()`.
+- Visit KPIs: `NeurolabsSDKDelegate.onVisitKpis(result, sessionId)` (default
+  no-op), `setVisitKpisEnabled(enabled)` (on by default),
+  `setVisitKpiContext(sessionId, context)`,
+  `computeVisitKpis(sessionId, captures, multiBay, context)`.
+
 ### v1.3.2
 - Mixpanel ingestion endpoint now resolves via `NLAnalyticsDefaults.MIXPANEL_ENDPOINT_EU`
   at SDK construction; events flow into the EU region project as expected.
@@ -340,6 +375,14 @@ NLCustomCameraView(
 
 Before 1.7.19 the camera deleted these files when it left the composition, so a host that enqueued or read them after closing it lost the photos without an error.
 
+### Embedded camera lifecycle (1.7.21)
+
+- Leaving the composition (a navigation push, a tab switch) pauses the embedded camera: the camera closes and the session's photos stay. Coming back reopens the camera and the live checks. The session ends on close, Done, a new `sessionId`, or the Activity finishing.
+- A configuration change (dark mode, font scale, multi-window, a fold) rebinds the camera to the recreated Activity, so the preview stays live.
+- A camera that cannot start raises `onError` with `NLCaptureErrorCodes.CAMERA_UNAVAILABLE` once per session and tells the rep "The camera could not start. Another app may be using it."
+- `CapturedImageData.validationResult` (`isAcceptable`, `overallScore`, `issues`) carries the quality verdict; null when nothing validated the capture. A strict failure never reaches `onCapture`.
+- The SDK unbinds only its own CameraX use cases, so a camera your app runs (a barcode scanner, say) keeps running.
+
 ### Offline chip (1.7.17)
 
 The default and AR camera show a small chip while the upload queue sees no network: "Offline · uploads queued" (or "Offline" with nothing queued), and "Waiting for Wi-Fi · uploads queued" while Wi-Fi-only uploads hold photos on a metered network. It hides while the network is unknown and when the host uploads the photos itself (`uploadsEnabled = false`). It is informational only and never gates the shutter. On by default; turn it off with `NLCameraConfiguration(showsOfflineIndicator = false)`, or on the bridge with `showsOfflineIndicator` (`Boolean?`) on `NLNativeCaptureOptions` / `NLNativeCaptureConfig` (options, then config, then `true`).
@@ -551,6 +594,31 @@ Tap-to-product-card: captures expose per-detection matches via
 Offline or unresolved products fall back to a UUID + similarity row.
 
 ## 12. Notes
+
+### Store context for visit KPIs (1.7.21)
+
+A visit's KPIs need the outlet's store context (targets, assortment, planograms and the org's metric definitions). The SDK fetches, verifies and caches it per credential for the org's offline TTL (default 7 days). Outlet ids are Operations outlet UUIDs. The calls are extensions on `NeurolabsSDKCore` (`import ai.neurolabs.sdk.core.*`).
+
+```kotlin
+val result = sdk.prefetchStoreContext(routeOutletIds)  // never throws; result.refreshFailure is a code
+val status = sdk.storeContextStatus(outletId)           // cache only, no network
+sdk.setStoreContextIdentity(currentUser.id)  // only with setOperationsAuthProvider; hashed, never stored or sent
+sdk.clearStoreContextCache()                  // sign-out
+```
+
+`status.state` is `READY`, `EXPIRED` or `MISSING`, and `status.reason` is a stable code (`not_assigned` means the outlet id is not your org's; treat an unknown code as missing). `device_kpis` are submitted only for a context that is ready and `isSignatureVerified`; the SDK pins the production key `store-context-v1` and requires signatures. The staging key `store-context-v2` is trusted only on a Neurolabs staging operations host. The full code list is in the README ("Store Context (visit KPIs)").
+
+### Visit KPIs (1.7.21)
+
+After an SDK-managed session (`NLCaptureActivity`, the bridge, Cordova) finishes with at least one capture, the SDK computes the visit's KPIs on the device and calls `NeurolabsSDKDelegate.onVisitKpis(result, sessionId)` (default no-op). On by default; `setVisitKpisEnabled(false)` turns it off.
+
+```kotlin
+sdk.setVisitKpiContext(sessionId, NLVisitKpiContext(outletId, sectionsByCaptureId = emptyMap(), sectionsByBayIndex = emptyMap()))
+// before the session finishes; refreshes the store context
+val result = sdk.computeVisitKpis(sessionId, captures, multiBayResult, context)  // your own capture UI; read-only
+```
+
+`NLVisitKpiResult` carries the canonical `nl.visit_kpis` v1 JSON (`payloadJson`), `isProvisional` (always true on the device: label it "Provisional"), `storeContext` (`Used(offline)`, `Missing`, `Expired`), `perfectStoreScoreBp`, `actionCount` and `willSubmit`. Without a store context, show gaps and price-tag presence only, as "Needs store targets". The payload rides the mission submit as `client_metadata.device_kpis` only when the store context was ready and signature-verified and the payload passes the backend's checks; a `400 invalid_device_kpis` makes the SDK resubmit once without it. Details are in the README ("Visit KPIs").
 
 ### Telemetry and privacy (Sentry)
 
