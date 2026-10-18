@@ -11,6 +11,30 @@ listed here come from the underlying `neurolabs-android-sdk` and
 `scripts/prepare-sdk.js` at install time. No public JS API has been broken
 since v1.1.9.
 
+### v1.7.22
+- Plugin pins the native SDKs' 1.7.22 on both platforms.
+- `captureDeleted` now also fires when the rep retakes a photo, on both
+  platforms, with `source: "retake"`. Until 1.7.21 it never fired for a
+  retake. If you count `captureDeleted` as "the rep deleted a photo", check
+  the new `reason` key: every payload carries it, `"retake"` for a retake and
+  `"delete"` otherwise. A retaken photo is not in the result. An id you never
+  received is safe to ignore.
+- New `captureCropReplaced` event, `{ replacedCaptureId, captureId, width,
+  height, detectionCount }`, once each time a crop replaces a photo. Key on
+  `replacedCaptureId`: the crop keeps the id today. The cropped photo still
+  reaches `captureQueued`. Buffered while the camera is open and replayed in
+  order after `cameraClosed`, like `captureDeleted`.
+- `openCamera({ arSessionRecording })` records the session's AR frames to an
+  `.nlrec` file, on both platforms, and the new `arSessionRecording` event
+  hands you each file (see "AR session recording" in 6b).
+- Native: "Face the shelf straight on" fires above 12° instead of 8°, so
+  every org's guidance `config_hash` changes. On the AR camera the live
+  "~ N products" chip counts SKU facings only.
+- Native: on Android, on-device recognition matches every detection again
+  with `sendDetectionsMetadata: false` (it matched nothing from 1.7.18).
+  With `uploadsEnabled: false`, the SDK no longer fetches its upload config
+  or posts an owed mission submit.
+
 ### v1.7.21
 - Plugin pins the native SDKs' 1.7.21 on both platforms.
 - Store context and visit KPIs, on both platforms (see 6d):
@@ -654,8 +678,9 @@ await Neurolabs.openCamera({
   auto-close target, or the required count when there is no Done button),
   opens **Review** with every photo. Tapping one opens it with Crop, Delete,
   Previous / Next and "Back to review".
-- A crop replaces the photo under the same `captureId`. A delete fires
-  `captureDeleted` with `source: "review"`.
+- A crop replaces the photo under the same `captureId` and, from native
+  1.7.22, fires `captureCropReplaced`. A delete fires `captureDeleted` with
+  `source: "review"`.
 - Nothing from the session is saved or queued before **Confirm**, so
   `captureQueued` arrives only after it. **Back to camera** keeps the photos
   and the shutter takes more; ✕ is the camera's own close.
@@ -684,7 +709,7 @@ each one in this order:
 3. the SDK default: a **4032 px long edge at JPEG quality 0.9** (native SDK
    1.7.16).
 
-The plugin pins native 1.7.21 (the default dates from 1.7.16), so on both platforms an omitted value means
+The plugin pins native 1.7.22 (the default dates from 1.7.16), so on both platforms an omitted value means
 4032 px at 0.9 unless your organisation overrides it. Invalid values (`<= 0`, or a
 quality outside `0..1`) reject with `INVALID_ARGUMENT` on both platforms.
 
@@ -908,6 +933,25 @@ SDKs decode it. They apply on the AR camera, with or without the preset.
 - It stays off by default until the device checks on more Android phones
   pass. Try it on your target devices before turning it on for reps.
 
+### AR session recording (experimental, native SDK 1.7.22)
+
+- `arSessionRecording: true` records every AR frame the session's AR camera
+  fuses, from when it opens to when it closes, to an `.nlrec` file: the
+  format the Neurolabs replay and calibration tools read. An object
+  `{ surface, notes, maximumFrames }` names the surface under test (in the
+  file name and header), adds header notes and caps the frames (default
+  6000, about 20 minutes). Forwarded on both platforms, plain and under the
+  `multiBayAR` preset.
+- Each AR camera the session opened reports once, after it closed, through
+  the `arSessionRecording` event: `{ sessionId, status: "saved", fileUri }`,
+  or `{ sessionId, status: "failed", reason, message }` with `reason`
+  `no_frames` (the camera fused no AR frame) or `write_failed`.
+- The file is in the app's cache (Android `cache/NLARRecordings/`, iOS
+  `tmp/NLARRecordings/`), which the system may reclaim. Copy it (e.g. with
+  cordova-plugin-file) to keep it. It is never uploaded.
+- Nothing is recorded on the default camera, nor on Android's CameraX
+  fallback when ARCore is missing.
+
 ### AR live labels and count (experimental, native SDK 1.7.16)
 
 - `arLiveLabels: true` shows the top-1 product name on each stable box, at a
@@ -1085,7 +1129,7 @@ While the detector is missing, the camera shows "Detector unavailable. You can s
 9. **String options (1.7.12).** On Android, a `null` or non-string option is treated as absent, as on iOS, and a non-string `apiKey` rejects `init`. `getPhoto({ format })` rejects a non-string `format`, and `setRetryPolicy(true)` rejects.
 10. **iOS recognition frameworks (1.7.8).** The plugin always embeds the five recognition xcframeworks: `RecognitionInterface`, `RecognitionEngine`, `RecognitionEngineQdrant`, `NLQdrantEdgeFFI` and `RecognitionBootstrap`. They are linked even with `recognition: false`, and they are dynamic, so keep them embedded.
 11. **Android Kotlin metadata (1.6.8).** Stock Cordova Android apps compile against the Kotlin 2.3 SDK AAR without changes; the plugin injects `GradlePluginKotlinVersion 2.3.0`. Remove any workaround you added for "binary version of its metadata is 2.3.0". The toolchain needs minSdk 26, compileSdk 36, AGP 8.9.1 or later, Gradle 8.11.1 or later (AGP 8.9.1's minimum) and JDK 17.
-12. **Events while the camera is open (1.6.8; the rate limit is from 1.7.8).** Capture events (`captureQueued`, `captureResult`, `uploadSucceeded`, `uploadFailed`, `captureDeleted`) are buffered while the native camera is on screen. They are delivered in order after `cameraClosed`. `queueStatusChanged`, `guidanceStateChanged` and `detectorModelStatusChanged` collapse to the latest value, and `queueStatusChanged` fires at most 4 times a second. If `cameraClosed.droppedEventCount` is above 0, re-read the queue.
+12. **Events while the camera is open (1.6.8; the rate limit is from 1.7.8).** Capture events (`captureQueued`, `captureResult`, `uploadSucceeded`, `uploadFailed`, `captureDeleted`, `captureCropReplaced`) are buffered while the native camera is on screen. They are delivered in order after `cameraClosed`. `queueStatusChanged`, `guidanceStateChanged` and `detectorModelStatusChanged` collapse to the latest value, and `queueStatusChanged` fires at most 4 times a second. If `cameraClosed.droppedEventCount` is above 0, re-read the queue.
 13. **`cameraClosed.error` (1.7.9).** A capture screen that failed (`CAMERA_PERMISSION_DENIED`, `CAMERA_UNAVAILABLE` on both platforms; `CAMERA_PRESENT_FAILED` on iOS; `NOT_INITIALIZED`, `CAPTURE_RESULT_MISSING`, `CAPTURE_RESULT_UNREADABLE` or `CAPTURE_FAILED` on Android) arrives as `cameraClosed` with `cancelled: false` and `error: { code, message }`. It used to look like the rep cancelling. A refused permission and a camera that would not start are never `uploadFailed` (until 1.7.20 Android sent them there): when the camera showed the rep why (Android's "Camera access is off" pane, the "camera could not start" message on both), the error arrives on that session's `cameraClosed` once the rep closes it, provided nothing was captured.
 14. **Portrait only (1.7.10).** Every capture reaches the server in portrait.
 15. **Android ARCore (1.7.9).** The AAR is built against ARCore 1.56.0.

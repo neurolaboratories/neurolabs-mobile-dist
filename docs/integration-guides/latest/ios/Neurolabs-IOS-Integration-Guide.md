@@ -14,6 +14,50 @@ custom-camera flows that need a minimum capture count and a higher
 maximum cap. `showsCapturedCountLabel` hides the `N captured` chip in
 custom camera and multi-capture flow UIs.
 
+### v1.7.22
+No initialiser changes and no removals. New APIs are additive, with one
+source change: `NLCaptureDeletionSource` gains `.retake`, so a `switch` over
+it without `@unknown default` must handle the new case.
+
+If your app keeps photos from `onCapture` (save handlers that return
+`.skipDefault`):
+- A retake now reaches `onCaptureDeleted` with source `.retake`: drop that
+  photo. A crop reaches the new `NLCameraConfiguration.onCaptureCropReplaced`
+  (`NeurolabsSDKCore.onCaptureCropReplaced` for `openNativeCaptureUI`) with the
+  cropped photo: swap your copy of `replacedCaptureId`. Both are experimental
+  (section 10).
+- With a recognition provider set, the camera recognises those photos before
+  its save flow returns (at most 10 s), so `recognitionMatches(forCapture:)`
+  and `NLCapturePhoto.recognitionMatches` are filled. Nothing new is queued
+  or uploaded. With an embedded camera, set `NeurolabsSDKCore.shared` to the
+  core your save handlers commit through if your app creates more than one
+  core (section 12). `recognizeCapture(captureId:imageData:detections:)`
+  recognises a photo outside the camera (section 12).
+
+Behaviour changes, with no opt-in:
+- "Face the shelf straight on" (the shelf-row yaw leg) fires above 12° and
+  clears at 9° or less (was 8° and 5°). Every org's `config_hash` in
+  `guidance_config_applied` changes with this release.
+- With `uploadsEnabled == false`, a credential no longer opens the SDK's
+  background `URLSession`, fetches `GET /v1/config` or posts an owed submit.
+- A `NeurolabsSDKCore` created without a key or auth provider keeps the
+  detector credential you registered with `NLDetectorModels.setCredentials`.
+- Releasing an `NLRecognitionBootstrap` withdraws its embedder from the AR
+  camera's appearance step: keep the bootstrap while you want it used.
+- The AR live "~ N products" chip counts SKU facings only, and shutter
+  presses during limited ARKit tracking are not fused. Served counts are
+  unchanged.
+
+New APIs: in `NeurolabsSDK`, `NLCaptureDeletionSource.retake`,
+`NLCaptureCropReplacement`, `NLCameraConfiguration.onCaptureCropReplaced`,
+`NeurolabsSDKCore.onCaptureCropReplaced`,
+`NeurolabsSDKCore.recognizeCapture(captureId:imageData:detections:)`,
+`NeurolabsSDKCore.arSessionRecording` (experimental, section 7) and
+`NLSDKDebug.guidanceDiagnostics`; in `RecognitionInterface`,
+`NLOnDeviceEmbedderRendezvous.publishWithdrawable(_:)`, `withdraw(_:)`,
+`subscribeToWithdrawals(_:)`, `Publication`, `Embedder.publicationId` and
+`didWithdrawNotification`.
+
 ### v1.7.21
 No initialiser changes. New APIs are additive. One breaking removal:
 `NLShelfDetector` and `NLCoreMLYoloDetector` are gone. The SDK never
@@ -481,7 +525,9 @@ What stays on the device:
   full frame, on iOS and Android.
 - `.nlrec` files (`arSessionRecording`, experimental) are AR tooling
   recordings for replay and calibration. They are not a capture output and
-  are never uploaded.
+  are never uploaded. A camera opened by `openNativeCaptureUI` (WebView,
+  Cordova) records when `NeurolabsSDKCore.arSessionRecording` is set before
+  it opens (1.7.22); set it, nil included, on every open.
 
 ## 7. Open Custom Camera
 
@@ -881,7 +927,7 @@ var config = NLCameraConfiguration()
 config.onCaptureDeleted = { deletion in
     // deletion.captureId      the same id onCapture / onSave saw
     // deletion.remainingCount captures still in the session, pending + accepted
-    // deletion.source         .review | .captureStrip | .bayPeek
+    // deletion.source         .review | .captureStrip | .bayPeek | .retake
     MyVisitLog.shared.photoDeleted(deletion.captureId, remaining: deletion.remainingCount)
 }
 ```
@@ -891,13 +937,43 @@ config.onCaptureDeleted = { deletion in
 - `source` is `.review` for the review sheet and the final review grid, and
   `.captureStrip` for the per-tile delete on the capture strip. `.bayPeek` is
   reserved for the AR per-bay peek, which has no delete on iOS today.
-- It does not fire for the SDK's own discards: a retake, a strict-quality
-  reject, a capture your `onCapture` took with `.skipDefault`, the camera
-  closing, or the upload queue removing a photo (including
-  delete-on-upload-success).
+- `source` is `.retake` (1.7.22) when the rep retook the photo: Retake on the
+  photo under review, or an AR bay retake (for the photo it replaced, or a
+  retake photo that could not take its bay). It is not a delete, but the
+  photo is not in the result, so a host that keeps photos from `onCapture`
+  drops it. A strict-quality reject stays silent. Handle cases added later
+  with `@unknown default`, and ignore an id you never received.
+- It does not fire for the SDK's own discards: a strict-quality reject, a
+  capture your `onCapture` took with `.skipDefault`, the camera closing, or
+  the upload queue removing a photo (including delete-on-upload-success).
 - Nil, the default, sends nothing. It is a stored property, not an `init`
   parameter, so it is additive and ABI-safe. The Android SDK has the same
   contract under the same names.
+
+### Photo cropped (experimental)
+
+A crop replaces the photo the rep shot. A host that keeps photos from
+`onCapture` swaps its copy when it hears `NLCameraConfiguration.onCaptureCropReplaced`
+(1.7.22), so it submits the crop:
+
+```swift
+config.onCaptureCropReplaced = { replacement in
+    // replacement.replacedCaptureId  the id onCapture saw
+    // replacement.capture            the cropped photo: captureId, imageData
+    //                                (and imageFilePath), width, height,
+    //                                detections remapped into the crop
+    MyVisitStore.shared.replace(replacement.replacedCaptureId, with: replacement.capture.imageData)
+}
+```
+
+- Fires once per applied crop, on the main actor: the per-shot review, the
+  final review, or a bay opened from "Review shelf". A crop that did not apply
+  sends nothing.
+- The crop keeps the id today (`capture.captureId == replacedCaptureId`); key
+  the swap on `replacedCaptureId`. `imageFilePath`, when set, stays readable
+  until the callback returns.
+- A camera `openNativeCaptureUI` opens reads `NeurolabsSDKCore.onCaptureCropReplaced`
+  instead. Android: `NLCustomCameraView(onCaptureCropReplaced = ...)`.
 
 ## 11. Delegate/Event Callbacks
 
@@ -1018,6 +1094,22 @@ Tap-to-product-card: captures expose per-detection matches via
 screen and feed it an `NLProductDetailsSource` wrapping ProductAuditKit's
 `NLProductDetailsResolver` (one-liner on the source type's docs). Offline
 or unresolved products fall back to a UUID + similarity row automatically.
+
+Captures your app keeps (v1.7.22): when a save handler returns `.skipDefault`
+and a recognition provider is set, the camera still runs recognition for the
+photo, without queueing it, before its save flow returns (at most 10 s), and
+`NLCapturePhoto.recognitionMatches` on the session result is filled.
+`openCustomCameraUI` and `openNativeCaptureUI` use their own core. An embedded
+camera (`NLCustomCameraView` / `NLCustomCameraViewController` you build) uses
+`NeurolabsSDKCore.shared`, or, while that is nil, the one live core: if your
+app creates more than one core, set `NeurolabsSDKCore.shared` to the core your
+save handlers commit through, or the camera recognises and fills nothing. To
+recognise a photo outside the camera (one you stored
+yourself), `await sdk.recognizeCapture(captureId:imageData:detections:)`. It
+returns the matches and keeps them for `recognitionMatches(forCapture:)`;
+nil means recognition did not run (no provider, the kill switch on, a
+provider not ready, or an image that does not decode), and an empty result
+means it ran and matched nothing.
 
 ## 13. AR Camera Options (v1.7.16)
 

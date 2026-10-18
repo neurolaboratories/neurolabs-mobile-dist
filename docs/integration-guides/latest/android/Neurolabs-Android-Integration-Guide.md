@@ -11,6 +11,50 @@ working as is. Recommended defaults: strict shelf guidance with
 `validationPreset = IOS_PARITY`, `liveQualityChecksEnabled = true`,
 `autoCloseAfterCapture = true` for single-capture parity flows.
 
+### v1.7.22
+No `NLConfiguration` changes and no removals. New APIs are additive, and the
+1.7.21 `NLCustomCameraView` / `NLCaptureScreen` signatures stay as hidden
+overloads, so compiled hosts still link. One source change:
+`NLCaptureDeletionSource` gains `RETAKE`, so a `when` over it with no `else`
+branch must handle the new entry.
+
+If your app keeps photos from `onCapture`:
+- A retake now reaches `onCaptureDeleted` with source `RETAKE`: drop that
+  photo. A crop reaches the new `onCaptureCropReplaced` (a trailing parameter
+  on `NLCustomCameraView` and `NLCaptureScreen`, or
+  `NeurolabsSDKCore.onCaptureCropReplaced` for `NLCaptureActivity`) with the
+  cropped photo: swap your copy of `replacedCaptureId`. Both are experimental.
+- A photo your app keeps and never enqueues is not recognised (that is iOS
+  only). The suspend
+  `NeurolabsSDKCore.recognizeCapture(captureId, imageData, detections)`
+  recognises it without queueing it (section 11).
+
+Recognition matches: the SDK recognises a capture where it is enqueued, which
+on Android mostly comes after `onCaptureComplete`. Read them with
+`sdk.recognitionMatches(forCaptureId)` once the capture is enqueued;
+`CapturedImageData.recognitionMatches` on the delivered captures is filled
+only for a capture recognised by then. The multi-bay realogram's
+`product_id` (`NLCaptureActivity` rebuilds it after its save loop) and the
+visit KPIs now carry the matches.
+
+Behaviour changes, with no opt-in:
+- "Face the shelf straight on" (the shelf-row yaw leg) fires above 12° and
+  clears at 9° or less (was 8° and 5°). Every org's `config_hash` in
+  `guidance_config_applied` changes with this release.
+- With `uploadsEnabled = false`, a credential no longer fetches
+  `GET /v1/config` for the queue or posts an owed mission submit.
+- A commit recognises every detection whatever `sendDetectionsMetadata` says.
+- A negative `NLDetectionOptions.maxDetections` keeps no detections, as on
+  iOS, instead of throwing `IllegalArgumentException`.
+- The AR live "~ N products" chip counts SKU facings only, and shutter
+  presses during limited ARCore tracking are not fused. Served counts are
+  unchanged.
+
+New APIs: `NLCaptureCropReplacement`, `onCaptureCropReplaced` (camera
+parameter and core), `NeurolabsSDKCore.recognizeCapture(...)`, and
+`NLARSessionRecording` (experimental, armed process-wide with
+`NLARSessionRecording.armed`).
+
 ### v1.7.21
 No `NLConfiguration` changes. New APIs are additive. One breaking removal:
 `NLOnnxYoloDetector`, `NLOnnxYoloConfig` and `ModelExportInstructions` are
@@ -592,6 +636,21 @@ Tap-to-product-card: captures expose per-detection matches via
 `NLDetectionInspectorSheet(detection, match, resolver, onDismiss)` and an
 `NLProductDetailsResolver` built over `NLOperationsCatalogClient`.
 Offline or unresolved products fall back to a UUID + similarity row.
+
+Matches on the captures (v1.7.22): the SDK recognises a capture where it is
+enqueued, mostly after `onCaptureComplete` (the `NLCaptureActivity` save loop,
+or your own `enqueueCapture` call), so read the matches with
+`sdk.recognitionMatches(forCaptureId:)` once the capture is enqueued. A
+delivered capture's `CapturedImageData.recognitionMatches` is filled only when
+it was recognised before delivery. The multi-bay realogram (rebuilt after
+`NLCaptureActivity`'s save loop) and the visit KPIs read the stored matches.
+To recognise a photo outside the camera (one you stored
+yourself), call the suspend
+`sdk.recognizeCapture(captureId, imageData, detections)`. It returns the
+matches and keeps them for `recognitionMatches(forCaptureId:)`; null means
+recognition did not run (no provider, the kill switch on, a provider not
+ready, or an image that does not decode), and an empty map means it ran and
+matched nothing. Nothing is queued or uploaded.
 
 ## 12. Notes
 
