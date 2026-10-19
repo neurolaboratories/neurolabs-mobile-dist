@@ -5,17 +5,17 @@
   "spm_package_manifest": "Package.swift",
   "minimum_ios_version": "17.0",
   "latest": {
-    "version": "v1.7.22",
-    "asset_name": "NeurolabsSDK.xcframework-v1.7.22.zip",
-    "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.22/NeurolabsSDK.xcframework-v1.7.22.zip",
-    "checksum_sha256": "ce9aa880b59f2c507a1e792a704fe9c63d1bc3bf1e1d5976c164d3eaf97eb55d"
+    "version": "v1.7.23",
+    "asset_name": "NeurolabsSDK.xcframework-v1.7.23.zip",
+    "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.23/NeurolabsSDK.xcframework-v1.7.23.zip",
+    "checksum_sha256": "d8c4ba751d3c2005642a72f37add7d353bf9224613bc8fa94e1ae0b22288fee3"
   },
   "lines": {
     "1.7": {
-      "version": "v1.7.22",
-      "asset_name": "NeurolabsSDK.xcframework-v1.7.22.zip",
-      "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.22/NeurolabsSDK.xcframework-v1.7.22.zip",
-      "checksum_sha256": "ce9aa880b59f2c507a1e792a704fe9c63d1bc3bf1e1d5976c164d3eaf97eb55d"
+      "version": "v1.7.23",
+      "asset_name": "NeurolabsSDK.xcframework-v1.7.23.zip",
+      "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.23/NeurolabsSDK.xcframework-v1.7.23.zip",
+      "checksum_sha256": "d8c4ba751d3c2005642a72f37add7d353bf9224613bc8fa94e1ae0b22288fee3"
     },
     "1.6": {
       "version": "v1.6.12",
