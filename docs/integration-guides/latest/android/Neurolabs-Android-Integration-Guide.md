@@ -11,6 +11,37 @@ working as is. Recommended defaults: strict shelf guidance with
 `validationPreset = IOS_PARITY`, `liveQualityChecksEnabled = true`,
 `autoCloseAfterCapture = true` for single-capture parity flows.
 
+### v1.7.23
+No public API changes: `sdk.api` is unchanged since v1.7.22.
+
+If you embed the camera (`NLCustomCameraView`, or `NLCaptureActivity` opened
+from an `NLCameraConfiguration`) and set no shelf type: an absent type is no
+longer read as `SHELF`, as on iOS. With no `maxCaptures`, one photo now
+completes the session (it was three), the strict "too similar" reject is
+off, and the shelf overlay's distance, angle and panning cues are gone. Set
+`shelfType = NLShelfType.SHELF` to keep the shelf behaviour (section 7).
+
+Behaviour changes, with no opt-in:
+- Snapshot manifests must be signed. The SDK pins the backend's snapshot
+  keys (the staging key only on a Neurolabs staging operations host), and a
+  manifest that is unsigned, signed by another key or altered fails to load,
+  so recognition stays off for that build (section 11). Every live manifest
+  has been signed since 18 Oct 2026, and older SDKs ignore the signature. A
+  snapshot an older SDK cached for offline use is unsigned and is not used
+  offline; the next online load replaces it. An `NLCatalogSnapshotLoader`
+  built with the default verifier now refuses unsigned manifests.
+- With your own capture UI (`NLCustomCameraView`, or photos you queue with
+  `enqueueCapture`), `stopSession` computes the visit's KPIs once and
+  `device_kpis` rides the submit under the usual rules. A visit that spans
+  an app kill gets a partial count (section 12, "Visit KPIs"). Set the
+  context on the session you stop.
+- `quality.capture_verdicts` counts a capture as `warn` when its quality
+  check judged it not acceptable or flagged a warning.
+- Tapping a bay on "Review shelf", or a photo on the default camera's
+  "Review", shows the photo's quality summary under it.
+- The AR count v2 runs in shadow behind the internal `V2` fusion profile,
+  which is off; `V1` is unchanged.
+
 ### v1.7.22
 No `NLConfiguration` changes and no removals. New APIs are additive, and the
 1.7.21 `NLCustomCameraView` / `NLCaptureScreen` signatures stay as hidden
@@ -391,6 +422,16 @@ Recommended capture payload notes:
 - Nothing is queued or uploaded before Confirm. The photos are staged on disk, so they survive the process being killed. Confirm queues the remaining photos in capture order, crops applied.
 - Default `false`: every other session, and every host that does not set it, is unchanged.
 
+### Embedded camera: shelf type (1.7.23)
+
+`NLCustomCameraView`, and `NLCaptureActivity` opened from an
+`NLCameraConfiguration`, keep an absent `shelfType` absent, as iOS does: with
+no `maxCaptures` one photo completes the session, the strict "too similar"
+reject is off, and the shelf overlay's distance, angle and panning cues do not
+run ("Point at a shelf" still does). Set `shelfType = NLShelfType.SHELF` for
+the shelf behaviour. `NLCaptureActivity` opened with an `NLNativeCaptureConfig`
+still reads an absent type as a shelf.
+
 ### Embedded camera: who owns the photo files (1.7.19)
 
 `NLCaptureActivity` / `openNativeCaptureUI` queue the photos themselves; nothing below applies to them. When you embed the camera (`NLCustomCameraView`, `NLCaptureScreen`), `onCaptureComplete` hands the session's photos to you:
@@ -592,6 +633,13 @@ is then the time of that sync, and `statusSummary` reads
 `provider: ready (offline, 42 items, snapshot from 2026-10-01)`. A 401 or 403
 still switches recognition off and forgets the record.
 
+**Signed manifests (v1.7.23).** Every manifest, online or from the offline
+record, must carry a valid signature from a key the SDK pins; otherwise the
+load fails with `NLCatalogSnapshotLoader.IntegrityException` and recognition
+stays off for that build. The staging key is trusted only on a Neurolabs
+staging operations host. An offline record an older SDK saved is unsigned,
+so it is not used; the next online build replaces it.
+
 **Short-lived tokens.** If your bearer is a session token rather than a fixed
 key, build the configuration with your `NLOperationsAuthProvider` and a stable
 identity for the rep or org instead:
@@ -670,6 +718,8 @@ sdk.clearStoreContextCache()                  // sign-out
 ### Visit KPIs (1.7.21)
 
 After an SDK-managed session (`NLCaptureActivity`, the bridge, Cordova) finishes with at least one capture, the SDK computes the visit's KPIs on the device and calls `NeurolabsSDKDelegate.onVisitKpis(result, sessionId)` (default no-op). On by default; `setVisitKpisEnabled(false)` turns it off.
+
+With your own capture UI (`NLCustomCameraView`, or photos you queue with `enqueueCapture`), `stopSession(sessionId)` computes them once instead (1.7.23), from the photos queued for that session in this process, under the same rules. Set the context on the session you stop. A visit that spans an app kill gets a partial count: photos queued before the kill are not counted, because their in-memory record is lost too, and photos queued after the relaunch are counted normally, with `catalog_snapshot_id` set. A session whose photos were all queued before the kill gets no `device_kpis`.
 
 ```kotlin
 sdk.setVisitKpiContext(sessionId, NLVisitKpiContext(outletId, sectionsByCaptureId = emptyMap(), sectionsByBayIndex = emptyMap()))

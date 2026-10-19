@@ -14,6 +14,29 @@ custom-camera flows that need a minimum capture count and a higher
 maximum cap. `showsCapturedCountLabel` hides the `N captured` chip in
 custom camera and multi-capture flow UIs.
 
+### v1.7.23
+No public API changes: no new APIs, no initialiser changes and no removals.
+
+Behaviour changes, with no opt-in:
+- Snapshot manifests must be signed. The SDK pins the backend's snapshot
+  keys (the staging key only on a Neurolabs staging operations host), and a
+  manifest that is unsigned, signed by another key or altered fails to load,
+  so recognition stays off for that build (section 12). Every live manifest
+  has been signed since 18 Oct 2026, and older SDKs ignore the signature. A
+  snapshot an older SDK cached for offline use is unsigned and is not used
+  offline; the next online load replaces it. An `NLCatalogSnapshotLoader`
+  you build with the default `pinnedPublicKey` now refuses unsigned
+  manifests.
+- With your own capture UI (`NLCustomCameraView`, or photos you queue with
+  `enqueueCapture`), `stopSession(_:)` computes the visit's KPIs once and
+  `device_kpis` rides the submit under the usual rules. A visit that spans
+  an app kill gets a partial count (section 14, "Visit KPIs"). Set the context on the
+  session you stop.
+- `quality.capture_verdicts` counts a capture as `warn` when its quality
+  check judged it not acceptable or flagged a warning or an error.
+- The AR count v2 runs in shadow behind the internal `.v2` fusion profile,
+  which is off; `.v1` is unchanged.
+
 ### v1.7.22
 No initialiser changes and no removals. New APIs are additive, with one
 source change: `NLCaptureDeletionSource` gains `.retake`, so a `switch` over
@@ -1074,6 +1097,14 @@ on reconnect; call `build()` again when `onStatusChange` reports `.ready`.
 The cache lives in `Application Support/nl-catalog-snapshots` (excluded
 from backup).
 
+**Signed manifests (v1.7.23).** Every manifest, online or from the offline
+cache, must carry a valid signature from a key the SDK pins; otherwise the
+load fails with `NLCatalogSnapshotLoader.LoaderError.signatureMissing` or
+`.signatureInvalid` and recognition stays off for that build. The staging
+key is trusted only on a Neurolabs staging operations host. An offline copy
+an older SDK saved is unsigned, so it is not used; the next online build
+replaces it.
+
 The embedder (the pinned DINOv3-ConvNeXt-tiny export, 768-d) is downloaded
 by the SDK through `GET /v1/device-models` with your operations key, checked
 against the sha256 pinned in source, compiled on the device and cached. Do
@@ -1205,6 +1236,8 @@ await sdk.clearStoreContextCache()            // sign-out
 ### Visit KPIs (since 1.7.21)
 
 After an SDK-managed session finishes with at least one capture, the SDK computes the visit's KPIs on the device and calls `neurolabsSDK(_:didComputeVisitKPIs:sessionId:)` (default no-op, main actor). On by default; `setVisitKPIsEnabled(false)` turns it off.
+
+With your own capture UI (`NLCustomCameraView`, or photos you queue with `enqueueCapture`), `stopSession(_:)` computes them once instead (1.7.23), from the photos queued for that session in this process, under the same rules. Set the context on the session you stop. The SDK holds what this needs in memory, so a visit that spans an app kill gets a partial count: photos queued before the kill are not counted, and photos queued after the relaunch are counted normally, with `catalog_snapshot_id` set. A session whose photos were all queued before the kill gets no `device_kpis`.
 
 ```swift
 sdk.setVisitKPIContext(NLVisitKPIContext(outletId: outletId, sectionsByCaptureId: [:], sectionsByBayIndex: [:]),

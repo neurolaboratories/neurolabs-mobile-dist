@@ -11,6 +11,24 @@ listed here come from the underlying `neurolabs-android-sdk` and
 `scripts/prepare-sdk.js` at install time. No public JS API has been broken
 since v1.1.9.
 
+### v1.7.23
+- Plugin pins the native SDKs' 1.7.23 on both platforms. No plugin API
+  change.
+- iOS: a signed `cordova build ios` (build.json `automaticProvisioning` or
+  `provisioningProfile`) no longer drops the Sentry Swift package (SDK-10).
+- Native: snapshot manifests must be signed. A manifest that is unsigned,
+  signed by another key or altered fails to load, so on-device recognition
+  stays off for that build. Every live manifest has been signed since 18 Oct
+  2026, and older SDKs ignore the signature. A snapshot an older SDK cached
+  for offline use is not used offline; the next online load replaces it.
+- Native: the `visitKpis` payload's `quality.capture_verdicts` counts a
+  capture as `warn` when its quality check judged it not acceptable or
+  flagged a warning.
+- Native (Android): tapping a bay on "Review shelf", or a photo on the
+  default camera's "Review", shows its quality summary, as on iOS.
+- The plugin's cameras keep their behaviour: they already computed visit
+  KPIs at their finish, and the bridges always pass a shelf type.
+
 ### v1.7.22
 - Plugin pins the native SDKs' 1.7.22 on both platforms.
 - `captureDeleted` now also fires when the rep retakes a photo, on both
@@ -709,7 +727,7 @@ each one in this order:
 3. the SDK default: a **4032 px long edge at JPEG quality 0.9** (native SDK
    1.7.16).
 
-The plugin pins native 1.7.22 (the default dates from 1.7.16), so on both platforms an omitted value means
+The plugin pins native 1.7.23 (the default dates from 1.7.16), so on both platforms an omitted value means
 4032 px at 0.9 unless your organisation overrides it. Invalid values (`<= 0`, or a
 quality outside `0..1`) reject with `INVALID_ARGUMENT` on both platforms.
 
