@@ -11,6 +11,41 @@ working as is. Recommended defaults: strict shelf guidance with
 `validationPreset = IOS_PARITY`, `liveQualityChecksEnabled = true`,
 `autoCloseAfterCapture = true` for single-capture parity flows.
 
+### v1.7.24
+No `NLConfiguration` changes and no removals. New APIs are additive, and
+`NLCameraConfiguration`, `NLNativeCaptureConfig`, `NLNativeCaptureOptions`,
+`CaptureScreenConfig` and `NLNativeMultiBayResultSummary` keep their 1.7.23
+constructor and `copy` as hidden overloads, so compiled hosts still link.
+Nothing is required.
+
+New, all optional:
+- `multiBayCountSource` (`NLMultiBayCountSource.AGGREGATOR`, the default, or
+  `AR_TRACKLETS`) picks which count an AR multi-bay result serves.
+  Experimental (section 8).
+- `arLiveKPIRings` (default off) shows three live KPI rings on the AR
+  multi-bay camera. Experimental (section 7).
+- `computeVisitKpis(..., storeContext = NLVisitKpiHostStoreContext(...))`
+  computes visit KPIs on a store context you supply, never submitted
+  (section 12).
+- `NLInspectorMatchPolicy.boxName(match, product)` gives the name to draw on
+  a box, only at or above the recognition floor (section 11).
+
+Behaviour changes, with no opt-in:
+- With your own capture UI, a visit that spans an app kill now counts every
+  photo once you call `stopSession` after the relaunch (section 12).
+- K16 price-tag coverage pairs tags by shelf geometry, so it no longer reads
+  about 0 % on full-resolution photos, and `add_tag` actions fall (section
+  12). The compliance KPIs K9-K11 and the actions N4/N5 are unchanged, now
+  pinned to shared reference rows.
+- AR long walks stay inside the track budget: facings out of view are
+  archived, not dropped, and the AR counts read higher on long walks. The
+  AR walk waits up to 45 s for the live detector, and a continuous preset
+  runs continuous; reps see the Guided / Auto chooser once more after the
+  update (section 7).
+- The inspector names a box only at or above the recognition floor (0.5),
+  and "On this shelf" says "No catalogue matches" when nothing matched
+  (sections 8 and 11).
+
 ### v1.7.23
 No public API changes: `sdk.api` is unchanged since v1.7.22.
 
@@ -488,6 +523,39 @@ With on-device recognition off, the AR overlay tells touching boxes apart by app
 
 Names for the live labels come from `NLCameraConfiguration.productDetailsSource` (an `NLProductDetailsResolver`). It is in-process only, never in the bridge's JSON: it reaches `NLCustomCameraView(cameraConfiguration = …)` and `NLCaptureActivity.open` / `createIntent(context, sessionId, cameraConfiguration)`. (iOS sets the same source on `NeurolabsSDKCore.productDetailsSource` for `openNativeCaptureUI`.)
 
+### AR walks: detector, track budget and the mode chooser (1.7.24)
+
+- **The walk waits for the detector.** On an AR multi-bay session with live
+  detection, capture (auto and manual) is held under "Getting ready...
+  Loading the product detector" until the live detector has loaded, for 45 s
+  at most. After that, or at once when the detector cannot load, the walk
+  goes on with "Detector unavailable. You can still capture."
+- **Long walks stay inside the track budget.** A settled facing whose whole
+  footprint is out of view is archived, not kept live, and comes back under
+  its old id when the camera returns. Price tags, promos and posters get at
+  most 64 of the 256 live tracks. Archived facings still count: under `V1`
+  the finish counts them next to the live anchors, so `ar_anchor_counts`
+  reads higher on long walks than in 1.7.23. The live "~ N products" chip
+  reads higher too, because births are no longer refused and more facings
+  turn solid. A facing seen square on turns solid after one press.
+- **A continuous preset runs continuous.** A Guided / Auto pick from the
+  chooser applies only while the host asks for the capture mode it was made
+  under. A pick stored by an earlier version applies to nothing, so reps see
+  the chooser once more after the update.
+- No API change.
+
+### Live KPI rings (1.7.24, experimental)
+
+`arLiveKPIRings = true` (on `NLCameraConfiguration` and `CaptureScreenConfig`;
+`Boolean?` on `NLNativeCaptureConfig` / `NLNativeCaptureOptions`, options,
+then config, then `false`) shows three small rings under the AR multi-bay
+camera's status chip: the SKU facings counted so far, filled by the share that
+has settled; the gaps seen in the captured bays; and price tags per facing, as
+a percentage. They are estimates from what the overlay already tracks, at
+about 2 Hz; no KPI engine runs while capturing. They hide while the guidance
+dock is amber or red and during a review, and TalkBack reads them as one
+element.
+
 ## 8. Multi-Bay Capture (Long Shelves)
 
 Multi-bay capture handles shelves too long for a single photo: the user side-steps along the shelf and captures one overlapping photo per bay, the SDK guides the side-step, dedups the overlap on device, and reports merged product counts across bays in a single session result.
@@ -560,6 +628,29 @@ Upload semantics:
 Config-only mode:
 - There is no partner-facing in-camera mode toggle. The Single ↔ Multi-bay capture-mode chip and sheet are internal demo/debug chrome gated behind `NLSDKDebug.internalCameraToolsEnabled` (default `false`; never enable it in partner builds). Partners control the mode purely via configuration: `multiBay` set = multi-bay session, `multiBay = null` = single-bay session — programmatic `multiBay` configuration is unaffected by the gate.
 - The Neurolabs demo app enables that chrome only in local debug builds; Firebase/release demo builds default to single-bay exactly like partner builds. The multi-bay feature itself is fully available in all builds via configuration — only the demo defaults changed.
+
+### Count source and "On this shelf" (1.7.24)
+
+- `multiBayCountSource` (experimental; on `NLCameraConfiguration` and
+  `CaptureScreenConfig`, and as a nullable field on `NLNativeCaptureConfig` /
+  `NLNativeCaptureOptions`, options, then config, then `AGGREGATOR`) picks the
+  count an AR multi-bay result serves. `AGGREGATOR`, the default, changes
+  nothing. `AR_TRACKLETS` on the AR camera serves the AR tracklet count:
+  `countsByLabel`, `productCount` and the new `perBayCountsByLabel` hold every
+  facing counted once by world identity. The aggregator always runs:
+  `NLMultiBayResult.aggregatorCountsByLabel` / `aggregatorProductCount` hold
+  its counts, and `countSource` says which served. The result falls back to
+  the aggregator when there is no AR count, or when the AR count has no SKU
+  facing and the aggregator has some.
+- The submit keeps the aggregator's `counts_by_label` in both modes. Under
+  `AR_TRACKLETS`, `ar_anchor_counts` adds `count_source: "ar_tracklets"`, and
+  `NLNativeMultiBayResultSummary` adds `countSource` and
+  `aggregatorCountsByLabel`. On the bridge an unknown value reads as absent
+  (wire names `aggregator`, `ar_tracklets`).
+- When recognition ran and matched no facing at or above the floor, "On this
+  shelf" ends with "No catalogue matches", "0 of N facings recognised" and "The
+  catalogue may not cover the products in this store." While the merge still
+  counts, it says "Counting products...".
 
 ## 9. Post-Processing Hooks
 Use Activity Result API and process captures when camera returns.
@@ -685,6 +776,14 @@ Tap-to-product-card: captures expose per-detection matches via
 `NLProductDetailsResolver` built over `NLOperationsCatalogClient`.
 Offline or unresolved products fall back to a UUID + similarity row.
 
+Inspector floor (v1.7.24): `NLDetectionInspectorSheet` names a box only when
+its match is at or above `NLReviewAnalytics.RECOGNITION_FLOOR` (0.5). Below
+it, the sheet keeps the detection's class and says "Not recognised", with the
+closest catalogue item and its score as a percentage. If you draw names on
+boxes yourself (`DetectionOverlay(detectionLabels = ...)`), take them from
+`NLInspectorMatchPolicy.boxName(match, product)`, which applies the same
+floor; `NLInspectorMatchPolicy.isRecognised(match)` is the test alone.
+
 Matches on the captures (v1.7.22): the SDK recognises a capture where it is
 enqueued, mostly after `onCaptureComplete` (the `NLCaptureActivity` save loop,
 or your own `enqueueCapture` call), so read the matches with
@@ -719,15 +818,37 @@ sdk.clearStoreContextCache()                  // sign-out
 
 After an SDK-managed session (`NLCaptureActivity`, the bridge, Cordova) finishes with at least one capture, the SDK computes the visit's KPIs on the device and calls `NeurolabsSDKDelegate.onVisitKpis(result, sessionId)` (default no-op). On by default; `setVisitKpisEnabled(false)` turns it off.
 
-With your own capture UI (`NLCustomCameraView`, or photos you queue with `enqueueCapture`), `stopSession(sessionId)` computes them once instead (1.7.23), from the photos queued for that session in this process, under the same rules. Set the context on the session you stop. A visit that spans an app kill gets a partial count: photos queued before the kill are not counted, because their in-memory record is lost too, and photos queued after the relaunch are counted normally, with `catalog_snapshot_id` set. A session whose photos were all queued before the kill gets no `device_kpis`.
+With your own capture UI (`NLCustomCameraView`, or photos you queue with `enqueueCapture`), `stopSession(sessionId)` computes them once instead (1.7.23), from the photos queued for that session, under the same rules. Set the context on the session you stop. Since 1.7.24 what the run needs is recorded on disk, so a visit that spans an app kill counts every photo, with its recognition matches, once you call `stopSession` after the relaunch. A session the SDK submits on its own after a relaunch, with no `stopSession`, goes without `device_kpis`.
 
 ```kotlin
 sdk.setVisitKpiContext(sessionId, NLVisitKpiContext(outletId, sectionsByCaptureId = emptyMap(), sectionsByBayIndex = emptyMap()))
 // before the session finishes; refreshes the store context
 val result = sdk.computeVisitKpis(sessionId, captures, multiBayResult, context)  // your own capture UI; read-only
+val preview = sdk.computeVisitKpis(sessionId, captures, multiBayResult, context,  // a store context you supply:
+    storeContext = NLVisitKpiHostStoreContext(storePartJson = storePart, orgPartJson = orgPart))
 ```
 
+`computeVisitKpis(sessionId, captures, multiBay, context, storeContext)` (1.7.24) runs the same engine on a store part (`nl.store_context` v1) and org part (`nl.store_context_org` v1) you pass as JSON, for previews, demos and tests. Their shape is checked, never a signature, so the result is never submitted; a part that fails a check throws `VISIT_KPIS_STORE_CONTEXT_INVALID`.
+
 `NLVisitKpiResult` carries the canonical `nl.visit_kpis` v1 JSON (`payloadJson`), `isProvisional` (always true on the device: label it "Provisional"), `storeContext` (`Used(offline)`, `Missing`, `Expired`), `perfectStoreScoreBp`, `actionCount` and `willSubmit`. Without a store context, show gaps and price-tag presence only, as "Needs store targets". The payload rides the mission submit as `client_metadata.device_kpis` only when the store context was ready and signature-verified and the payload passes the backend's checks; a `400 invalid_device_kpis` makes the SDK resubmit once without it. Details are in the README ("Visit KPIs").
+
+### KPI rules (1.7.24)
+
+- **K16 price-tag coverage.** A visit's `tag_paired` now comes from shelf
+  geometry, measured in the facing's own size, not from the recognition price
+  matcher's 100 px reach. A `price` or `promo` tag pairs one stack-0 facing:
+  the tag's centre must sit between a quarter of the facing's height above
+  its bottom and 1.5 of the tag's own heights below it, within half the
+  facing's width; the nearest facing wins. A tag under a gap tags no product,
+  and peg or hanging tags pair nothing. On three 19 Oct field captures 160 of
+  163 tags paired, where none did before, so K16 rises and `add_tag` actions
+  fall on full-resolution photos. zia-operations and iOS run the same rule.
+  The recognition payload's `priceMatches` keep the matcher's rule.
+- **Compliance KPIs.** The brand block (K9), shelf position (K10) and
+  adjacency (K11) KPIs, and the reposition (N4) and restore-block /
+  fix-adjacency (N5) actions, are pinned byte for byte to zia-operations'
+  58 shared layout rows. The engine already matched them, so nothing
+  changes.
 
 ### Telemetry and privacy (Sentry)
 

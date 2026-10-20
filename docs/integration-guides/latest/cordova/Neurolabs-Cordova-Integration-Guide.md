@@ -11,6 +11,40 @@ listed here come from the underlying `neurolabs-android-sdk` and
 `scripts/prepare-sdk.js` at install time. No public JS API has been broken
 since v1.1.9.
 
+### v1.7.24
+- Plugin pins the native SDKs' 1.7.24 on both platforms. Nothing is removed
+  from the plugin's API.
+- New AR multi-bay options, experimental and off by default, on both
+  platforms: `multiBayCountSource` (`'aggregator'` or `'ar_tracklets'`) and
+  `arLiveKPIRings`. See 6b "Count source and live KPI rings".
+- The `cameraClosed` `multiBay` summary gains `countSource` and
+  `aggregatorCountsByLabel`, present only when the AR tracklet count served
+  `countsByLabel`. Nothing changes for a session that does not ask for it.
+- Native (iOS): live frames reach the detector upright, so the AR camera
+  detects products live again: live boxes, the "~ N products" chip and the
+  live guidance work. Photos were never affected.
+- Native: long AR walks stay inside the track budget. Out-of-view facings
+  are archived and still count, so `ar_anchor_counts` and the live chip read
+  higher on long walks. `countsByLabel` is still the aggregator's unless you
+  set `multiBayCountSource: 'ar_tracklets'`.
+- Native: the AR multi-bay walk holds capture under "Getting ready..." until
+  the live detector has loaded, for 45 s at most, then lets the rep capture
+  anyway.
+- Native: the detection inspector names a product only at a match score of
+  0.5 or more, and says "Not recognised" below it. The review says "No
+  catalogue matches" when recognition matched nothing.
+- If your app shows product names from `captureResult.recognitionMatches`
+  itself, show a name only at a `similarity` of 0.5 or more, as the SDK's
+  inspector now does.
+- Native: a remembered Guided / Auto pick applies only under the capture
+  mode it was made under, so reps see the chooser once more after the
+  update.
+- Native: in `visitKpis`, K16 price-tag coverage pairs each tag with the
+  facing above it by shelf geometry, so `tag_paired` no longer reads about
+  0% on full-resolution photos and fewer `add_tag` actions are raised.
+- The native KPI pull with a host-supplied store context is not bridged in
+  this release: it needs a native entry point keyed by session id first.
+
 ### v1.7.23
 - Plugin pins the native SDKs' 1.7.23 on both platforms. No plugin API
   change.
@@ -727,7 +761,7 @@ each one in this order:
 3. the SDK default: a **4032 px long edge at JPEG quality 0.9** (native SDK
    1.7.16).
 
-The plugin pins native 1.7.23 (the default dates from 1.7.16), so on both platforms an omitted value means
+The plugin pins native 1.7.24 (the default dates from 1.7.16), so on both platforms an omitted value means
 4032 px at 0.9 unless your organisation overrides it. Invalid values (`<= 0`, or a
 quality outside `0..1`) reject with `INVALID_ARGUMENT` on both platforms.
 
@@ -832,7 +866,9 @@ Neurolabs.addListener('cameraClosed', ({ sessionId, cancelled, captureCount, mes
     dedupTrusted,         // false if the cross-bay alignment chain broke
     previewImageFileUri,  // 'file://...' when generatePreview: true (optional)
     realogram,            // native 1.7.18: shelves -> rows -> slots (optional)
-    segments              // native 1.7.18: [{ fromBay, toBay, trusted, countsByLabel }] (optional)
+    segments,             // native 1.7.18: [{ fromBay, toBay, trusted, countsByLabel }] (optional)
+    countSource,          // native 1.7.24: 'ar_tracklets' when the AR count served countsByLabel (optional)
+    aggregatorCountsByLabel // native 1.7.24: the aggregator's counts beside it (optional)
   } = multiBay;
   console.log('multi-bay summary', baysCount, dedupTrusted, countsByLabel);
 });
@@ -1005,6 +1041,53 @@ await Neurolabs.openCamera({
   arBoxPersistence: 'session',
   arLiveLabels: true,
   arLiveCount: true,
+});
+```
+
+### Count source and live KPI rings (experimental, native SDK 1.7.24)
+
+Both options are off by default and work on both platforms, plain and under
+the `multiBayAR` preset. A value you set overrides the preset's; an omitted
+one keeps it.
+
+- `multiBayCountSource` picks which count the `multiBay` summary serves:
+  - `'aggregator'` (the default) is today's behaviour: the Vision
+    aggregator's cross-bay dedup.
+  - `'ar_tracklets'` serves the AR camera's tracklet count: every facing the
+    walk saw, counted once by its world identity, live or held in the track
+    ledger. The summary's `countsByLabel` is then the AR count, with
+    `countSource: 'ar_tracklets'` and the aggregator's counts in
+    `aggregatorCountsByLabel`. Product labels (SKU facings, price tags,
+    promos, posters) come from the AR count; other labels (gaps, shelf rows)
+    keep the aggregator's.
+  - Only the AR camera has that count. On any other camera, or when the AR
+    count found no SKU facing while the aggregator found some (tracking
+    failed for the walk), the session falls back to the aggregator and the
+    summary carries no `countSource`.
+  - The submit is unchanged: its `counts_by_label` stays the aggregator's,
+    and the backend still serves those. When the AR count served, the
+    submit notes add `count_source: 'ar_tracklets'` to `ar_anchor_counts`.
+  - The value is decoded like the native SDKs: case, surrounding space and
+    underscores are ignored (`'arTracklets'` works). An unknown value or a
+    non-string is ignored, never rejected, so the default applies.
+- `arLiveKPIRings: true` shows three live rings on the AR multi-bay camera,
+  under the live-count chip: facings counted, gaps and price tags, as
+  estimates while the rep walks. They hide while guidance warns or blocks
+  and during a review. Read like the other boolean options (`true`,
+  `'yes'`, `1`...); a value that cannot be read as a boolean is ignored.
+
+```js
+await Neurolabs.openCamera({
+  preset: 'multiBayAR',
+  multiBayCountSource: 'ar_tracklets',
+  arLiveKPIRings: true,
+});
+
+Neurolabs.addListener('cameraClosed', ({ multiBay }) => {
+  if (multiBay?.countSource === 'ar_tracklets') {
+    // countsByLabel is the AR count; the aggregator's is beside it.
+    console.log('AR', multiBay.countsByLabel, 'aggregator', multiBay.aggregatorCountsByLabel);
+  }
 });
 ```
 
