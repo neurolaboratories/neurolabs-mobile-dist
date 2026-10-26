@@ -11,6 +11,38 @@ listed here come from the underlying `neurolabs-android-sdk` and
 `scripts/prepare-sdk.js` at install time. No public JS API has been broken
 since v1.1.9.
 
+### v1.7.25
+- Plugin pins the native SDKs' 1.7.25 on both platforms. No plugin API
+  change: native 1.7.25 adds no camera option or event the plugin needs to
+  carry.
+- Native (iOS): a session the camera ends by auto-close (the photo, or the
+  preview Save, that reaches the capture target) now ends like Done:
+  `cameraClosed` with `cancelled: false` and its photos, then `visitKpis`.
+  Before, the camera closed with no session result, so the plugin sent no
+  `cameraClosed` and no `visitKpis` for it, kept the camera claim, and
+  refused the next `openCamera` with `CAMERA_ALREADY_OPEN` until the page
+  reloaded. Android already did this.
+- Native (iOS): a `cameraClosed` with `cancelled: true` can now count
+  photos, the ones the rep saved in the preview before closing. They are
+  already queued; do not queue or handle them again. See 7 "How a session
+  ends".
+- Native (iOS): a product that two bays of a multi-bay walk share counts
+  once, as on Android. `multiBay.countsByLabel` and the facing-based
+  `visitKpis` drop to the deduplicated count; a pair of bays that cannot be
+  lined up splits the walk into segments.
+- Native: a cropped photo is recognised again on the crop, and the
+  recognition of the photo as shot is dropped.
+- Native (Android): the AR live labels use the on-device recognition
+  provider, as on iOS. With no provider there are no labels.
+- Native: an upload whose operations credential changed mid-request (a
+  re-`init` with a new key or base URL) reports `uploadFailed` with the new
+  code `UPLOAD_CREDENTIALS_CHANGED`, `retryable: true`. It is never
+  terminal: the photo stays queued and uploads under the new credential.
+- Native 1.7.25 adds visit KPIs by session id with a host-supplied store
+  context. The plugin does not bridge it yet; a later plugin release will.
+  The SDK's default live-label product names have no plugin option: the
+  plugin hands the live labels its own names source.
+
 ### v1.7.24
 - Plugin pins the native SDKs' 1.7.24 on both platforms. Nothing is removed
   from the plugin's API.
@@ -761,7 +793,7 @@ each one in this order:
 3. the SDK default: a **4032 px long edge at JPEG quality 0.9** (native SDK
    1.7.16).
 
-The plugin pins native 1.7.24 (the default dates from 1.7.16), so on both platforms an omitted value means
+The plugin pins native 1.7.25 (the default dates from 1.7.16), so on both platforms an omitted value means
 4032 px at 0.9 unless your organisation overrides it. Invalid values (`<= 0`, or a
 quality outside `0..1`) reject with `INVALID_ARGUMENT` on both platforms.
 
@@ -1336,7 +1368,8 @@ Neurolabs.addListener('visitKpis', (event) => {
 ## 7. Post-Processing + Lifecycle Events
 
 ```js
-// Fires when the camera screen is dismissed (Done or Close pressed).
+// Fires once when the camera screen is dismissed (Done, Close, or the
+// auto-close at the capture target; see "How a session ends" below).
 // captureCount is the number of photos queued for upload — NOT the photo data itself.
 // To retrieve photo data, use getPhoto() with the captureId from captureQueued (see section 8).
 Neurolabs.addListener('cameraClosed', ({ sessionId, cancelled, captureCount, message, droppedEventCount, error }) => {
@@ -1392,27 +1425,53 @@ Neurolabs.addListener('retainedPhotosHigh', (payload) => console.warn('retainedP
 Neurolabs.addListener('queueStatusChanged', (status) => console.log('queueStatusChanged', status));
 ```
 
+### How a session ends (native SDK 1.7.25)
+
+Every session ends with exactly one `cameraClosed`. Its photos reach you
+through `captureQueued`, one event per photo, replayed after it.
+
+| How it ended | `cancelled` | `captureCount` | `visitKpis` after it |
+|---|---|---|---|
+| Done | `false` | photos queued | yes (at least one photo, KPIs on) |
+| Auto-close: the photo, or the preview Save, that reaches the capture target (`maxCaptures`, else the required count; `autoCloseAfterCapture`, on by default) | `false` | photos queued | yes (KPIs on) |
+| ✕ on iOS | `true` | photos the rep already saved in the preview, often 0 | no |
+| ✕ on Android | `true` | 0 | no |
+| The capture screen failed | `false`, with `error` | 0 (Android `CAPTURE_RESULT_MISSING` / `CAPTURE_RESULT_UNREADABLE`: the photos already queued) | no |
+
+- **Auto-close on iOS before native 1.7.25:** the camera closed without a
+  session result, so the plugin sent no `cameraClosed` and no `visitKpis`
+  for that session. It also kept its camera claim: every later `openCamera`
+  was refused with `CAMERA_ALREADY_OPEN` until the page reloaded, and the
+  session's buffered `captureQueued` / `captureResult` events were dropped
+  at that reload (the photos still uploaded). With the plugin's defaults
+  (`autoCloseAfterCapture` on, one photo) that was the first preview Save.
+  From 1.7.25 it ends like Done, as on Android.
+- **A cancel can count photos.** On iOS each preview Save queues its photo
+  at once, so a rep who saves two photos and then taps ✕ ends a cancelled
+  session with `captureCount: 2` (message "Capture cancelled; 2 capture(s)
+  already queued for upload"). Android's interrupted save (the app destroyed
+  mid-save) reports the same way. Those photos are queued and upload like
+  any other: do not queue them again, and do not treat the cancel as "throw
+  the photos away". If your app handles photos at `captureQueued`, it has
+  already handled them.
+- **Do not treat a single photo as the end of a session.** With
+  `maxCaptures` above 1 and auto-close on, the session ends at the target,
+  not at the first photo. Wait for `cameraClosed`.
+
 ## 8. Retrieving Photos Locally
 
 Photos are stored in the device's app cache after capture. Use `getPhoto()` to access them by `captureId`
 (from `captureQueued`) or `queueItemId`.
 
 ```js
-const capturedIds = [];
-
-Neurolabs.addListener('captureQueued', ({ captureId }) => {
-  capturedIds.push(captureId);
-});
-
-Neurolabs.addListener('cameraClosed', async ({ cancelled }) => {
-  if (cancelled) return;
-  for (const captureId of capturedIds) {
-    // format: 'fileUri' returns { uri: 'file://...' } — a temp path in the app cache
-    // format: 'base64'  returns { base64: '...' }    — requires allowBase64PhotoExport: true in init()
-    const photo = await Neurolabs.getPhoto({ captureId, format: 'fileUri' });
-    console.log('photo uri', photo.uri);
-  }
-  capturedIds.length = 0;
+// captureQueued is replayed AFTER cameraClosed, one event per photo, so handle
+// each photo here, not in cameraClosed. A cancelled session can still have
+// photos (iOS: ✕ after preview Saves); they are queued like any other.
+Neurolabs.addListener('captureQueued', async ({ captureId }) => {
+  // format: 'fileUri' returns { uri: 'file://...' } — a temp path in the app cache
+  // format: 'base64'  returns { base64: '...' }    — requires allowBase64PhotoExport: true in init()
+  const photo = await Neurolabs.getPhoto({ captureId, format: 'fileUri' });
+  console.log('photo uri', photo.uri);
 });
 ```
 
@@ -1458,22 +1517,16 @@ once it has finished streaming/uploading each `imageFileUri`, otherwise they
 linger until a 72-hour TTL sweep reclaims them. Two APIs:
 
 ```js
-const queued = [];
-Neurolabs.addListener('captureQueued', ({ captureId, sessionId, imageFileUri }) => {
-  queued.push({ captureId, imageFileUri });
+// captureQueued is replayed after cameraClosed, so stream each file as its
+// event arrives. A cancelled session's photos (iOS: ✕ after preview Saves)
+// are retained like any other and need releasing too.
+Neurolabs.addListener('captureQueued', async ({ captureId, imageFileUri }) => {
+  await uploadFromFileUri(imageFileUri);        // your host-side upload
+  await Neurolabs.releaseCapture(captureId);    // per-capture release
 });
 
-Neurolabs.addListener('cameraClosed', async ({ sessionId, cancelled }) => {
-  if (cancelled) return;
-  for (const { captureId, imageFileUri } of queued) {
-    await uploadFromFileUri(imageFileUri);        // your host-side upload
-    await Neurolabs.releaseCapture(captureId);    // per-capture release
-  }
-  queued.length = 0;
-
-  // …or release the whole session at once instead of per capture:
-  // await Neurolabs.acknowledgeCaptures(sessionId);
-});
+// …or release a whole session at once, once you have streamed its files:
+// await Neurolabs.acknowledgeCaptures(sessionId);
 ```
 
 - `acknowledgeCaptures(sessionId)` — bulk release: deletes every retained

@@ -14,6 +14,34 @@ custom-camera flows that need a minimum capture count and a higher
 maximum cap. `showsCapturedCountLabel` hides the `N captured` chip in
 custom camera and multi-capture flow UIs.
 
+### v1.7.25
+No initialiser changes and no removals. New APIs are additive.
+
+New APIs: in `NeurolabsSDK`,
+`NeurolabsSDKCore.computeVisitKPIs(forSession:context:storeContext:)`, with
+the new error code `VISIT_KPIS_SESSION_UNKNOWN` (section 14, "Visit KPIs by
+session id"), and `NeurolabsSDKCore.defaultProductNamesEnabled` (default
+`true`) for the AR live labels' default names (section 13). A queued upload
+can report the new retryable code `UPLOAD_CREDENTIALS_CHANGED`.
+
+Behaviour changes, with no opt-in:
+- `autoCloseAfterCapture` on an embedded camera closes only at the capture
+  target, or on Done when there is a Done button, and emits `onFinish` with
+  the session's photos. It used to close after the first photo with no
+  `onFinish`. A session ended with ✕ lists the photos saved from the preview
+  (`cancelled: true`); they were queued at their Save. With auto-close,
+  queue before you stop the session (section 10).
+- Multi-bay walks deduplicate the products two bays share, as on Android:
+  counts, merged products and `device_dedup` drop to the deduplicated count,
+  and a pair of bays that cannot be lined up splits the walk (section 9).
+- A crop forgets the recognition of the photo as shot, and a photo that had
+  a pass is recognised again on the crop (section 10, "Photo cropped").
+- `priceReadings(forCapture:)[].pairedDetectionId` pairs with the same shelf
+  geometry as K16 (section 14).
+- An operations retry never sends a rotated credential to the old host: a
+  request whose base, key or auth provider changed after its first attempt
+  is aborted.
+
 ### v1.7.24
 No initialiser changes and no removals. New APIs are additive, and the AR
 ones are experimental and off by default.
@@ -870,8 +898,9 @@ Next and a swipe. Up to 8 bays nothing changes, and
 **"On this shelf" (v1.7.17).** The same review lists the walk's facings by
 brand, with each brand's share of the recognised products, and by SKU. A
 facing counts as recognised at a match of 0.6 or more. It needs on-device
-recognition (section 12) and a `productDetailsSource` for names and brands;
-without recognition it shows the product total only. No API change.
+recognition (section 12). Names come from your `productDetailsSource`, else
+from the SDK's default names (v1.7.25, names only, so brands read "Unknown
+brand"); without recognition it shows the product total only. No API change.
 
 On the WebView bridge the same options travel as
 `NLNativeCaptureOptions.multiBay` (`NLNativeMultiBayConfig`): every field
@@ -891,6 +920,12 @@ Reading merged results:
   class (`sku_single`, `sku_multipack`, price tag, promo, poster), not by
   product or SKU. Shelf, row and slot positions are in
   `NLMultiBayResult.realogram` (`NLStitchedRealogram`).
+- **Bays line up before the dedup (v1.7.25).** iOS now seeds each pair's
+  registration with a translation, as Android does, so a product seen in two
+  bays counts once. Before, a bay-to-bay step was too large for the
+  whole-frame registration and iOS counted such a product twice. A pair that
+  cannot be lined up breaks the link and starts a new segment. The stitched
+  realogram lays the bays side by side. No API change.
 - Use `NLMultiBayResult.productCount` for a product tally — it sums only
   `sku_single` + `sku_multipack`; `countsByLabel` also carries
   price/promo/poster buckets, so summing every label over-counts
@@ -997,6 +1032,19 @@ staging folder, and the SDK deletes them once your handler is done with them.
 - Android differs: an embedded camera's files belong to the host until it
   acknowledges them (PARITY-DECISIONS "Capture file lifetime").
 
+### Queue before you stop the session
+
+If your sync `onSave` / `onSaveAll` starts `enqueueCapture` in a `Task` and
+returns, await those enqueues before you call `stopSession(_:)` from
+`onFinish`. The camera waits only for your handler to return. With
+`autoCloseAfterCapture`, `onFinish` arrives right after the last photo's
+handler returns, so a `stopSession` called at once can run before that
+photo is queued: the visit's KPIs and the mission submit then miss it. Keep
+the enqueue tasks per session and await them, bounded, before the stop (the
+demo's `DemoPendingEnqueues`), or enqueue inside `onSaveAsync` /
+`onSaveAllAsync`, which the camera waits for (up to its 30 s save watchdog)
+before it finishes.
+
 ### Photo deleted (experimental)
 
 `onSave` / `onSaveAll` only ever see the final set. To hear about each photo
@@ -1054,6 +1102,12 @@ config.onCaptureCropReplaced = { replacement in
   until the callback returns.
 - A camera `openNativeCaptureUI` opens reads `NeurolabsSDKCore.onCaptureCropReplaced`
   instead. Android: `NLCustomCameraView(onCaptureCropReplaced = ...)`.
+- From v1.7.25 the core forgets the uncropped photo's recognition once the
+  crop is reported: `recognitionMatches(forCapture:)`,
+  `unknownEmbeddings(forCapture:)` and `priceReadings(forCapture:)` drop it.
+  A photo that already had a recognition pass is recognised again on the
+  crop's bytes and detections, off the main thread. A photo no pass ran for
+  is left alone, and its pass sees the crop.
 
 ## 11. Delegate/Event Callbacks
 
@@ -1242,9 +1296,37 @@ config.productDetailsSource = detailsSource // names for arLiveLabels
   tracking drops it. Presentation only: counts and coverage are unchanged.
 - `arLiveLabels` draws the top-1 product name on each stable box, only at a
   match score of 0.6 or more. It needs a ready recognition provider
-  (`setRecognitionProvider(_:)`, section 12) and `productDetailsSource` (an
-  `NLProductDetailsSource`, the seam `NLDetectionInspectorView` takes) to turn
-  catalog UUIDs into names. Without either there are no labels.
+  (`setRecognitionProvider(_:)`, section 12), and it stops while the
+  organisation's on-device recognition switch is off. It never runs on the
+  AR appearance fallback (the colour histogram or the appearance-only
+  embedder), which cannot name a product. Names come from
+  `productDetailsSource` (an `NLProductDetailsSource`, the seam
+  `NLDetectionInspectorView` takes), else from the SDK's default names
+  (v1.7.25, below). Without a provider, or without any name, there are no
+  labels.
+- **Default names (v1.7.25, experimental).** When the camera has no
+  `productDetailsSource`, the SDK names the matched catalog UUIDs itself, for
+  the live labels and "On this shelf":
+  - It asks `GET /v1/catalog-items?canonical_uuids=` on the operations host,
+    at most 100 UUIDs a request, with the SDK's own operations credential (the
+    API key, or your `setOperationsAuthProvider` bearer). The request never
+    leaves the operations origin; a redirect to another host drops the
+    credential.
+  - It keeps names only (no brand, image URL or barcode) in Application
+    Support, excluded from backup: one file per organisation credential,
+    named by a salted hash of the operations host and the API key (or, with
+    an auth provider, the identity you pass to `setStoreContextIdentity`).
+    With an auth provider and no identity, names stay in memory for that
+    credential only.
+  - A name is used for 7 days, then asked again; offline, the last known
+    name is used for up to 30 days. No name, no label text: the SDK never
+    guesses. At most 5,000 names a credential, least recently used first out.
+  - "On this shelf" gets names only from it; brands read "Unknown brand"
+    unless your own source supplies them.
+  - Your `productDetailsSource` always wins. To turn the default off (no
+    requests, nothing kept), set `sdk.defaultProductNamesEnabled = false`
+    before opening the camera: it is read when the camera opens.
+    Android: `NeurolabsSDKCore.defaultProductNamesEnabled`.
 - `productDetailsSource` on `NLCameraConfiguration` reaches a camera you
   open with `openCustomCameraUI` or present as
   `NLCustomCameraViewController(configuration:)` (the camera-only path,
@@ -1334,8 +1416,24 @@ let preview = try await sdk.computeVisitKPIs(for: sessionResult, context: contex
 ```
 
 **Price-tag pairing (1.7.24).** A visit's `tag_paired` (K16) now pairs each `price` or `promo` tag with at most one product by shelf geometry, measured in the product's own size: the tag sits on the shelf edge just under the product. Before, it used a fixed pixel reach and almost never paired on a full-resolution photo, so K16 read about 0 % and most positions got an `add_tag` action. Android and zia-operations' reference core use the same rule. The recognition payload's `priceMatches` are unchanged.
+From 1.7.25 `priceReadings(forCapture:)[].pairedDetectionId` uses the same pairing, so a host's price and K16 name the same product. A peg tag, a tag under a gap and a tag outside every band pair nothing.
 
 `computeVisitKPIs(for:context:storeContext:)` (1.7.24) runs the same engine on a store part (`nl.store_context` v1) and org part (`nl.store_context_org` v1) you pass as JSON, for previews, demos and tests. Their shape is checked, never a signature, so the result is never submitted; a part that fails a check throws `VISIT_KPIS_STORE_CONTEXT_INVALID`.
+
+#### Visit KPIs by session id (1.7.25)
+
+`computeVisitKPIs(forSession:context:storeContext:)` runs the same pull when you have only the session id, as a Cordova host does:
+
+```swift
+let preview = try await sdk.computeVisitKPIs(forSession: sessionId, context: nil,   // nil: the context you set for it
+                                             storeContext: NLVisitKPIHostStoreContext(storePartJSON: storePart, orgPartJSON: orgPart))
+```
+
+- The session must have been finished by a camera the SDK runs (`openNativeCaptureUI`, the Cordova plugin) in this process, with at least one photo; a cancelled session counts. The SDK holds the newest 8 such sessions in memory: detections, sizes, times, recognition matches, the multi-bay result and its dedup setting. It keeps no pixels and writes nothing to disk.
+- For a session you queued yourself (`enqueueCapture`), it reads the photos queued for it, until its `stopSession` run has taken them.
+- The result is the one `computeVisitKPIs(for:context:storeContext:)` gives for the same session, and is never submitted. The one difference: it uses the camera's `onDeviceDedup`, where the captures-based call takes it as on, so a walk captured with on-device dedup off gives a different result.
+- A nil `context` uses the one you set with `setVisitKPIContext(_:forSession:)`, even after `stopSession`.
+- An id the SDK holds nothing for (another process, no photo, or 8 newer sessions since) throws `VISIT_KPIS_SESSION_UNKNOWN`. `VISIT_KPIS_DISABLED` and `VISIT_KPIS_STORE_CONTEXT_INVALID` come first.
 
 `NLVisitKPIResult` carries the canonical `nl.visit_kpis` v1 JSON (`payloadJSON`), `isProvisional` (always true on the device: label it "Provisional"), `storeContext` (`.used(offline:)`, `.missing`, `.expired`), `perfectStoreScoreBp`, `actionCount` and `willSubmit`. Without a store context, show gaps and price-tag presence only, as "Needs store targets". The payload rides the mission submit as `client_metadata.device_kpis` only when the store context was ready and signature-verified and the payload passes the backend's checks; a `400 invalid_device_kpis` makes the SDK resubmit once without it. Details are in the README ("Visit KPIs").
 
