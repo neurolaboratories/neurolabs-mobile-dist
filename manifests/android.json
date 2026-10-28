@@ -3,37 +3,37 @@
   "product": "neurolabs-android-sdk",
   "distribution": "github_release_asset",
   "latest": {
-    "version": "v1.7.26",
-    "asset_name": "neurolabs-android-sdk-v1.7.26.aar",
-    "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.26/neurolabs-android-sdk-v1.7.26.aar",
-    "checksum_sha256": "2769989edb8764325a48e56cf03960fe62720a7c4c1c5847f968093d7e628f84",
-    "gradle_example": "implementation(files(\"libs/neurolabs-android-sdk-v1.7.26.aar\"))",
+    "version": "v1.7.27",
+    "asset_name": "neurolabs-android-sdk-v1.7.27.aar",
+    "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.27/neurolabs-android-sdk-v1.7.27.aar",
+    "checksum_sha256": "29b6f62d3e47df80007413f4bcaa5a593edb86113986e327e5b2be64d937099d",
+    "gradle_example": "implementation(files(\"libs/neurolabs-android-sdk-v1.7.27.aar\"))",
     "maven": {
       "repository_url": "https://maven.pkg.github.com/neurolaboratories/neurolabs-mobile-dist",
       "group_id": "ai.neurolabs",
       "artifact_id": "neurolabs-android-sdk",
-      "version": "1.7.26",
+      "version": "1.7.27",
       "packaging": "aar"
     },
     "gradle_maven_repository_example": "maven { url = uri(\"https://maven.pkg.github.com/neurolaboratories/neurolabs-mobile-dist\") }",
-    "gradle_maven_dependency_example": "implementation(\"ai.neurolabs:neurolabs-android-sdk:1.7.26\")"
+    "gradle_maven_dependency_example": "implementation(\"ai.neurolabs:neurolabs-android-sdk:1.7.27\")"
   },
   "lines": {
     "1.7": {
-      "version": "v1.7.26",
-      "asset_name": "neurolabs-android-sdk-v1.7.26.aar",
-      "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.26/neurolabs-android-sdk-v1.7.26.aar",
-      "checksum_sha256": "2769989edb8764325a48e56cf03960fe62720a7c4c1c5847f968093d7e628f84",
-      "gradle_example": "implementation(files(\"libs/neurolabs-android-sdk-v1.7.26.aar\"))",
+      "version": "v1.7.27",
+      "asset_name": "neurolabs-android-sdk-v1.7.27.aar",
+      "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.27/neurolabs-android-sdk-v1.7.27.aar",
+      "checksum_sha256": "29b6f62d3e47df80007413f4bcaa5a593edb86113986e327e5b2be64d937099d",
+      "gradle_example": "implementation(files(\"libs/neurolabs-android-sdk-v1.7.27.aar\"))",
       "maven": {
         "repository_url": "https://maven.pkg.github.com/neurolaboratories/neurolabs-mobile-dist",
         "group_id": "ai.neurolabs",
         "artifact_id": "neurolabs-android-sdk",
-        "version": "1.7.26",
+        "version": "1.7.27",
         "packaging": "aar"
       },
       "gradle_maven_repository_example": "maven { url = uri(\"https://maven.pkg.github.com/neurolaboratories/neurolabs-mobile-dist\") }",
-      "gradle_maven_dependency_example": "implementation(\"ai.neurolabs:neurolabs-android-sdk:1.7.26\")"
+      "gradle_maven_dependency_example": "implementation(\"ai.neurolabs:neurolabs-android-sdk:1.7.27\")"
     }
   }
 }
