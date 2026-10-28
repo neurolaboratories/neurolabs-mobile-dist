@@ -14,6 +14,33 @@ custom-camera flows that need a minimum capture count and a higher
 maximum cap. `showsCapturedCountLabel` hides the `N captured` chip in
 custom camera and multi-capture flow UIs.
 
+### v1.7.26
+No initialiser changes and no removals. New APIs are additive.
+
+New APIs: in `RecognitionBootstrap`,
+`NLRecognitionBootstrap.Configuration.mirrorGate` (a property, not an `init`
+parameter), `NLRecognitionBootstrap.joinDegraded` and
+`.onJoinDegradedChange`; in `RecognitionInterface`, the gate's types
+(`NLMirrorGateConfiguration`, `NLCatalogMirrorPositionProvider`,
+`NLMirrorStatus`, `NLMirrorGatePolicy`, `NLJoinDegradedReason` and the rest)
+and `NLSnapshotSyncManager.enableMirrorGate(provider:policy:store:)` /
+`syncGated(publishedAt:now:catalogPosition:)` (section 12, "Catalogue-mirror
+gate"). `NLDetectorModels.statusDidChangeNotification` carries
+`userInfo["reason"]` (section 7).
+
+Behaviour changes, with no opt-in:
+- `stopSession(_:)` waits, at most 5 s, for the session's `enqueueCapture`
+  calls already running (section 10, "Queue before you stop the session").
+- A core with no API key and no auth provider starts no detector download,
+  and a `no_credentials` raised before any request sets no retry wait, so a
+  credential set right after the core's init downloads the detector.
+- The detector chip and the AR dock name the fix for `insufficient_storage`
+  (free about 200 MB) and `waiting_for_unmetered_network` (connect to
+  Wi-Fi). The AR walk shows one detector message at a time and waits 45 s
+  for the model at most once per process.
+- A long-lived operations client binds the credential when it is built:
+  read `sdk.operationsClient` again after a key rotation (section 5).
+
 ### v1.7.25
 No initialiser changes and no removals. New APIs are additive.
 
@@ -431,6 +458,15 @@ final class CaptureCoordinator {
 }
 ```
 
+**After a key rotation (v1.7.26), read `sdk.operationsClient` again.** Each
+long-lived operations client the core builds binds the credential (base,
+key or auth provider) when it is built, and checks every request against it
+before anything is sent. A client kept from before
+`setOperationsApiKey(_:baseURL:)` or `setOperationsAuthProvider(_:)` fails
+every request with a retryable `NLOperationsError.transport` ("operations
+credentials changed during the request") and never sends the new key to the
+old base. `sdk.operationsClient` is rebuilt on the next read.
+
 ## 6. Queue Management
 
 ```swift
@@ -807,6 +843,22 @@ NLDetectorModels.prefetchPolicy = .unmeteredOnly // default .anyNetwork
   a failure. An explicit `NLDetectorModels.prefetch(_:)` ignores the policy,
   and a model already on the device is used on any network.
 
+**Why the detector is unavailable (v1.7.26).**
+`NLDetectorModels.statusDidChangeNotification` carries `userInfo["reason"]`,
+the same value as `statusReason(for:)` for the posted status (a failure's
+code, or `waiting_for_unmetered_network`), absent when there is none. The
+camera's chip and the AR dock name the fix for two reasons:
+`insufficient_storage` reads "Not enough free space. Free about 200 MB to use
+the product detector. You can still capture.", and
+`waiting_for_unmetered_network` reads "Waiting for Wi-Fi to download the
+product detector. You can still capture." Every other reason keeps "Detector
+unavailable. You can still capture." A core with no API key and no auth
+provider starts no download, and a download belongs to the credentials it
+started with: a credential you set right after the core's init (an `apiKey:
+""` core, then `setOperationsAuthProvider`) starts its own download instead
+of joining one that fails with `no_credentials`. A `no_credentials` raised
+before any request sets no retry wait.
+
 **Quality checks without a detector (option B).** While the detector is not
 ready (downloading, waiting for an unmetered network, no credential, or
 failed), the camera runs only the checks that need no detections: hold
@@ -1035,15 +1087,22 @@ staging folder, and the SDK deletes them once your handler is done with them.
 ### Queue before you stop the session
 
 If your sync `onSave` / `onSaveAll` starts `enqueueCapture` in a `Task` and
-returns, await those enqueues before you call `stopSession(_:)` from
-`onFinish`. The camera waits only for your handler to return. With
+returns, the camera waits only for your handler to return. With
 `autoCloseAfterCapture`, `onFinish` arrives right after the last photo's
-handler returns, so a `stopSession` called at once can run before that
-photo is queued: the visit's KPIs and the mission submit then miss it. Keep
-the enqueue tasks per session and await them, bounded, before the stop (the
-demo's `DemoPendingEnqueues`), or enqueue inside `onSaveAsync` /
-`onSaveAllAsync`, which the camera waits for (up to its 30 s save watchdog)
-before it finishes.
+handler returns, so a `stopSession(_:)` called at once can run before that
+photo is queued. Since 1.7.26 the SDK covers this: `stopSession(_:)` waits
+for the session's `enqueueCapture` calls already running when it is called,
+up to 5 s, before the visit's KPI run and the mission submit. On the bound it
+logs and goes on without them; it cancels nothing. An `enqueueCapture` you
+start after `stopSession(_:)` is not waited for.
+
+Awaiting your own enqueues is still recommended: keep the enqueue tasks per
+session and await them, bounded, before the stop (the demo's
+`DemoPendingEnqueues`), or enqueue inside `onSaveAsync` / `onSaveAllAsync`,
+which the camera waits for (up to its 30 s save watchdog) before it
+finishes. An enqueue that has not started by the time you stop (a task not
+yet scheduled) is outside the SDK's wait, and on 1.7.25 and earlier the SDK
+does not wait at all.
 
 ### Photo deleted (experimental)
 
@@ -1215,6 +1274,39 @@ load fails with `NLCatalogSnapshotLoader.LoaderError.signatureMissing` or
 key is trusted only on a Neurolabs staging operations host. An offline copy
 an older SDK saved is unsigned, so it is not used; the next online build
 replaces it.
+
+**Catalogue-mirror gate (v1.7.26).** If your app keeps a local copy of the
+catalogue from the change feed, a new snapshot can name a product your copy
+does not have yet. Set the gate so the SDK keeps serving the last good build
+until your copy has caught up:
+
+```swift
+final class MirrorPosition: NLCatalogMirrorPositionProvider {
+    func mirrorStatus() -> NLMirrorStatus {
+        NLMirrorStatus(cursor: mirror.cursor, consecutiveFailures: mirror.failures)
+    }
+}
+configuration.mirrorGate = NLMirrorGateConfiguration(provider: MirrorPosition())
+bootstrap.onJoinDegradedChange = { reason in /* main queue */ }
+```
+
+- A snapshot is stamped with the feed position it was built at
+  (`catalog_position` in recognition-config). While your mirror's cursor is
+  behind it, the SDK does not ask for the new snapshot and serves the last
+  good build from disk. It polls `mirrorStatus()` off the main thread, every
+  60 s and when the app returns to the foreground, only while a snapshot is
+  held.
+- The hold ends when the mirror reaches the stamp, after 7 days from the
+  first hold since the last activation, or after 5 consecutive mirror
+  failures (`NLMirrorGatePolicy`, both configurable). The two escape hatches
+  activate the snapshot and set `joinDegraded` (`.mirrorTimeout`,
+  `.mirrorFailures`): resolve a recognised item missing from your copy
+  through the server's `canonical_uuids` lookup. With no earlier build to
+  keep (a first install), the snapshot activates at once with
+  `.noPriorSnapshot`.
+- A build from the offline cache never gates. Without `mirrorGate`,
+  snapshots activate exactly as before. Android has the same types and
+  rules.
 
 The embedder (the pinned DINOv3-ConvNeXt-tiny export, 768-d) is downloaded
 by the SDK through `GET /v1/device-models` with your operations key, checked

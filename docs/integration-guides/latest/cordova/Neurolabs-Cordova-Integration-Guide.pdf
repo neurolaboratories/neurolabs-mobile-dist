@@ -10,7 +10,7 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Courier >>
 endobj
 4 0 obj
-<< /Length 5197 >>
+<< /Length 4702 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
@@ -22,8 +22,8 @@ BT /F2 24.00 Tf 1 0 0 1 56.69 771.89 Tm (Neurolabs Cordova SDK Integration Guide
 0.000000 0.000000 0.000000 rg
 BT /F2 14.00 Tf 1 0 0 1 56.69 743.89 Tm (Technical Integration Specification) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 719.89 Tm (Document ID: NLB-CORDOVA-INTEGRATION-GUIDE) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 705.89 Tm (Version: v1.7.25) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 691.89 Tm (Date: 2026-10-26) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 705.89 Tm (Version: v1.7.26) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 691.89 Tm (Date: 2026-10-28) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 677.89 Tm (Status: Partner integration reference) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 663.89 Tm (Owner: Neurolabs) Tj ET
 BT /F2 13.00 Tf 1 0 0 1 56.69 639.89 Tm (1. Scope) Tj ET
@@ -33,193 +33,189 @@ BT 1 0 0 1 56.69 575.89 Tm /F1 10.50 Tf (The Cordova plugin is a thin bridge ove
 BT 1 0 0 1 56.69 561.89 Tm /F1 10.50 Tf (come from the underlying `neurolabs-android-sdk` and `neurolabs-ios-sdk` releases that) Tj ET
 BT 1 0 0 1 56.69 547.89 Tm /F1 10.50 Tf (the plugin pulls via `scripts/prepare-sdk.js` at install time. No public JS API has) Tj ET
 BT 1 0 0 1 56.69 533.89 Tm /F1 10.50 Tf (been broken since v1.1.9.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 513.89 Tm (v1.7.25) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 513.89 Tm (v1.7.26) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 495.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 495.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.25 on both platforms. No plugin API change: native) Tj ET
-BT 1 0 0 1 70.69 481.89 Tm /F1 10.50 Tf (1.7.25 adds no camera option or event the plugin needs to carry.) Tj ET
+BT 1 0 0 1 70.69 495.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.26 on both platforms. Nothing is removed from the) Tj ET
+BT 1 0 0 1 70.69 481.89 Tm /F1 10.50 Tf (plugin's API, and nothing is required of a host.) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 463.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 463.89 Tm /F1 10.50 Tf (Native \(iOS\): a session the camera ends by auto-close \(the photo, or the preview) Tj ET
-BT 1 0 0 1 70.69 449.89 Tm /F1 10.50 Tf (Save, that reaches the capture target\) now ends like Done: `cameraClosed` with) Tj ET
-BT 1 0 0 1 70.69 435.89 Tm /F1 10.50 Tf (`cancelled: false` and its photos, then `visitKpis`. Before, the camera closed with) Tj ET
-BT 1 0 0 1 70.69 421.89 Tm /F1 10.50 Tf (no session result, so the plugin sent no `cameraClosed` and no `visitKpis` for it,) Tj ET
-BT 1 0 0 1 70.69 407.89 Tm /F1 10.50 Tf (kept the camera claim, and refused the next `openCamera` with `CAMERA_ALREADY_OPEN`) Tj ET
-BT 1 0 0 1 70.69 393.89 Tm /F1 10.50 Tf (until the page reloaded. Android already did this.) Tj ET
+BT 1 0 0 1 70.69 463.89 Tm /F1 10.50 Tf (New: `computeVisitKpis\(sessionId, storeContext, context?\)` computes a finished) Tj ET
+BT 1 0 0 1 70.69 449.89 Tm /F1 10.50 Tf (session's visit KPIs again, by its session id, against a store context you supply.) Tj ET
+BT 1 0 0 1 70.69 435.89 Tm /F1 10.50 Tf (It resolves the `visitKpis` event's shape, is read-only \(`willSubmit` is always) Tj ET
+BT 1 0 0 1 70.69 421.89 Tm /F1 10.50 Tf (`false`, no `visitKpis` event fires\) and can reject with) Tj ET
+BT 1 0 0 1 70.69 407.89 Tm /F1 10.50 Tf (`VISIT_KPIS_SESSION_UNKNOWN` once the SDK no longer holds the session \(it keeps the) Tj ET
+BT 1 0 0 1 70.69 393.89 Tm /F1 10.50 Tf (newest 8\). See 6d.) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 375.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 375.89 Tm /F1 10.50 Tf (Native \(iOS\): a `cameraClosed` with `cancelled: true` can now count photos, the ones) Tj ET
-BT 1 0 0 1 70.69 361.89 Tm /F1 10.50 Tf (the rep saved in the preview before closing. They are already queued; do not queue) Tj ET
-BT 1 0 0 1 70.69 347.89 Tm /F1 10.50 Tf (or handle them again. See 7 "How a session ends".) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 329.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 329.89 Tm /F1 10.50 Tf (Native \(iOS\): a product that two bays of a multi-bay walk share counts once, as on) Tj ET
-BT 1 0 0 1 70.69 315.89 Tm /F1 10.50 Tf (Android. `multiBay.countsByLabel` and the facing-based `visitKpis` drop to the) Tj ET
-BT 1 0 0 1 70.69 301.89 Tm /F1 10.50 Tf (deduplicated count; a pair of bays that cannot be lined up splits the walk into) Tj ET
-BT 1 0 0 1 70.69 287.89 Tm /F1 10.50 Tf (segments.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 269.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 269.89 Tm /F1 10.50 Tf (Native: a cropped photo is recognised again on the crop, and the recognition of the) Tj ET
-BT 1 0 0 1 70.69 255.89 Tm /F1 10.50 Tf (photo as shot is dropped.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 237.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 237.89 Tm /F1 10.50 Tf (Native \(Android\): the AR live labels use the on-device recognition provider, as on) Tj ET
-BT 1 0 0 1 70.69 223.89 Tm /F1 10.50 Tf (iOS. With no provider there are no labels.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 205.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 205.89 Tm /F1 10.50 Tf (Native: an upload whose operations credential changed mid-request \(a re-`init` with) Tj ET
-BT 1 0 0 1 70.69 191.89 Tm /F1 10.50 Tf (a new key or base URL\) reports `uploadFailed` with the new code) Tj ET
-BT 1 0 0 1 70.69 177.89 Tm /F1 10.50 Tf (`UPLOAD_CREDENTIALS_CHANGED`, `retryable: true`. It is never terminal: the photo) Tj ET
-BT 1 0 0 1 70.69 163.89 Tm /F1 10.50 Tf (stays queued and uploads under the new credential.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 145.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 145.89 Tm /F1 10.50 Tf (Native 1.7.25 adds visit KPIs by session id with a host-supplied store context. The) Tj ET
-BT 1 0 0 1 70.69 131.89 Tm /F1 10.50 Tf (plugin does not bridge it yet; a later plugin release will. The SDK's default) Tj ET
-BT 1 0 0 1 70.69 117.89 Tm /F1 10.50 Tf (live-label product names have no plugin option: the plugin hands the live labels its) Tj ET
-BT 1 0 0 1 70.69 103.89 Tm /F1 10.50 Tf (own names source.) Tj ET
+BT 1 0 0 1 70.69 375.89 Tm /F1 10.50 Tf (Native: the camera's detector message says what to do. With no room for the product) Tj ET
+BT 1 0 0 1 70.69 361.89 Tm /F1 10.50 Tf (detector it reads "Not enough free space. Free about N MB to use the product) Tj ET
+BT 1 0 0 1 70.69 347.89 Tm /F1 10.50 Tf (detector. You can still capture." \(N is 200 on iOS, 150 on Android\); a download held) Tj ET
+BT 1 0 0 1 70.69 333.89 Tm /F1 10.50 Tf (for Wi-Fi reads "Waiting for Wi-Fi to download the product detector. You can still) Tj ET
+BT 1 0 0 1 70.69 319.89 Tm /F1 10.50 Tf (capture." Other reasons keep "Detector unavailable. You can still capture." The) Tj ET
+BT 1 0 0 1 70.69 305.89 Tm /F1 10.50 Tf (`reason` codes in `detectorModelStatusChanged` and `getDetectorModelStatus\(\)` are) Tj ET
+BT 1 0 0 1 70.69 291.89 Tm /F1 10.50 Tf (unchanged.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 273.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 273.89 Tm /F1 10.50 Tf (Native: the AR multi-bay walk shows one detector message at a time, and waits for a) Tj ET
+BT 1 0 0 1 70.69 259.89 Tm /F1 10.50 Tf (loading detector \(45 s at most\) only once per app launch.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 241.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 241.89 Tm /F1 10.50 Tf (Native: a detector download is no longer held for an hour when the credential) Tj ET
+BT 1 0 0 1 70.69 227.89 Tm /F1 10.50 Tf (arrives just after the SDK starts or after an earlier failure; the next camera) Tj ET
+BT 1 0 0 1 70.69 213.89 Tm /F1 10.50 Tf (downloads it.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 195.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 195.89 Tm /F1 10.50 Tf (Native: after a re-`init` with a new key or base URL, a request built for the old) Tj ET
+BT 1 0 0 1 70.69 181.89 Tm /F1 10.50 Tf (credential is aborted before anything is sent. A queued upload still reports) Tj ET
+BT 1 0 0 1 70.69 167.89 Tm /F1 10.50 Tf (`UPLOAD_CREDENTIALS_CHANGED` \(`retryable: true`\) and uploads under the new) Tj ET
+BT 1 0 0 1 70.69 153.89 Tm /F1 10.50 Tf (credential, as in 1.7.25.) Tj ET
 endstream
 endobj
 5 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 4 0 R >>
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 4 0 R >>
 endobj
 6 0 obj
-<< /Length 6286 >>
+<< /Length 5993 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
 BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 2) Tj ET
 0.000000 0.000000 0.000000 rg
-BT /F2 11.50 Tf 1 0 0 1 56.69 771.89 Tm (v1.7.24) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 753.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 753.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.24 on both platforms. Nothing is removed from the) Tj ET
-BT 1 0 0 1 70.69 739.89 Tm /F1 10.50 Tf (plugin's API.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 721.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 721.89 Tm /F1 10.50 Tf (New AR multi-bay options, experimental and off by default, on both platforms:) Tj ET
-BT 1 0 0 1 70.69 707.89 Tm /F1 10.50 Tf (`multiBayCountSource` \(`'aggregator'` or `'ar_tracklets'`\) and `arLiveKPIRings`. See) Tj ET
-BT 1 0 0 1 70.69 693.89 Tm /F1 10.50 Tf (6b "Count source and live KPI rings".) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 675.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 675.89 Tm /F1 10.50 Tf (The `cameraClosed` `multiBay` summary gains `countSource` and) Tj ET
-BT 1 0 0 1 70.69 661.89 Tm /F1 10.50 Tf (`aggregatorCountsByLabel`, present only when the AR tracklet count served) Tj ET
-BT 1 0 0 1 70.69 647.89 Tm /F1 10.50 Tf (`countsByLabel`. Nothing changes for a session that does not ask for it.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 629.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 629.89 Tm /F1 10.50 Tf (Native \(iOS\): live frames reach the detector upright, so the AR camera detects) Tj ET
-BT 1 0 0 1 70.69 615.89 Tm /F1 10.50 Tf (products live again: live boxes, the "~ N products" chip and the live guidance work.) Tj ET
-BT 1 0 0 1 70.69 601.89 Tm /F1 10.50 Tf (Photos were never affected.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 583.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 583.89 Tm /F1 10.50 Tf (Native: long AR walks stay inside the track budget. Out-of-view facings are archived) Tj ET
-BT 1 0 0 1 70.69 569.89 Tm /F1 10.50 Tf (and still count, so `ar_anchor_counts` and the live chip read higher on long walks.) Tj ET
-BT 1 0 0 1 70.69 555.89 Tm /F1 10.50 Tf (`countsByLabel` is still the aggregator's unless you set `multiBayCountSource:) Tj ET
-BT 1 0 0 1 70.69 541.89 Tm /F1 10.50 Tf ('ar_tracklets'`.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 523.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 523.89 Tm /F1 10.50 Tf (Native: the AR multi-bay walk holds capture under "Getting ready..." until the live) Tj ET
-BT 1 0 0 1 70.69 509.89 Tm /F1 10.50 Tf (detector has loaded, for 45 s at most, then lets the rep capture anyway.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 491.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 491.89 Tm /F1 10.50 Tf (Native: the detection inspector names a product only at a match score of 0.5 or) Tj ET
-BT 1 0 0 1 70.69 477.89 Tm /F1 10.50 Tf (more, and says "Not recognised" below it. The review says "No catalogue matches") Tj ET
-BT 1 0 0 1 70.69 463.89 Tm /F1 10.50 Tf (when recognition matched nothing.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 445.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 445.89 Tm /F1 10.50 Tf (If your app shows product names from `captureResult.recognitionMatches` itself, show) Tj ET
-BT 1 0 0 1 70.69 431.89 Tm /F1 10.50 Tf (a name only at a `similarity` of 0.5 or more, as the SDK's inspector now does.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 413.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 413.89 Tm /F1 10.50 Tf (Native: a remembered Guided / Auto pick applies only under the capture mode it was) Tj ET
-BT 1 0 0 1 70.69 399.89 Tm /F1 10.50 Tf (made under, so reps see the chooser once more after the update.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 381.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 381.89 Tm /F1 10.50 Tf (Native: in `visitKpis`, K16 price-tag coverage pairs each tag with the facing above) Tj ET
-BT 1 0 0 1 70.69 367.89 Tm /F1 10.50 Tf (it by shelf geometry, so `tag_paired` no longer reads about 0% on full-resolution) Tj ET
-BT 1 0 0 1 70.69 353.89 Tm /F1 10.50 Tf (photos and fewer `add_tag` actions are raised.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 335.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 335.89 Tm /F1 10.50 Tf (The native KPI pull with a host-supplied store context is not bridged in this) Tj ET
-BT 1 0 0 1 70.69 321.89 Tm /F1 10.50 Tf (release: it needs a native entry point keyed by session id first.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 303.89 Tm (v1.7.23) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 285.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 285.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.23 on both platforms. No plugin API change.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 267.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 267.89 Tm /F1 10.50 Tf (iOS: a signed `cordova build ios` \(build.json `automaticProvisioning` or) Tj ET
-BT 1 0 0 1 70.69 253.89 Tm /F1 10.50 Tf (`provisioningProfile`\) no longer drops the Sentry Swift package \(SDK-10\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 235.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 235.89 Tm /F1 10.50 Tf (Native: snapshot manifests must be signed. A manifest that is unsigned, signed by) Tj ET
-BT 1 0 0 1 70.69 221.89 Tm /F1 10.50 Tf (another key or altered fails to load, so on-device recognition stays off for that) Tj ET
-BT 1 0 0 1 70.69 207.89 Tm /F1 10.50 Tf (build. Every live manifest has been signed since 18 Oct 2026, and older SDKs ignore) Tj ET
-BT 1 0 0 1 70.69 193.89 Tm /F1 10.50 Tf (the signature. A snapshot an older SDK cached for offline use is not used offline;) Tj ET
-BT 1 0 0 1 70.69 179.89 Tm /F1 10.50 Tf (the next online load replaces it.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 161.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 161.89 Tm /F1 10.50 Tf (Native: the `visitKpis` payload's `quality.capture_verdicts` counts a capture as) Tj ET
-BT 1 0 0 1 70.69 147.89 Tm /F1 10.50 Tf (`warn` when its quality check judged it not acceptable or flagged a warning.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 129.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 129.89 Tm /F1 10.50 Tf (Native \(Android\): tapping a bay on "Review shelf", or a photo on the default) Tj ET
-BT 1 0 0 1 70.69 115.89 Tm /F1 10.50 Tf (camera's "Review", shows its quality summary, as on iOS.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 97.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 97.89 Tm /F1 10.50 Tf (The plugin's cameras keep their behaviour: they already computed visit KPIs at their) Tj ET
-BT 1 0 0 1 70.69 83.89 Tm /F1 10.50 Tf (finish, and the bridges always pass a shelf type.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (Native 1.7.26 also adds a catalogue-mirror gate for recognition snapshots, an) Tj ET
+BT 1 0 0 1 70.69 757.89 Tm /F1 10.50 Tf (Android product-capture camera failure callback, and a `stopSession` that waits for) Tj ET
+BT 1 0 0 1 70.69 743.89 Tm /F1 10.50 Tf (the session's own `enqueueCapture` calls. None has a plugin API: the plugin keeps no) Tj ET
+BT 1 0 0 1 70.69 729.89 Tm /F1 10.50 Tf (catalogue mirror, opens no product-capture camera, and its cameras queue their own) Tj ET
+BT 1 0 0 1 70.69 715.89 Tm /F1 10.50 Tf (photos.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 697.89 Tm (v1.7.25) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 679.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 679.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.25 on both platforms. No plugin API change: native) Tj ET
+BT 1 0 0 1 70.69 665.89 Tm /F1 10.50 Tf (1.7.25 adds no camera option or event the plugin needs to carry.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 647.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 647.89 Tm /F1 10.50 Tf (Native \(iOS\): a session the camera ends by auto-close \(the photo, or the preview) Tj ET
+BT 1 0 0 1 70.69 633.89 Tm /F1 10.50 Tf (Save, that reaches the capture target\) now ends like Done: `cameraClosed` with) Tj ET
+BT 1 0 0 1 70.69 619.89 Tm /F1 10.50 Tf (`cancelled: false` and its photos, then `visitKpis`. Before, the camera closed with) Tj ET
+BT 1 0 0 1 70.69 605.89 Tm /F1 10.50 Tf (no session result, so the plugin sent no `cameraClosed` and no `visitKpis` for it,) Tj ET
+BT 1 0 0 1 70.69 591.89 Tm /F1 10.50 Tf (kept the camera claim, and refused the next `openCamera` with `CAMERA_ALREADY_OPEN`) Tj ET
+BT 1 0 0 1 70.69 577.89 Tm /F1 10.50 Tf (until the page reloaded. Android already did this.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 559.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 559.89 Tm /F1 10.50 Tf (Native \(iOS\): a `cameraClosed` with `cancelled: true` can now count photos, the ones) Tj ET
+BT 1 0 0 1 70.69 545.89 Tm /F1 10.50 Tf (the rep saved in the preview before closing. They are already queued; do not queue) Tj ET
+BT 1 0 0 1 70.69 531.89 Tm /F1 10.50 Tf (or handle them again. See 7 "How a session ends".) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 513.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 513.89 Tm /F1 10.50 Tf (Native \(iOS\): a product that two bays of a multi-bay walk share counts once, as on) Tj ET
+BT 1 0 0 1 70.69 499.89 Tm /F1 10.50 Tf (Android. `multiBay.countsByLabel` and the facing-based `visitKpis` drop to the) Tj ET
+BT 1 0 0 1 70.69 485.89 Tm /F1 10.50 Tf (deduplicated count; a pair of bays that cannot be lined up splits the walk into) Tj ET
+BT 1 0 0 1 70.69 471.89 Tm /F1 10.50 Tf (segments.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 453.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 453.89 Tm /F1 10.50 Tf (Native: a cropped photo is recognised again on the crop, and the recognition of the) Tj ET
+BT 1 0 0 1 70.69 439.89 Tm /F1 10.50 Tf (photo as shot is dropped.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 421.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 421.89 Tm /F1 10.50 Tf (Native \(Android\): the AR live labels use the on-device recognition provider, as on) Tj ET
+BT 1 0 0 1 70.69 407.89 Tm /F1 10.50 Tf (iOS. With no provider there are no labels.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 389.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 389.89 Tm /F1 10.50 Tf (Native: an upload whose operations credential changed mid-request \(a re-`init` with) Tj ET
+BT 1 0 0 1 70.69 375.89 Tm /F1 10.50 Tf (a new key or base URL\) reports `uploadFailed` with the new code) Tj ET
+BT 1 0 0 1 70.69 361.89 Tm /F1 10.50 Tf (`UPLOAD_CREDENTIALS_CHANGED`, `retryable: true`. It is never terminal: the photo) Tj ET
+BT 1 0 0 1 70.69 347.89 Tm /F1 10.50 Tf (stays queued and uploads under the new credential.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 329.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 329.89 Tm /F1 10.50 Tf (Native 1.7.25 adds visit KPIs by session id with a host-supplied store context. The) Tj ET
+BT 1 0 0 1 70.69 315.89 Tm /F1 10.50 Tf (plugin does not bridge it yet; a later plugin release will. The SDK's default) Tj ET
+BT 1 0 0 1 70.69 301.89 Tm /F1 10.50 Tf (live-label product names have no plugin option: the plugin hands the live labels its) Tj ET
+BT 1 0 0 1 70.69 287.89 Tm /F1 10.50 Tf (own names source.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 269.89 Tm (v1.7.24) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 251.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 251.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.24 on both platforms. Nothing is removed from the) Tj ET
+BT 1 0 0 1 70.69 237.89 Tm /F1 10.50 Tf (plugin's API.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 219.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 219.89 Tm /F1 10.50 Tf (New AR multi-bay options, experimental and off by default, on both platforms:) Tj ET
+BT 1 0 0 1 70.69 205.89 Tm /F1 10.50 Tf (`multiBayCountSource` \(`'aggregator'` or `'ar_tracklets'`\) and `arLiveKPIRings`. See) Tj ET
+BT 1 0 0 1 70.69 191.89 Tm /F1 10.50 Tf (6b "Count source and live KPI rings".) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 173.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 173.89 Tm /F1 10.50 Tf (The `cameraClosed` `multiBay` summary gains `countSource` and) Tj ET
+BT 1 0 0 1 70.69 159.89 Tm /F1 10.50 Tf (`aggregatorCountsByLabel`, present only when the AR tracklet count served) Tj ET
+BT 1 0 0 1 70.69 145.89 Tm /F1 10.50 Tf (`countsByLabel`. Nothing changes for a session that does not ask for it.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 127.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 127.89 Tm /F1 10.50 Tf (Native \(iOS\): live frames reach the detector upright, so the AR camera detects) Tj ET
+BT 1 0 0 1 70.69 113.89 Tm /F1 10.50 Tf (products live again: live boxes, the "~ N products" chip and the live guidance work.) Tj ET
+BT 1 0 0 1 70.69 99.89 Tm /F1 10.50 Tf (Photos were never affected.) Tj ET
 endstream
 endobj
 7 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 6 0 R >>
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 6 0 R >>
 endobj
 8 0 obj
-<< /Length 5849 >>
+<< /Length 6331 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
 BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 3) Tj ET
 0.000000 0.000000 0.000000 rg
-BT /F2 11.50 Tf 1 0 0 1 56.69 771.89 Tm (v1.7.22) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 753.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 753.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.22 on both platforms.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 735.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 735.89 Tm /F1 10.50 Tf (`captureDeleted` now also fires when the rep retakes a photo, on both platforms,) Tj ET
-BT 1 0 0 1 70.69 721.89 Tm /F1 10.50 Tf (with `source: "retake"`. Until 1.7.21 it never fired for a retake. If you count) Tj ET
-BT 1 0 0 1 70.69 707.89 Tm /F1 10.50 Tf (`captureDeleted` as "the rep deleted a photo", check the new `reason` key: every) Tj ET
-BT 1 0 0 1 70.69 693.89 Tm /F1 10.50 Tf (payload carries it, `"retake"` for a retake and `"delete"` otherwise. A retaken) Tj ET
-BT 1 0 0 1 70.69 679.89 Tm /F1 10.50 Tf (photo is not in the result. An id you never received is safe to ignore.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 661.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 661.89 Tm /F1 10.50 Tf (New `captureCropReplaced` event, `{ replacedCaptureId, captureId, width, height,) Tj ET
-BT 1 0 0 1 70.69 647.89 Tm /F1 10.50 Tf (detectionCount }`, once each time a crop replaces a photo. Key on) Tj ET
-BT 1 0 0 1 70.69 633.89 Tm /F1 10.50 Tf (`replacedCaptureId`: the crop keeps the id today. The cropped photo still reaches) Tj ET
-BT 1 0 0 1 70.69 619.89 Tm /F1 10.50 Tf (`captureQueued`. Buffered while the camera is open and replayed in order after) Tj ET
-BT 1 0 0 1 70.69 605.89 Tm /F1 10.50 Tf (`cameraClosed`, like `captureDeleted`.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 587.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 587.89 Tm /F1 10.50 Tf (`openCamera\({ arSessionRecording }\)` records the session's AR frames to an `.nlrec`) Tj ET
-BT 1 0 0 1 70.69 573.89 Tm /F1 10.50 Tf (file, on both platforms, and the new `arSessionRecording` event hands you each file) Tj ET
-BT 1 0 0 1 70.69 559.89 Tm /F1 10.50 Tf (\(see "AR session recording" in 6b\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 541.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 541.89 Tm /F1 10.50 Tf (Native: "Face the shelf straight on" fires above 12 instead of 8, so every org's) Tj ET
-BT 1 0 0 1 70.69 527.89 Tm /F1 10.50 Tf (guidance `config_hash` changes. On the AR camera the live "~ N products" chip counts) Tj ET
-BT 1 0 0 1 70.69 513.89 Tm /F1 10.50 Tf (SKU facings only.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 495.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 495.89 Tm /F1 10.50 Tf (Native: on Android, on-device recognition matches every detection again with) Tj ET
-BT 1 0 0 1 70.69 481.89 Tm /F1 10.50 Tf (`sendDetectionsMetadata: false` \(it matched nothing from 1.7.18\). With) Tj ET
-BT 1 0 0 1 70.69 467.89 Tm /F1 10.50 Tf (`uploadsEnabled: false`, the SDK no longer fetches its upload config or posts an) Tj ET
-BT 1 0 0 1 70.69 453.89 Tm /F1 10.50 Tf (owed mission submit.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 435.89 Tm (v1.7.21) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 417.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 417.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.21 on both platforms.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 399.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 399.89 Tm /F1 10.50 Tf (Store context and visit KPIs, on both platforms \(see 6d\):) Tj ET
-BT 1 0 0 1 56.69 381.89 Tm /F1 10.50 Tf (- `prefetchStoreContext`, `getStoreContextStatus`, `setStoreContextIdentity` and) Tj ET
-BT 1 0 0 1 56.69 367.89 Tm /F1 10.50 Tf (`clearStoreContextCache` fetch, check and cache each outlet's targets; -) Tj ET
-BT 1 0 0 1 56.69 353.89 Tm /F1 10.50 Tf (`setVisitKpisEnabled` and `setVisitKpiContext` control the visit KPIs; - the new) Tj ET
-BT 1 0 0 1 56.69 339.89 Tm /F1 10.50 Tf (`visitKpis` event delivers a finished session's on-device KPIs and next best actions.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 319.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 319.89 Tm /F1 10.50 Tf (The camera refuses a photo the queue would refuse \(`QUEUE_FULL`, `STORAGE_LOW`\)) Tj ET
-BT 1 0 0 1 70.69 305.89 Tm /F1 10.50 Tf (before the shutter on both platforms, and says why on screen. `uploadFailed` then) Tj ET
-BT 1 0 0 1 70.69 291.89 Tm /F1 10.50 Tf (has no `captureId`, and there is no `captureResult` or `captureQueued` for that) Tj ET
-BT 1 0 0 1 70.69 277.89 Tm /F1 10.50 Tf (photo \(until 1.7.20, iOS took the photo and reported both\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 259.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 259.89 Tm /F1 10.50 Tf (A camera that cannot run closes once with `cameraClosed.error` on both platforms:) Tj ET
-BT 1 0 0 1 70.69 245.89 Tm /F1 10.50 Tf (`CAMERA_PERMISSION_DENIED`, `CAMERA_UNAVAILABLE` \(new\) or `CAMERA_PRESENT_FAILED`) Tj ET
-BT 1 0 0 1 70.69 231.89 Tm /F1 10.50 Tf (\(iOS, new\). It is never an `uploadFailed`. On iOS, reopening the camera from the) Tj ET
-BT 1 0 0 1 70.69 217.89 Tm /F1 10.50 Tf (`cameraClosed` handler no longer wedges `openCamera`.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 199.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 199.89 Tm /F1 10.50 Tf (`captureResult.quality` is the quality verdict the photo was admitted with, in the) Tj ET
-BT 1 0 0 1 70.69 185.89 Tm /F1 10.50 Tf (same shape on both platforms.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 167.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 167.89 Tm /F1 10.50 Tf (`flushQueue\({ force: true }\)` re-sends failed photos that `retryFailedUploads\(\)`) Tj ET
-BT 1 0 0 1 70.69 153.89 Tm /F1 10.50 Tf (leaves failed \(see 5\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 135.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 135.89 Tm /F1 10.50 Tf (`validationPreset: 'minimal'` now reaches the native minimal preset. With both) Tj ET
-BT 1 0 0 1 70.69 121.89 Tm /F1 10.50 Tf (overlays off and no `validationPreset`, both platforms use lenient validation.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (Native: long AR walks stay inside the track budget. Out-of-view facings are archived) Tj ET
+BT 1 0 0 1 70.69 757.89 Tm /F1 10.50 Tf (and still count, so `ar_anchor_counts` and the live chip read higher on long walks.) Tj ET
+BT 1 0 0 1 70.69 743.89 Tm /F1 10.50 Tf (`countsByLabel` is still the aggregator's unless you set `multiBayCountSource:) Tj ET
+BT 1 0 0 1 70.69 729.89 Tm /F1 10.50 Tf ('ar_tracklets'`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 711.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 711.89 Tm /F1 10.50 Tf (Native: the AR multi-bay walk holds capture under "Getting ready..." until the live) Tj ET
+BT 1 0 0 1 70.69 697.89 Tm /F1 10.50 Tf (detector has loaded, for 45 s at most, then lets the rep capture anyway.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 679.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 679.89 Tm /F1 10.50 Tf (Native: the detection inspector names a product only at a match score of 0.5 or) Tj ET
+BT 1 0 0 1 70.69 665.89 Tm /F1 10.50 Tf (more, and says "Not recognised" below it. The review says "No catalogue matches") Tj ET
+BT 1 0 0 1 70.69 651.89 Tm /F1 10.50 Tf (when recognition matched nothing.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 633.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 633.89 Tm /F1 10.50 Tf (If your app shows product names from `captureResult.recognitionMatches` itself, show) Tj ET
+BT 1 0 0 1 70.69 619.89 Tm /F1 10.50 Tf (a name only at a `similarity` of 0.5 or more, as the SDK's inspector now does.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 601.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 601.89 Tm /F1 10.50 Tf (Native: a remembered Guided / Auto pick applies only under the capture mode it was) Tj ET
+BT 1 0 0 1 70.69 587.89 Tm /F1 10.50 Tf (made under, so reps see the chooser once more after the update.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 569.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 569.89 Tm /F1 10.50 Tf (Native: in `visitKpis`, K16 price-tag coverage pairs each tag with the facing above) Tj ET
+BT 1 0 0 1 70.69 555.89 Tm /F1 10.50 Tf (it by shelf geometry, so `tag_paired` no longer reads about 0% on full-resolution) Tj ET
+BT 1 0 0 1 70.69 541.89 Tm /F1 10.50 Tf (photos and fewer `add_tag` actions are raised.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 523.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 523.89 Tm /F1 10.50 Tf (The native KPI pull with a host-supplied store context is not bridged in this) Tj ET
+BT 1 0 0 1 70.69 509.89 Tm /F1 10.50 Tf (release: it needs a native entry point keyed by session id first.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 491.89 Tm (v1.7.23) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 473.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 473.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.23 on both platforms. No plugin API change.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 455.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 455.89 Tm /F1 10.50 Tf (iOS: a signed `cordova build ios` \(build.json `automaticProvisioning` or) Tj ET
+BT 1 0 0 1 70.69 441.89 Tm /F1 10.50 Tf (`provisioningProfile`\) no longer drops the Sentry Swift package \(SDK-10\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 423.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 423.89 Tm /F1 10.50 Tf (Native: snapshot manifests must be signed. A manifest that is unsigned, signed by) Tj ET
+BT 1 0 0 1 70.69 409.89 Tm /F1 10.50 Tf (another key or altered fails to load, so on-device recognition stays off for that) Tj ET
+BT 1 0 0 1 70.69 395.89 Tm /F1 10.50 Tf (build. Every live manifest has been signed since 18 Oct 2026, and older SDKs ignore) Tj ET
+BT 1 0 0 1 70.69 381.89 Tm /F1 10.50 Tf (the signature. A snapshot an older SDK cached for offline use is not used offline;) Tj ET
+BT 1 0 0 1 70.69 367.89 Tm /F1 10.50 Tf (the next online load replaces it.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 349.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 349.89 Tm /F1 10.50 Tf (Native: the `visitKpis` payload's `quality.capture_verdicts` counts a capture as) Tj ET
+BT 1 0 0 1 70.69 335.89 Tm /F1 10.50 Tf (`warn` when its quality check judged it not acceptable or flagged a warning.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 317.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 317.89 Tm /F1 10.50 Tf (Native \(Android\): tapping a bay on "Review shelf", or a photo on the default) Tj ET
+BT 1 0 0 1 70.69 303.89 Tm /F1 10.50 Tf (camera's "Review", shows its quality summary, as on iOS.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 285.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 285.89 Tm /F1 10.50 Tf (The plugin's cameras keep their behaviour: they already computed visit KPIs at their) Tj ET
+BT 1 0 0 1 70.69 271.89 Tm /F1 10.50 Tf (finish, and the bridges always pass a shelf type.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 253.89 Tm (v1.7.22) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 235.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 235.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.22 on both platforms.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 217.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 217.89 Tm /F1 10.50 Tf (`captureDeleted` now also fires when the rep retakes a photo, on both platforms,) Tj ET
+BT 1 0 0 1 70.69 203.89 Tm /F1 10.50 Tf (with `source: "retake"`. Until 1.7.21 it never fired for a retake. If you count) Tj ET
+BT 1 0 0 1 70.69 189.89 Tm /F1 10.50 Tf (`captureDeleted` as "the rep deleted a photo", check the new `reason` key: every) Tj ET
+BT 1 0 0 1 70.69 175.89 Tm /F1 10.50 Tf (payload carries it, `"retake"` for a retake and `"delete"` otherwise. A retaken) Tj ET
+BT 1 0 0 1 70.69 161.89 Tm /F1 10.50 Tf (photo is not in the result. An id you never received is safe to ignore.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 143.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 143.89 Tm /F1 10.50 Tf (New `captureCropReplaced` event, `{ replacedCaptureId, captureId, width, height,) Tj ET
+BT 1 0 0 1 70.69 129.89 Tm /F1 10.50 Tf (detectionCount }`, once each time a crop replaces a photo. Key on) Tj ET
+BT 1 0 0 1 70.69 115.89 Tm /F1 10.50 Tf (`replacedCaptureId`: the crop keeps the id today. The cropped photo still reaches) Tj ET
+BT 1 0 0 1 70.69 101.89 Tm /F1 10.50 Tf (`captureQueued`. Buffered while the camera is open and replayed in order after) Tj ET
+BT 1 0 0 1 70.69 87.89 Tm /F1 10.50 Tf (`cameraClosed`, like `captureDeleted`.) Tj ET
 endstream
 endobj
 9 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 8 0 R >>
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 8 0 R >>
 endobj
 10 0 obj
-<< /Length 6213 >>
+<< /Length 5862 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
@@ -227,72 +223,69 @@ BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Document
 BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 4) Tj ET
 0.000000 0.000000 0.000000 rg
 BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (Android: the toolchain check tests the real requirements \(AGP 8.9.1, Gradle 8.11.1,) Tj ET
-BT 1 0 0 1 70.69 757.89 Tm /F1 10.50 Tf (compileSdk 36, minSdk 26, Kotlin 2.2, JDK 17\), so cordova-android 14 works once) Tj ET
-BT 1 0 0 1 70.69 743.89 Tm /F1 10.50 Tf (`config.xml` meets them \(see 3\).) Tj ET
+BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (`openCamera\({ arSessionRecording }\)` records the session's AR frames to an `.nlrec`) Tj ET
+BT 1 0 0 1 70.69 757.89 Tm /F1 10.50 Tf (file, on both platforms, and the new `arSessionRecording` event hands you each file) Tj ET
+BT 1 0 0 1 70.69 743.89 Tm /F1 10.50 Tf (\(see "AR session recording" in 6b\).) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 725.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 725.89 Tm /F1 10.50 Tf (Native: the image-quality checks behave the same on iOS and Android, and capture no) Tj ET
-BT 1 0 0 1 70.69 711.89 Tm /F1 10.50 Tf (longer waits 5 s on "Processing capture..." while the detector warms.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 693.89 Tm (v1.7.20) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 675.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 675.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.20 on both platforms. It ships the REX/Smollan) Tj ET
-BT 1 0 0 1 70.69 661.89 Tm /F1 10.50 Tf (audit fixes; 1.7.19 is unchanged, so upgrade to 1.7.20 to get them.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 643.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 643.89 Tm /F1 10.50 Tf (iOS: the plugin adds the background-upload wake method to `CDVAppDelegate` at) Tj ET
-BT 1 0 0 1 70.69 629.89 Tm /F1 10.50 Tf (launch, only if none is there and never replacing one. Plugin 1.7.19 declared it at) Tj ET
-BT 1 0 0 1 70.69 615.89 Tm /F1 10.50 Tf (compile time, which clashed with another plugin declaring the same method \(see 5,) Tj ET
-BT 1 0 0 1 70.69 601.89 Tm /F1 10.50 Tf (item 23\).) Tj ET
+BT 1 0 0 1 70.69 725.89 Tm /F1 10.50 Tf (Native: "Face the shelf straight on" fires above 12 instead of 8, so every org's) Tj ET
+BT 1 0 0 1 70.69 711.89 Tm /F1 10.50 Tf (guidance `config_hash` changes. On the AR camera the live "~ N products" chip counts) Tj ET
+BT 1 0 0 1 70.69 697.89 Tm /F1 10.50 Tf (SKU facings only.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 679.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 679.89 Tm /F1 10.50 Tf (Native: on Android, on-device recognition matches every detection again with) Tj ET
+BT 1 0 0 1 70.69 665.89 Tm /F1 10.50 Tf (`sendDetectionsMetadata: false` \(it matched nothing from 1.7.18\). With) Tj ET
+BT 1 0 0 1 70.69 651.89 Tm /F1 10.50 Tf (`uploadsEnabled: false`, the SDK no longer fetches its upload config or posts an) Tj ET
+BT 1 0 0 1 70.69 637.89 Tm /F1 10.50 Tf (owed mission submit.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 619.89 Tm (v1.7.21) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 601.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 601.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.21 on both platforms.) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 583.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 583.89 Tm /F1 10.50 Tf (Android: the plugin stops early, with one clear message, when cordova-android is) Tj ET
-BT 1 0 0 1 70.69 569.89 Tm /F1 10.50 Tf (older than 15, the Android Gradle Plugin older than 8.9.1 or the JDK older than 17) Tj ET
-BT 1 0 0 1 70.69 555.89 Tm /F1 10.50 Tf (\(see 3, item 24\). cordova-android 14 is no longer accepted.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 537.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 537.89 Tm /F1 10.50 Tf (Subscribing with `addListener` no longer delivers a fake event at once \(for example) Tj ET
-BT 1 0 0 1 70.69 523.89 Tm /F1 10.50 Tf (a `cameraClosed` the moment you subscribe\), on both platforms. A host that filtered) Tj ET
-BT 1 0 0 1 70.69 509.89 Tm /F1 10.50 Tf (it out \(`status === "listening"`\) can drop that check.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 491.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 491.89 Tm /F1 10.50 Tf (Native: the default camera tells the rep why it refused a photo for low storage or a) Tj ET
-BT 1 0 0 1 70.69 477.89 Tm /F1 10.50 Tf (full queue. On Android the photo is not taken, and `uploadFailed` comes without a) Tj ET
-BT 1 0 0 1 70.69 463.89 Tm /F1 10.50 Tf (`captureId` and with no failed `captureResult`; iOS takes it and reports both, as) Tj ET
-BT 1 0 0 1 70.69 449.89 Tm /F1 10.50 Tf (before.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 431.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 431.89 Tm /F1 10.50 Tf (Native: `retryFailedUploads\(\)` leaves a mission refusal that cannot succeed as sent) Tj ET
-BT 1 0 0 1 70.69 417.89 Tm /F1 10.50 Tf (failed, and a call within 60 s of the previous one does nothing \(see 5\). On Android,) Tj ET
-BT 1 0 0 1 70.69 403.89 Tm /F1 10.50 Tf (`clearUploadQueue\(\)` also drops the uploaded-but-unsubmitted photos' submits, as on) Tj ET
-BT 1 0 0 1 70.69 389.89 Tm /F1 10.50 Tf (iOS.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 371.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 371.89 Tm /F1 10.50 Tf (Native: "Preparing detector..." holds the shutter for 3 s at most, and SDK error) Tj ET
-BT 1 0 0 1 70.69 357.89 Tm /F1 10.50 Tf (reports to Sentry never carry a server response body.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 339.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 339.89 Tm /F1 10.50 Tf (iOS: with Wi-Fi-only uploads on, a background transfer never uses cellular data;) Tj ET
-BT 1 0 0 1 70.69 325.89 Tm /F1 10.50 Tf (photos go to iOS's background upload only from the foreground, and the) Tj ET
-BT 1 0 0 1 70.69 311.89 Tm /F1 10.50 Tf (background-wake completion handler is always called.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 293.89 Tm (v1.7.19) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 275.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 275.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.19 on both platforms.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 257.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 257.89 Tm /F1 10.50 Tf (iOS: queued photos keep uploading through an iOS background `URLSession` after iOS) Tj ET
-BT 1 0 0 1 70.69 243.89 Tm /F1 10.50 Tf (suspends or terminates the app and while the phone is locked. The plugin hands iOS's) Tj ET
-BT 1 0 0 1 70.69 229.89 Tm /F1 10.50 Tf (background wake to the SDK, so no native code or `Info.plist` change is needed; a) Tj ET
-BT 1 0 0 1 70.69 215.89 Tm /F1 10.50 Tf (host `AppDelegate` that implements) Tj ET
-BT 1 0 0 1 70.69 201.89 Tm /F1 10.50 Tf (`application\(_:handleEventsForBackgroundURLSession:completionHandler:\)` itself) Tj ET
-BT 1 0 0 1 70.69 187.89 Tm /F1 10.50 Tf (forwards one line \(see 5\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 169.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 169.89 Tm /F1 10.50 Tf (New `config.xml` preference `NeurolabsSentryEnabled`: `value="false"` turns the) Tj ET
-BT 1 0 0 1 70.69 155.89 Tm /F1 10.50 Tf (SDK's Sentry off from app launch, before any JavaScript runs, and wins over `init\({) Tj ET
-BT 1 0 0 1 70.69 141.89 Tm /F1 10.50 Tf (sentryEnabled }\)` \(item 22\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 123.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 123.89 Tm /F1 10.50 Tf (Native: Sentry reports only the SDK's own errors and crashes in SDK code, on both) Tj ET
-BT 1 0 0 1 70.69 109.89 Tm /F1 10.50 Tf (platforms. No host crashes, app hangs, watchdog terminations or failed requests, no) Tj ET
-BT 1 0 0 1 70.69 95.89 Tm /F1 10.50 Tf (host instrumentation, scrubbed URLs, and the iOS crash handler never replaces your) Tj ET
-BT 1 0 0 1 70.69 81.89 Tm /F1 10.50 Tf (app's own Sentry; `sentryEnabled: false` also closes it \(item 22\).) Tj ET
+BT 1 0 0 1 70.69 583.89 Tm /F1 10.50 Tf (Store context and visit KPIs, on both platforms \(see 6d\):) Tj ET
+BT 1 0 0 1 56.69 565.89 Tm /F1 10.50 Tf (- `prefetchStoreContext`, `getStoreContextStatus`, `setStoreContextIdentity` and) Tj ET
+BT 1 0 0 1 56.69 551.89 Tm /F1 10.50 Tf (`clearStoreContextCache` fetch, check and cache each outlet's targets; -) Tj ET
+BT 1 0 0 1 56.69 537.89 Tm /F1 10.50 Tf (`setVisitKpisEnabled` and `setVisitKpiContext` control the visit KPIs; - the new) Tj ET
+BT 1 0 0 1 56.69 523.89 Tm /F1 10.50 Tf (`visitKpis` event delivers a finished session's on-device KPIs and next best actions.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 503.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 503.89 Tm /F1 10.50 Tf (The camera refuses a photo the queue would refuse \(`QUEUE_FULL`, `STORAGE_LOW`\)) Tj ET
+BT 1 0 0 1 70.69 489.89 Tm /F1 10.50 Tf (before the shutter on both platforms, and says why on screen. `uploadFailed` then) Tj ET
+BT 1 0 0 1 70.69 475.89 Tm /F1 10.50 Tf (has no `captureId`, and there is no `captureResult` or `captureQueued` for that) Tj ET
+BT 1 0 0 1 70.69 461.89 Tm /F1 10.50 Tf (photo \(until 1.7.20, iOS took the photo and reported both\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 443.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 443.89 Tm /F1 10.50 Tf (A camera that cannot run closes once with `cameraClosed.error` on both platforms:) Tj ET
+BT 1 0 0 1 70.69 429.89 Tm /F1 10.50 Tf (`CAMERA_PERMISSION_DENIED`, `CAMERA_UNAVAILABLE` \(new\) or `CAMERA_PRESENT_FAILED`) Tj ET
+BT 1 0 0 1 70.69 415.89 Tm /F1 10.50 Tf (\(iOS, new\). It is never an `uploadFailed`. On iOS, reopening the camera from the) Tj ET
+BT 1 0 0 1 70.69 401.89 Tm /F1 10.50 Tf (`cameraClosed` handler no longer wedges `openCamera`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 383.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 383.89 Tm /F1 10.50 Tf (`captureResult.quality` is the quality verdict the photo was admitted with, in the) Tj ET
+BT 1 0 0 1 70.69 369.89 Tm /F1 10.50 Tf (same shape on both platforms.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 351.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 351.89 Tm /F1 10.50 Tf (`flushQueue\({ force: true }\)` re-sends failed photos that `retryFailedUploads\(\)`) Tj ET
+BT 1 0 0 1 70.69 337.89 Tm /F1 10.50 Tf (leaves failed \(see 5\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 319.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 319.89 Tm /F1 10.50 Tf (`validationPreset: 'minimal'` now reaches the native minimal preset. With both) Tj ET
+BT 1 0 0 1 70.69 305.89 Tm /F1 10.50 Tf (overlays off and no `validationPreset`, both platforms use lenient validation.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 287.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 287.89 Tm /F1 10.50 Tf (Android: the toolchain check tests the real requirements \(AGP 8.9.1, Gradle 8.11.1,) Tj ET
+BT 1 0 0 1 70.69 273.89 Tm /F1 10.50 Tf (compileSdk 36, minSdk 26, Kotlin 2.2, JDK 17\), so cordova-android 14 works once) Tj ET
+BT 1 0 0 1 70.69 259.89 Tm /F1 10.50 Tf (`config.xml` meets them \(see 3\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 241.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 241.89 Tm /F1 10.50 Tf (Native: the image-quality checks behave the same on iOS and Android, and capture no) Tj ET
+BT 1 0 0 1 70.69 227.89 Tm /F1 10.50 Tf (longer waits 5 s on "Processing capture..." while the detector warms.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 209.89 Tm (v1.7.20) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 191.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 191.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.20 on both platforms. It ships the REX/Smollan) Tj ET
+BT 1 0 0 1 70.69 177.89 Tm /F1 10.50 Tf (audit fixes; 1.7.19 is unchanged, so upgrade to 1.7.20 to get them.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 159.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 159.89 Tm /F1 10.50 Tf (iOS: the plugin adds the background-upload wake method to `CDVAppDelegate` at) Tj ET
+BT 1 0 0 1 70.69 145.89 Tm /F1 10.50 Tf (launch, only if none is there and never replacing one. Plugin 1.7.19 declared it at) Tj ET
+BT 1 0 0 1 70.69 131.89 Tm /F1 10.50 Tf (compile time, which clashed with another plugin declaring the same method \(see 5,) Tj ET
+BT 1 0 0 1 70.69 117.89 Tm /F1 10.50 Tf (item 23\).) Tj ET
 endstream
 endobj
 11 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 10 0 R >>
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 10 0 R >>
 endobj
 12 0 obj
-<< /Length 6218 >>
+<< /Length 6298 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
@@ -300,141 +293,141 @@ BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Document
 BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 5) Tj ET
 0.000000 0.000000 0.000000 rg
 BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (Native: on "Review shelf", a broken bay link offers "Retake bay N", which replaces) Tj ET
-BT 1 0 0 1 70.69 757.89 Tm /F1 10.50 Tf (that bay in place and merges the walk again, and the submit's `device_dedup` adds) Tj ET
-BT 1 0 0 1 70.69 743.89 Tm /F1 10.50 Tf (the seams between segments. A walk that folds back across a broken link to a bay it) Tj ET
-BT 1 0 0 1 70.69 729.89 Tm /F1 10.50 Tf (already took no longer counts it twice, and the submit adds the bays' left-to-right) Tj ET
-BT 1 0 0 1 70.69 715.89 Tm /F1 10.50 Tf (shelf order and their links. iOS: a retaken bay never merges with the next bay.) Tj ET
-BT 1 0 0 1 70.69 701.89 Tm /F1 10.50 Tf (Android: bays keep the order they were taken in through the merge and the submit.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 683.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 683.89 Tm /F1 10.50 Tf (Native: how long on-device recognition keeps using its last good build while offline) Tj ET
-BT 1 0 0 1 70.69 669.89 Tm /F1 10.50 Tf (is set per organisation by Neurolabs \(1 to 30 days, default 7\). Until the backend) Tj ET
-BT 1 0 0 1 70.69 655.89 Tm /F1 10.50 Tf (setting ships, every organisation keeps 7 days.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 637.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 637.89 Tm /F1 10.50 Tf (Native: a negative `device_dedup` count is never sent; on iOS a slow save no longer) Tj ET
-BT 1 0 0 1 70.69 623.89 Tm /F1 10.50 Tf (loses its photos, and on Android an accepted photo is no longer lost when its) Tj ET
-BT 1 0 0 1 70.69 609.89 Tm /F1 10.50 Tf (session folder was pruned.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 591.89 Tm (v1.7.18) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 573.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 573.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.18 on both platforms.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 555.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 555.89 Tm /F1 10.50 Tf (Native: each capture's metadata record \(capture contract v1: shutter time, device,) Tj ET
-BT 1 0 0 1 70.69 541.89 Tm /F1 10.50 Tf (camera, image size, attitude, intrinsics, an EXIF subset, the AR pose\) is uploaded) Tj ET
-BT 1 0 0 1 70.69 527.89 Tm /F1 10.50 Tf (after its image, off the image path; a metadata failure never holds up the image or) Tj ET
-BT 1 0 0 1 70.69 513.89 Tm /F1 10.50 Tf (the submit. The detections go in it only with `sendDetectionsMetadata: true` \(item) Tj ET
-BT 1 0 0 1 70.69 499.89 Tm /F1 10.50 Tf (19\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 481.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 481.89 Tm /F1 10.50 Tf (Native: a multi-bay walk with a pair of bays the SDK could not link no longer leaves) Tj ET
-BT 1 0 0 1 70.69 467.89 Tm /F1 10.50 Tf (the rest of the walk unmerged: the dedup runs inside each linked segment, "Review) Tj ET
-BT 1 0 0 1 70.69 453.89 Tm /F1 10.50 Tf (shelf" marks the broken link \("Couldn't link bay N - retake it to join", with "Open) Tj ET
-BT 1 0 0 1 70.69 439.89 Tm /F1 10.50 Tf (bay N"\), and the submit also sends the walk's stitched realogram \(shelves, rows and) Tj ET
-BT 1 0 0 1 70.69 425.89 Tm /F1 10.50 Tf (slots\). `dedupTrusted` is still true only for one trusted segment.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 407.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 407.89 Tm /F1 10.50 Tf (Native: with on-device recognition off \(`recognition: false`\), the AR boxes keep) Tj ET
-BT 1 0 0 1 70.69 393.89 Tm /F1 10.50 Tf (their identity from appearance as well as position \(a colour histogram, or the) Tj ET
-BT 1 0 0 1 70.69 379.89 Tm /F1 10.50 Tf (ConvNeXt model for an organisation Operations grants it to\). It is on by default and) Tj ET
-BT 1 0 0 1 70.69 365.89 Tm /F1 10.50 Tf (changes the overlay only, not counts or uploads.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 347.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 347.89 Tm /F1 10.50 Tf (Android: `enablePreviewCropping: true` is display only, as on iOS: uploads carry the) Tj ET
-BT 1 0 0 1 70.69 333.89 Tm /F1 10.50 Tf (full frame, and only the thumbnail is trimmed \(item 18\). With) Tj ET
-BT 1 0 0 1 70.69 319.89 Tm /F1 10.50 Tf (`sendDetectionsMetadata: false`, `captureResult.detections` is no longer empty, and) Tj ET
-BT 1 0 0 1 70.69 305.89 Tm /F1 10.50 Tf (a multi-bay session's `countsByLabel` and submitted `device_dedup` counts come from) Tj ET
-BT 1 0 0 1 70.69 291.89 Tm /F1 10.50 Tf (the real detections \(they were empty before\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 273.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 273.89 Tm /F1 10.50 Tf (iOS: an upload in flight when the app goes to the background gets iOS's grace period) Tj ET
-BT 1 0 0 1 70.69 259.89 Tm /F1 10.50 Tf (\(about 30 s\), and `init\({ analyticsEnabled: false }\)` now also stops the SDK) Tj ET
-BT 1 0 0 1 70.69 245.89 Tm /F1 10.50 Tf (camera's analytics events \(Android already did\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 227.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 227.89 Tm /F1 10.50 Tf (New `init\({ captureGeolocation, captureDepth }\)` and) Tj ET
-BT 1 0 0 1 70.69 213.89 Tm /F1 10.50 Tf (`captureResult.captureMetadata`: each capture's metadata \(capture contract v1\) is) Tj ET
-BT 1 0 0 1 70.69 199.89 Tm /F1 10.50 Tf (uploaded after its image and handed to the host. Location and depth are opt-in, and) Tj ET
-BT 1 0 0 1 70.69 185.89 Tm /F1 10.50 Tf (the host app owns the location permission \(see 4a\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 167.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 167.89 Tm /F1 10.50 Tf (New `openCamera\({ arHighResolutionStills: true }\)`, Android only and experimental:) Tj ET
-BT 1 0 0 1 70.69 153.89 Tm /F1 10.50 Tf (full-resolution AR photos through ARCore's Shared Camera. iOS accepts the key and) Tj ET
-BT 1 0 0 1 70.69 139.89 Tm /F1 10.50 Tf (ignores it \(see 6b\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 121.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 121.89 Tm /F1 10.50 Tf (New `openCamera\({ arAppearanceWithoutRecognition }\)` \(default on\): AR box identity) Tj ET
-BT 1 0 0 1 70.69 107.89 Tm /F1 10.50 Tf (from appearance with on-device recognition off \(see 6b\).) Tj ET
+BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (Android: the plugin stops early, with one clear message, when cordova-android is) Tj ET
+BT 1 0 0 1 70.69 757.89 Tm /F1 10.50 Tf (older than 15, the Android Gradle Plugin older than 8.9.1 or the JDK older than 17) Tj ET
+BT 1 0 0 1 70.69 743.89 Tm /F1 10.50 Tf (\(see 3, item 24\). cordova-android 14 is no longer accepted.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 725.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 725.89 Tm /F1 10.50 Tf (Subscribing with `addListener` no longer delivers a fake event at once \(for example) Tj ET
+BT 1 0 0 1 70.69 711.89 Tm /F1 10.50 Tf (a `cameraClosed` the moment you subscribe\), on both platforms. A host that filtered) Tj ET
+BT 1 0 0 1 70.69 697.89 Tm /F1 10.50 Tf (it out \(`status === "listening"`\) can drop that check.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 679.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 679.89 Tm /F1 10.50 Tf (Native: the default camera tells the rep why it refused a photo for low storage or a) Tj ET
+BT 1 0 0 1 70.69 665.89 Tm /F1 10.50 Tf (full queue. On Android the photo is not taken, and `uploadFailed` comes without a) Tj ET
+BT 1 0 0 1 70.69 651.89 Tm /F1 10.50 Tf (`captureId` and with no failed `captureResult`; iOS takes it and reports both, as) Tj ET
+BT 1 0 0 1 70.69 637.89 Tm /F1 10.50 Tf (before.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 619.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 619.89 Tm /F1 10.50 Tf (Native: `retryFailedUploads\(\)` leaves a mission refusal that cannot succeed as sent) Tj ET
+BT 1 0 0 1 70.69 605.89 Tm /F1 10.50 Tf (failed, and a call within 60 s of the previous one does nothing \(see 5\). On Android,) Tj ET
+BT 1 0 0 1 70.69 591.89 Tm /F1 10.50 Tf (`clearUploadQueue\(\)` also drops the uploaded-but-unsubmitted photos' submits, as on) Tj ET
+BT 1 0 0 1 70.69 577.89 Tm /F1 10.50 Tf (iOS.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 559.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 559.89 Tm /F1 10.50 Tf (Native: "Preparing detector..." holds the shutter for 3 s at most, and SDK error) Tj ET
+BT 1 0 0 1 70.69 545.89 Tm /F1 10.50 Tf (reports to Sentry never carry a server response body.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 527.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 527.89 Tm /F1 10.50 Tf (iOS: with Wi-Fi-only uploads on, a background transfer never uses cellular data;) Tj ET
+BT 1 0 0 1 70.69 513.89 Tm /F1 10.50 Tf (photos go to iOS's background upload only from the foreground, and the) Tj ET
+BT 1 0 0 1 70.69 499.89 Tm /F1 10.50 Tf (background-wake completion handler is always called.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 481.89 Tm (v1.7.19) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 463.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 463.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.19 on both platforms.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 445.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 445.89 Tm /F1 10.50 Tf (iOS: queued photos keep uploading through an iOS background `URLSession` after iOS) Tj ET
+BT 1 0 0 1 70.69 431.89 Tm /F1 10.50 Tf (suspends or terminates the app and while the phone is locked. The plugin hands iOS's) Tj ET
+BT 1 0 0 1 70.69 417.89 Tm /F1 10.50 Tf (background wake to the SDK, so no native code or `Info.plist` change is needed; a) Tj ET
+BT 1 0 0 1 70.69 403.89 Tm /F1 10.50 Tf (host `AppDelegate` that implements) Tj ET
+BT 1 0 0 1 70.69 389.89 Tm /F1 10.50 Tf (`application\(_:handleEventsForBackgroundURLSession:completionHandler:\)` itself) Tj ET
+BT 1 0 0 1 70.69 375.89 Tm /F1 10.50 Tf (forwards one line \(see 5\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 357.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 357.89 Tm /F1 10.50 Tf (New `config.xml` preference `NeurolabsSentryEnabled`: `value="false"` turns the) Tj ET
+BT 1 0 0 1 70.69 343.89 Tm /F1 10.50 Tf (SDK's Sentry off from app launch, before any JavaScript runs, and wins over `init\({) Tj ET
+BT 1 0 0 1 70.69 329.89 Tm /F1 10.50 Tf (sentryEnabled }\)` \(item 22\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 311.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 311.89 Tm /F1 10.50 Tf (Native: Sentry reports only the SDK's own errors and crashes in SDK code, on both) Tj ET
+BT 1 0 0 1 70.69 297.89 Tm /F1 10.50 Tf (platforms. No host crashes, app hangs, watchdog terminations or failed requests, no) Tj ET
+BT 1 0 0 1 70.69 283.89 Tm /F1 10.50 Tf (host instrumentation, scrubbed URLs, and the iOS crash handler never replaces your) Tj ET
+BT 1 0 0 1 70.69 269.89 Tm /F1 10.50 Tf (app's own Sentry; `sentryEnabled: false` also closes it \(item 22\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 251.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 251.89 Tm /F1 10.50 Tf (Native: on "Review shelf", a broken bay link offers "Retake bay N", which replaces) Tj ET
+BT 1 0 0 1 70.69 237.89 Tm /F1 10.50 Tf (that bay in place and merges the walk again, and the submit's `device_dedup` adds) Tj ET
+BT 1 0 0 1 70.69 223.89 Tm /F1 10.50 Tf (the seams between segments. A walk that folds back across a broken link to a bay it) Tj ET
+BT 1 0 0 1 70.69 209.89 Tm /F1 10.50 Tf (already took no longer counts it twice, and the submit adds the bays' left-to-right) Tj ET
+BT 1 0 0 1 70.69 195.89 Tm /F1 10.50 Tf (shelf order and their links. iOS: a retaken bay never merges with the next bay.) Tj ET
+BT 1 0 0 1 70.69 181.89 Tm /F1 10.50 Tf (Android: bays keep the order they were taken in through the merge and the submit.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 163.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 163.89 Tm /F1 10.50 Tf (Native: how long on-device recognition keeps using its last good build while offline) Tj ET
+BT 1 0 0 1 70.69 149.89 Tm /F1 10.50 Tf (is set per organisation by Neurolabs \(1 to 30 days, default 7\). Until the backend) Tj ET
+BT 1 0 0 1 70.69 135.89 Tm /F1 10.50 Tf (setting ships, every organisation keeps 7 days.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 117.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 117.89 Tm /F1 10.50 Tf (Native: a negative `device_dedup` count is never sent; on iOS a slow save no longer) Tj ET
+BT 1 0 0 1 70.69 103.89 Tm /F1 10.50 Tf (loses its photos, and on Android an accepted photo is no longer lost when its) Tj ET
+BT 1 0 0 1 70.69 89.89 Tm /F1 10.50 Tf (session folder was pruned.) Tj ET
 endstream
 endobj
 13 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 12 0 R >>
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 12 0 R >>
 endobj
 14 0 obj
-<< /Length 6145 >>
+<< /Length 6077 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
 BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 6) Tj ET
 0.000000 0.000000 0.000000 rg
-BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (`cameraClosed.multiBay` adds `realogram` \(the walk's shelves, rows and slots\) and) Tj ET
-BT 1 0 0 1 70.69 757.89 Tm /F1 10.50 Tf (`segments` \(its dedup segments\), the same shape on both platforms \(see 6a\).) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 739.89 Tm (v1.7.17) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 721.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 721.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.17 on both platforms.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 703.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 703.89 Tm /F1 10.50 Tf (Native: the default and AR cameras show an offline chip while there is no network) Tj ET
-BT 1 0 0 1 70.69 689.89 Tm /F1 10.50 Tf (\("Offline", plus "uploads queued" when photos wait\), or "Waiting for Wi-Fi" while) Tj ET
-BT 1 0 0 1 70.69 675.89 Tm /F1 10.50 Tf (Wi-Fi-only uploads hold photos on cellular. It is on by default and never blocks the) Tj ET
-BT 1 0 0 1 70.69 661.89 Tm /F1 10.50 Tf (shutter; `openCamera\({ showsOfflineIndicator: false }\)` hides it \(see 6\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 643.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 643.89 Tm /F1 10.50 Tf (Native: the AR flow's "Review shelf" screen adds "On this shelf": the walk's brands,) Tj ET
-BT 1 0 0 1 70.69 629.89 Tm /F1 10.50 Tf (share of shelf and SKUs from on-device recognition, or the total only when) Tj ET
-BT 1 0 0 1 70.69 615.89 Tm /F1 10.50 Tf (recognition is unavailable on the device.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 597.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 597.89 Tm /F1 10.50 Tf (A continuous AR sweep \(`multiBayAR` preset, or `cameraMode: 'ar'` with `captureMode:) Tj ET
-BT 1 0 0 1 70.69 583.89 Tm /F1 10.50 Tf ('continuous'`\) may plan up to 30 bays through the plugin on both platforms; every) Tj ET
-BT 1 0 0 1 70.69 569.89 Tm /F1 10.50 Tf (other session keeps 8 \(see 6a\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 551.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 551.89 Tm /F1 10.50 Tf (New `openCamera\({ arBoxUnmatchedColor }\)`: under `arBoxStyle: 'highlight'` with live) Tj ET
-BT 1 0 0 1 70.69 537.89 Tm /F1 10.50 Tf (labels on, a box the labels have looked at and not matched is drawn in this colour) Tj ET
-BT 1 0 0 1 70.69 523.89 Tm /F1 10.50 Tf (\(default `#FACC15`; see 6b\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 505.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 505.89 Tm /F1 10.50 Tf (`arLiveLabels: true` now shows product names through the plugin on Android and iOS) Tj ET
-BT 1 0 0 1 70.69 491.89 Tm /F1 10.50 Tf (\(needs recognition on and an operations-capable key; see 6b\).) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 473.89 Tm (v1.7.16) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 455.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 455.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.16 on both platforms.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 437.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 437.89 Tm /F1 10.50 Tf (New `init\({ detectorPrefetchPolicy: 'unmetered' }\)`: the detector downloads only on) Tj ET
-BT 1 0 0 1 70.69 423.89 Tm /F1 10.50 Tf (Wi-Fi or Ethernet \(native SDK 1.7.16\). While it waits, `getDetectorModelStatus\(\)`) Tj ET
-BT 1 0 0 1 70.69 409.89 Tm /F1 10.50 Tf (reports `reason: "waiting_for_unmetered_network"`.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 391.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 391.89 Tm /F1 10.50 Tf (New `init\({ recognition: false }\)`: the plugin never builds on-device recognition.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 373.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 373.89 Tm /F1 10.50 Tf (New section 6c, "Capture and quality checks only \(no boxes, no recognition\)", with) Tj ET
-BT 1 0 0 1 70.69 359.89 Tm /F1 10.50 Tf (an upgrade checklist from plugin 1.6.6.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 341.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 341.89 Tm /F1 10.50 Tf (New `openCamera\({ finalReview: true }\)`: an end-of-session review with tap-to-crop) Tj ET
-BT 1 0 0 1 70.69 327.89 Tm /F1 10.50 Tf (on the default camera \(native SDK 1.7.16; see 6\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 309.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 309.89 Tm /F1 10.50 Tf (New AR overlay options `arBoxStyle`, `arBoxHighlightColor`, `arCoverageStyle`,) Tj ET
-BT 1 0 0 1 70.69 295.89 Tm /F1 10.50 Tf (`arCoverageOutlineColor`, `arBoxPersistence`, and the experimental `arLiveLabels` /) Tj ET
-BT 1 0 0 1 70.69 281.89 Tm /F1 10.50 Tf (`arLiveCount` \(native SDK 1.7.16; see 6b\). Live labels need recognition on and the) Tj ET
-BT 1 0 0 1 70.69 267.89 Tm /F1 10.50 Tf (catalog synced, and show names on Android, and on iOS from native 1.7.17 on.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 249.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 249.89 Tm /F1 10.50 Tf (New `init\({ maxRetainedPhotos, retainedPhotoExpiryDays }\)`, the `retainedPhotosHigh`) Tj ET
-BT 1 0 0 1 70.69 235.89 Tm /F1 10.50 Tf (event, `retainedCount` / `retainedBytes` in the queue status, and the `STORAGE_LOW`) Tj ET
-BT 1 0 0 1 70.69 221.89 Tm /F1 10.50 Tf (capture refusal \(native SDK 1.7.16; see 5 and 7\). Uploaded photos kept on the device) Tj ET
-BT 1 0 0 1 70.69 207.89 Tm /F1 10.50 Tf (no longer count toward `maxQueueSize`.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 189.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 189.89 Tm /F1 10.50 Tf (Capture size: the plugin no longer sends 1920 px / 0.85 when you omit) Tj ET
-BT 1 0 0 1 70.69 175.89 Tm /F1 10.50 Tf (`maxImageDimension` / `imageCompressionQuality`. The SDK default is now 4032 px at) Tj ET
-BT 1 0 0 1 70.69 161.89 Tm /F1 10.50 Tf (JPEG 0.9 on both platforms, and Neurolabs can override it per organisation \(see 6\).) Tj ET
-BT 1 0 0 1 70.69 147.89 Tm /F1 10.50 Tf (Set the values yourself only if upload size matters more than recognition quality.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 129.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 129.89 Tm /F1 10.50 Tf (`validationPreset: "lenient"` now applies the native lenient thresholds \(it used to) Tj ET
-BT 1 0 0 1 70.69 115.89 Tm /F1 10.50 Tf (apply the default ones\), so fewer captures are refused.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 771.89 Tm (v1.7.18) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 753.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 753.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.18 on both platforms.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 735.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 735.89 Tm /F1 10.50 Tf (Native: each capture's metadata record \(capture contract v1: shutter time, device,) Tj ET
+BT 1 0 0 1 70.69 721.89 Tm /F1 10.50 Tf (camera, image size, attitude, intrinsics, an EXIF subset, the AR pose\) is uploaded) Tj ET
+BT 1 0 0 1 70.69 707.89 Tm /F1 10.50 Tf (after its image, off the image path; a metadata failure never holds up the image or) Tj ET
+BT 1 0 0 1 70.69 693.89 Tm /F1 10.50 Tf (the submit. The detections go in it only with `sendDetectionsMetadata: true` \(item) Tj ET
+BT 1 0 0 1 70.69 679.89 Tm /F1 10.50 Tf (19\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 661.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 661.89 Tm /F1 10.50 Tf (Native: a multi-bay walk with a pair of bays the SDK could not link no longer leaves) Tj ET
+BT 1 0 0 1 70.69 647.89 Tm /F1 10.50 Tf (the rest of the walk unmerged: the dedup runs inside each linked segment, "Review) Tj ET
+BT 1 0 0 1 70.69 633.89 Tm /F1 10.50 Tf (shelf" marks the broken link \("Couldn't link bay N - retake it to join", with "Open) Tj ET
+BT 1 0 0 1 70.69 619.89 Tm /F1 10.50 Tf (bay N"\), and the submit also sends the walk's stitched realogram \(shelves, rows and) Tj ET
+BT 1 0 0 1 70.69 605.89 Tm /F1 10.50 Tf (slots\). `dedupTrusted` is still true only for one trusted segment.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 587.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 587.89 Tm /F1 10.50 Tf (Native: with on-device recognition off \(`recognition: false`\), the AR boxes keep) Tj ET
+BT 1 0 0 1 70.69 573.89 Tm /F1 10.50 Tf (their identity from appearance as well as position \(a colour histogram, or the) Tj ET
+BT 1 0 0 1 70.69 559.89 Tm /F1 10.50 Tf (ConvNeXt model for an organisation Operations grants it to\). It is on by default and) Tj ET
+BT 1 0 0 1 70.69 545.89 Tm /F1 10.50 Tf (changes the overlay only, not counts or uploads.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 527.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 527.89 Tm /F1 10.50 Tf (Android: `enablePreviewCropping: true` is display only, as on iOS: uploads carry the) Tj ET
+BT 1 0 0 1 70.69 513.89 Tm /F1 10.50 Tf (full frame, and only the thumbnail is trimmed \(item 18\). With) Tj ET
+BT 1 0 0 1 70.69 499.89 Tm /F1 10.50 Tf (`sendDetectionsMetadata: false`, `captureResult.detections` is no longer empty, and) Tj ET
+BT 1 0 0 1 70.69 485.89 Tm /F1 10.50 Tf (a multi-bay session's `countsByLabel` and submitted `device_dedup` counts come from) Tj ET
+BT 1 0 0 1 70.69 471.89 Tm /F1 10.50 Tf (the real detections \(they were empty before\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 453.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 453.89 Tm /F1 10.50 Tf (iOS: an upload in flight when the app goes to the background gets iOS's grace period) Tj ET
+BT 1 0 0 1 70.69 439.89 Tm /F1 10.50 Tf (\(about 30 s\), and `init\({ analyticsEnabled: false }\)` now also stops the SDK) Tj ET
+BT 1 0 0 1 70.69 425.89 Tm /F1 10.50 Tf (camera's analytics events \(Android already did\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 407.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 407.89 Tm /F1 10.50 Tf (New `init\({ captureGeolocation, captureDepth }\)` and) Tj ET
+BT 1 0 0 1 70.69 393.89 Tm /F1 10.50 Tf (`captureResult.captureMetadata`: each capture's metadata \(capture contract v1\) is) Tj ET
+BT 1 0 0 1 70.69 379.89 Tm /F1 10.50 Tf (uploaded after its image and handed to the host. Location and depth are opt-in, and) Tj ET
+BT 1 0 0 1 70.69 365.89 Tm /F1 10.50 Tf (the host app owns the location permission \(see 4a\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 347.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 347.89 Tm /F1 10.50 Tf (New `openCamera\({ arHighResolutionStills: true }\)`, Android only and experimental:) Tj ET
+BT 1 0 0 1 70.69 333.89 Tm /F1 10.50 Tf (full-resolution AR photos through ARCore's Shared Camera. iOS accepts the key and) Tj ET
+BT 1 0 0 1 70.69 319.89 Tm /F1 10.50 Tf (ignores it \(see 6b\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 301.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 301.89 Tm /F1 10.50 Tf (New `openCamera\({ arAppearanceWithoutRecognition }\)` \(default on\): AR box identity) Tj ET
+BT 1 0 0 1 70.69 287.89 Tm /F1 10.50 Tf (from appearance with on-device recognition off \(see 6b\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 269.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 269.89 Tm /F1 10.50 Tf (`cameraClosed.multiBay` adds `realogram` \(the walk's shelves, rows and slots\) and) Tj ET
+BT 1 0 0 1 70.69 255.89 Tm /F1 10.50 Tf (`segments` \(its dedup segments\), the same shape on both platforms \(see 6a\).) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 237.89 Tm (v1.7.17) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 219.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 219.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.17 on both platforms.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 201.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 201.89 Tm /F1 10.50 Tf (Native: the default and AR cameras show an offline chip while there is no network) Tj ET
+BT 1 0 0 1 70.69 187.89 Tm /F1 10.50 Tf (\("Offline", plus "uploads queued" when photos wait\), or "Waiting for Wi-Fi" while) Tj ET
+BT 1 0 0 1 70.69 173.89 Tm /F1 10.50 Tf (Wi-Fi-only uploads hold photos on cellular. It is on by default and never blocks the) Tj ET
+BT 1 0 0 1 70.69 159.89 Tm /F1 10.50 Tf (shutter; `openCamera\({ showsOfflineIndicator: false }\)` hides it \(see 6\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 141.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 141.89 Tm /F1 10.50 Tf (Native: the AR flow's "Review shelf" screen adds "On this shelf": the walk's brands,) Tj ET
+BT 1 0 0 1 70.69 127.89 Tm /F1 10.50 Tf (share of shelf and SKUs from on-device recognition, or the total only when) Tj ET
+BT 1 0 0 1 70.69 113.89 Tm /F1 10.50 Tf (recognition is unavailable on the device.) Tj ET
 endstream
 endobj
 15 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 14 0 R >>
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 14 0 R >>
 endobj
 16 0 obj
-<< /Length 5892 >>
+<< /Length 6310 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
@@ -442,72 +435,73 @@ BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Document
 BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 7) Tj ET
 0.000000 0.000000 0.000000 rg
 BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (Native: quality checks run on the image alone until the detector is ready; the) Tj ET
-BT 1 0 0 1 70.69 757.89 Tm /F1 10.50 Tf (camera says why the detector is unavailable; uploaded photos never fill the upload) Tj ET
-BT 1 0 0 1 70.69 743.89 Tm /F1 10.50 Tf (queue; AR multi-bay handles right-to-left walks and shows the whole photo in the) Tj ET
-BT 1 0 0 1 70.69 729.89 Tm /F1 10.50 Tf (preview.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 711.89 Tm (v1.7.15) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 693.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 693.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.15 on both platforms.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 675.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 675.89 Tm /F1 10.50 Tf (AR multi-bay \(`preset: "multiBayAR"`\): no per-bay preview; the bay is committed at) Tj ET
-BT 1 0 0 1 70.69 661.89 Tm /F1 10.50 Tf (the shutter and "Review shelf" after Finish is the one review \(tap a bay to open it,) Tj ET
-BT 1 0 0 1 70.69 647.89 Tm /F1 10.50 Tf (crop, Previous / Next\). Guidance holds while AR tracking is limited. New) Tj ET
-BT 1 0 0 1 70.69 633.89 Tm /F1 10.50 Tf (`openCamera\({ arFlowShowsCapturePreview: true }\)` brings the per-bay preview back) Tj ET
-BT 1 0 0 1 70.69 619.89 Tm /F1 10.50 Tf (\(also needs `showCapturePreview`; see 6b\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 601.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 601.89 Tm /F1 10.50 Tf (iOS: the downloaded detector and embedder now install on a physical device \(they) Tj ET
-BT 1 0 0 1 70.69 587.89 Tm /F1 10.50 Tf (never compiled on a phone with native 1.7.13 / 1.7.14\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 569.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 569.89 Tm /F1 10.50 Tf (Facings and recognition shares count SKU boxes only, at or above the 0.5 match) Tj ET
-BT 1 0 0 1 70.69 555.89 Tm /F1 10.50 Tf (floor: counts may drop.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 537.89 Tm (v1.7.14) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 519.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 519.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.14 on both platforms. No JS API changes.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 501.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 501.89 Tm /F1 10.50 Tf (`detectorModelStatusChanged` / `getDetectorModelStatus\(\)` can report two more) Tj ET
-BT 1 0 0 1 70.69 487.89 Tm /F1 10.50 Tf (`reason` codes: `insufficient_storage` \(free space, then the SDK retries straight) Tj ET
-BT 1 0 0 1 70.69 473.89 Tm /F1 10.50 Tf (away\) and `load_failed` \(retried on the next launch\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 455.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 455.89 Tm /F1 10.50 Tf (Native: on-device recognition keeps working offline from the last good sync; mission) Tj ET
-BT 1 0 0 1 70.69 441.89 Tm /F1 10.50 Tf (submits are idempotent; each tenant's upload queue stays separate across re-init.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 423.89 Tm (v1.7.13) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 405.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 405.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.13 on both platforms.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 387.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 387.89 Tm /F1 10.50 Tf (The native SDKs bundle no detector: `all_in_one` downloads on first use, so the) Tj ET
-BT 1 0 0 1 70.69 373.89 Tm /F1 10.50 Tf (first launch needs network for live detection \(capture and uploads work without it\).) Tj ET
-BT 1 0 0 1 70.69 359.89 Tm /F1 10.50 Tf (The package is about 100 MB smaller per platform.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 341.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 341.89 Tm /F1 10.50 Tf (New `getDetectorModelStatus\(\)`, `prefetchDetectorModel\(\)` and) Tj ET
-BT 1 0 0 1 70.69 327.89 Tm /F1 10.50 Tf (`detectorModelStatusChanged`, with one failure `reason` vocabulary on both) Tj ET
-BT 1 0 0 1 70.69 313.89 Tm /F1 10.50 Tf (platforms.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 295.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 295.89 Tm /F1 10.50 Tf (`yoloModelVariant`: `all_in_one` is the only detector; the legacy names are) Tj ET
-BT 1 0 0 1 70.69 281.89 Tm /F1 10.50 Tf (deprecated aliases for it.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 263.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 263.89 Tm /F1 10.50 Tf (Re-init: `init` with another configuration now applies it, on a fresh native core.) Tj ET
-BT 1 0 0 1 70.69 249.89 Tm /F1 10.50 Tf (The effective operations key \(`operationsApiKey`, else `apiKey`\) selects the upload) Tj ET
-BT 1 0 0 1 70.69 235.89 Tm /F1 10.50 Tf (queue, so each tenant's queued captures stay with that tenant. `init` without) Tj ET
-BT 1 0 0 1 70.69 221.89 Tm /F1 10.50 Tf (`operationsBaseUrl` resets the operations base to production instead of keeping a) Tj ET
-BT 1 0 0 1 70.69 207.89 Tm /F1 10.50 Tf (base set by an earlier `init`.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 189.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 189.89 Tm /F1 10.50 Tf (Boolean `init` options are read the same way on both platforms: `true`/`false`, a) Tj ET
-BT 1 0 0 1 70.69 175.89 Tm /F1 10.50 Tf (number \(0 is false\), or `"true"`/`"false"`, `"1"`/`"0"`, `"yes"`/`"no"`,) Tj ET
-BT 1 0 0 1 70.69 161.89 Tm /F1 10.50 Tf (`"on"`/`"off"`. Android used to ignore numbers and the word forms. For example,) Tj ET
-BT 1 0 0 1 70.69 147.89 Tm /F1 10.50 Tf (`uploadsEnabled: "no"` or `0` now disables uploads there.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 129.89 Tm (v1.7.12) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 111.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 111.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.12 on both platforms.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 93.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 93.89 Tm /F1 10.50 Tf (iOS: distance guidance \("move closer / back off"\) works on the AR camera.) Tj ET
+BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (A continuous AR sweep \(`multiBayAR` preset, or `cameraMode: 'ar'` with `captureMode:) Tj ET
+BT 1 0 0 1 70.69 757.89 Tm /F1 10.50 Tf ('continuous'`\) may plan up to 30 bays through the plugin on both platforms; every) Tj ET
+BT 1 0 0 1 70.69 743.89 Tm /F1 10.50 Tf (other session keeps 8 \(see 6a\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 725.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 725.89 Tm /F1 10.50 Tf (New `openCamera\({ arBoxUnmatchedColor }\)`: under `arBoxStyle: 'highlight'` with live) Tj ET
+BT 1 0 0 1 70.69 711.89 Tm /F1 10.50 Tf (labels on, a box the labels have looked at and not matched is drawn in this colour) Tj ET
+BT 1 0 0 1 70.69 697.89 Tm /F1 10.50 Tf (\(default `#FACC15`; see 6b\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 679.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 679.89 Tm /F1 10.50 Tf (`arLiveLabels: true` now shows product names through the plugin on Android and iOS) Tj ET
+BT 1 0 0 1 70.69 665.89 Tm /F1 10.50 Tf (\(needs recognition on and an operations-capable key; see 6b\).) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 647.89 Tm (v1.7.16) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 629.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 629.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.16 on both platforms.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 611.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 611.89 Tm /F1 10.50 Tf (New `init\({ detectorPrefetchPolicy: 'unmetered' }\)`: the detector downloads only on) Tj ET
+BT 1 0 0 1 70.69 597.89 Tm /F1 10.50 Tf (Wi-Fi or Ethernet \(native SDK 1.7.16\). While it waits, `getDetectorModelStatus\(\)`) Tj ET
+BT 1 0 0 1 70.69 583.89 Tm /F1 10.50 Tf (reports `reason: "waiting_for_unmetered_network"`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 565.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 565.89 Tm /F1 10.50 Tf (New `init\({ recognition: false }\)`: the plugin never builds on-device recognition.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 547.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 547.89 Tm /F1 10.50 Tf (New section 6c, "Capture and quality checks only \(no boxes, no recognition\)", with) Tj ET
+BT 1 0 0 1 70.69 533.89 Tm /F1 10.50 Tf (an upgrade checklist from plugin 1.6.6.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 515.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 515.89 Tm /F1 10.50 Tf (New `openCamera\({ finalReview: true }\)`: an end-of-session review with tap-to-crop) Tj ET
+BT 1 0 0 1 70.69 501.89 Tm /F1 10.50 Tf (on the default camera \(native SDK 1.7.16; see 6\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 483.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 483.89 Tm /F1 10.50 Tf (New AR overlay options `arBoxStyle`, `arBoxHighlightColor`, `arCoverageStyle`,) Tj ET
+BT 1 0 0 1 70.69 469.89 Tm /F1 10.50 Tf (`arCoverageOutlineColor`, `arBoxPersistence`, and the experimental `arLiveLabels` /) Tj ET
+BT 1 0 0 1 70.69 455.89 Tm /F1 10.50 Tf (`arLiveCount` \(native SDK 1.7.16; see 6b\). Live labels need recognition on and the) Tj ET
+BT 1 0 0 1 70.69 441.89 Tm /F1 10.50 Tf (catalog synced, and show names on Android, and on iOS from native 1.7.17 on.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 423.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 423.89 Tm /F1 10.50 Tf (New `init\({ maxRetainedPhotos, retainedPhotoExpiryDays }\)`, the `retainedPhotosHigh`) Tj ET
+BT 1 0 0 1 70.69 409.89 Tm /F1 10.50 Tf (event, `retainedCount` / `retainedBytes` in the queue status, and the `STORAGE_LOW`) Tj ET
+BT 1 0 0 1 70.69 395.89 Tm /F1 10.50 Tf (capture refusal \(native SDK 1.7.16; see 5 and 7\). Uploaded photos kept on the device) Tj ET
+BT 1 0 0 1 70.69 381.89 Tm /F1 10.50 Tf (no longer count toward `maxQueueSize`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 363.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 363.89 Tm /F1 10.50 Tf (Capture size: the plugin no longer sends 1920 px / 0.85 when you omit) Tj ET
+BT 1 0 0 1 70.69 349.89 Tm /F1 10.50 Tf (`maxImageDimension` / `imageCompressionQuality`. The SDK default is now 4032 px at) Tj ET
+BT 1 0 0 1 70.69 335.89 Tm /F1 10.50 Tf (JPEG 0.9 on both platforms, and Neurolabs can override it per organisation \(see 6\).) Tj ET
+BT 1 0 0 1 70.69 321.89 Tm /F1 10.50 Tf (Set the values yourself only if upload size matters more than recognition quality.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 303.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 303.89 Tm /F1 10.50 Tf (`validationPreset: "lenient"` now applies the native lenient thresholds \(it used to) Tj ET
+BT 1 0 0 1 70.69 289.89 Tm /F1 10.50 Tf (apply the default ones\), so fewer captures are refused.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 271.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 271.89 Tm /F1 10.50 Tf (Native: quality checks run on the image alone until the detector is ready; the) Tj ET
+BT 1 0 0 1 70.69 257.89 Tm /F1 10.50 Tf (camera says why the detector is unavailable; uploaded photos never fill the upload) Tj ET
+BT 1 0 0 1 70.69 243.89 Tm /F1 10.50 Tf (queue; AR multi-bay handles right-to-left walks and shows the whole photo in the) Tj ET
+BT 1 0 0 1 70.69 229.89 Tm /F1 10.50 Tf (preview.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 211.89 Tm (v1.7.15) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 193.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 193.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.15 on both platforms.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 175.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 175.89 Tm /F1 10.50 Tf (AR multi-bay \(`preset: "multiBayAR"`\): no per-bay preview; the bay is committed at) Tj ET
+BT 1 0 0 1 70.69 161.89 Tm /F1 10.50 Tf (the shutter and "Review shelf" after Finish is the one review \(tap a bay to open it,) Tj ET
+BT 1 0 0 1 70.69 147.89 Tm /F1 10.50 Tf (crop, Previous / Next\). Guidance holds while AR tracking is limited. New) Tj ET
+BT 1 0 0 1 70.69 133.89 Tm /F1 10.50 Tf (`openCamera\({ arFlowShowsCapturePreview: true }\)` brings the per-bay preview back) Tj ET
+BT 1 0 0 1 70.69 119.89 Tm /F1 10.50 Tf (\(also needs `showCapturePreview`; see 6b\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 101.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 101.89 Tm /F1 10.50 Tf (iOS: the downloaded detector and embedder now install on a physical device \(they) Tj ET
+BT 1 0 0 1 70.69 87.89 Tm /F1 10.50 Tf (never compiled on a phone with native 1.7.13 / 1.7.14\).) Tj ET
 endstream
 endobj
 17 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 16 0 R >>
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 16 0 R >>
 endobj
 18 0 obj
-<< /Length 4686 >>
+<< /Length 5807 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
@@ -515,397 +509,453 @@ BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Document
 BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 8) Tj ET
 0.000000 0.000000 0.000000 rg
 BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (Android: failed uploads retry on foreground and network return; the shelf overlay) Tj ET
-BT 1 0 0 1 70.69 757.89 Tm /F1 10.50 Tf (follows the camera.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 739.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 739.89 Tm /F1 10.50 Tf (Bridge: argument checks are the same on both platforms \(stricter rule\); see the) Tj ET
-BT 1 0 0 1 70.69 725.89 Tm /F1 10.50 Tf (CHANGELOG for the behaviour changes.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 707.89 Tm (v1.7.11) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 689.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 689.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.11 on both platforms.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 671.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 671.89 Tm /F1 10.50 Tf (Security \(iOS bridge\): the previous tenant's recognition provider is cleared on a) Tj ET
-BT 1 0 0 1 70.69 657.89 Tm /F1 10.50 Tf (credential change or a re-init without a key.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 639.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 639.89 Tm /F1 10.50 Tf (A whitespace-only `apiKey` is rejected on iOS, as on Android.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 621.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 621.89 Tm /F1 10.50 Tf (Android: the shelf overlay and live boxes sit on the products in portrait.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 603.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 603.89 Tm /F1 10.50 Tf (iOS: two crashes fixed \(extreme remote-config values; repeated `issuePriority`) Tj ET
-BT 1 0 0 1 70.69 589.89 Tm /F1 10.50 Tf (kinds\).) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 571.89 Tm (v1.7.10) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 553.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 553.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.10 on both platforms.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 535.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 535.89 Tm /F1 10.50 Tf (Captures are portrait-only again: native 1.7.9's landscape orientation is switched) Tj ET
-BT 1 0 0 1 70.69 521.89 Tm /F1 10.50 Tf (off because the backend pipelines assume portrait images.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 503.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 503.89 Tm /F1 10.50 Tf (`openCamera` rejects a `customCameraTemplate` that is not an object with) Tj ET
-BT 1 0 0 1 70.69 489.89 Tm /F1 10.50 Tf (`INVALID_ARGUMENT`; one bad template field no longer discards the whole template on) Tj ET
-BT 1 0 0 1 70.69 475.89 Tm /F1 10.50 Tf (iOS.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 457.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 457.89 Tm /F1 10.50 Tf (Android `getPhoto` / `deletePhoto` reject with `INTERNAL_ERROR` instead of never) Tj ET
-BT 1 0 0 1 70.69 443.89 Tm /F1 10.50 Tf (settling when the queue read fails.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 425.89 Tm (v1.7.9) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 407.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 407.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.9 on both platforms.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 389.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 389.89 Tm /F1 10.50 Tf (New `openCamera` options for AR capture, forwarded on both platforms: `captureMode:) Tj ET
-BT 1 0 0 1 70.69 375.89 Tm /F1 10.50 Tf ('guided' | 'continuous'` and the AR multi-bay preset \(`preset: 'multiBayAR'` or) Tj ET
-BT 1 0 0 1 70.69 361.89 Tm /F1 10.50 Tf (`multiBayAR: {...}`\). See section 6b.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 343.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 343.89 Tm /F1 10.50 Tf (AR detection boxes are always world-locked. There is no renderer option: a leftover) Tj ET
-BT 1 0 0 1 70.69 329.89 Tm /F1 10.50 Tf (`arBoxRenderer` key is ignored.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 311.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 311.89 Tm /F1 10.50 Tf (New `getARCapabilities\(\)` returning `{ worldTrackingSupported, depthSupported,) Tj ET
-BT 1 0 0 1 70.69 297.89 Tm /F1 10.50 Tf (installRequired }`.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 279.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 279.89 Tm /F1 10.50 Tf (Android: ARCore dependency 1.52.0 -> 1.56.0.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 261.89 Tm (v1.3.2) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 243.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 243.89 Tm /F1 10.50 Tf (Plugin pulls native SDK v1.3.2 binaries on `cordova plugin add`: Android AAR + iOS) Tj ET
-BT 1 0 0 1 70.69 229.89 Tm /F1 10.50 Tf (xcframework refreshed via the mobile-dist manifests.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 211.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 211.89 Tm /F1 10.50 Tf (Native v1.3.2 highlights \(no JS surface change required\):) Tj ET
+BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (Facings and recognition shares count SKU boxes only, at or above the 0.5 match) Tj ET
+BT 1 0 0 1 70.69 757.89 Tm /F1 10.50 Tf (floor: counts may drop.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 739.89 Tm (v1.7.14) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 721.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 721.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.14 on both platforms. No JS API changes.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 703.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 703.89 Tm /F1 10.50 Tf (`detectorModelStatusChanged` / `getDetectorModelStatus\(\)` can report two more) Tj ET
+BT 1 0 0 1 70.69 689.89 Tm /F1 10.50 Tf (`reason` codes: `insufficient_storage` \(free space, then the SDK retries straight) Tj ET
+BT 1 0 0 1 70.69 675.89 Tm /F1 10.50 Tf (away\) and `load_failed` \(retried on the next launch\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 657.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 657.89 Tm /F1 10.50 Tf (Native: on-device recognition keeps working offline from the last good sync; mission) Tj ET
+BT 1 0 0 1 70.69 643.89 Tm /F1 10.50 Tf (submits are idempotent; each tenant's upload queue stays separate across re-init.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 625.89 Tm (v1.7.13) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 607.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 607.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.13 on both platforms.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 589.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 589.89 Tm /F1 10.50 Tf (The native SDKs bundle no detector: `all_in_one` downloads on first use, so the) Tj ET
+BT 1 0 0 1 70.69 575.89 Tm /F1 10.50 Tf (first launch needs network for live detection \(capture and uploads work without it\).) Tj ET
+BT 1 0 0 1 70.69 561.89 Tm /F1 10.50 Tf (The package is about 100 MB smaller per platform.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 543.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 543.89 Tm /F1 10.50 Tf (New `getDetectorModelStatus\(\)`, `prefetchDetectorModel\(\)` and) Tj ET
+BT 1 0 0 1 70.69 529.89 Tm /F1 10.50 Tf (`detectorModelStatusChanged`, with one failure `reason` vocabulary on both) Tj ET
+BT 1 0 0 1 70.69 515.89 Tm /F1 10.50 Tf (platforms.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 497.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 497.89 Tm /F1 10.50 Tf (`yoloModelVariant`: `all_in_one` is the only detector; the legacy names are) Tj ET
+BT 1 0 0 1 70.69 483.89 Tm /F1 10.50 Tf (deprecated aliases for it.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 465.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 465.89 Tm /F1 10.50 Tf (Re-init: `init` with another configuration now applies it, on a fresh native core.) Tj ET
+BT 1 0 0 1 70.69 451.89 Tm /F1 10.50 Tf (The effective operations key \(`operationsApiKey`, else `apiKey`\) selects the upload) Tj ET
+BT 1 0 0 1 70.69 437.89 Tm /F1 10.50 Tf (queue, so each tenant's queued captures stay with that tenant. `init` without) Tj ET
+BT 1 0 0 1 70.69 423.89 Tm /F1 10.50 Tf (`operationsBaseUrl` resets the operations base to production instead of keeping a) Tj ET
+BT 1 0 0 1 70.69 409.89 Tm /F1 10.50 Tf (base set by an earlier `init`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 391.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 391.89 Tm /F1 10.50 Tf (Boolean `init` options are read the same way on both platforms: `true`/`false`, a) Tj ET
+BT 1 0 0 1 70.69 377.89 Tm /F1 10.50 Tf (number \(0 is false\), or `"true"`/`"false"`, `"1"`/`"0"`, `"yes"`/`"no"`,) Tj ET
+BT 1 0 0 1 70.69 363.89 Tm /F1 10.50 Tf (`"on"`/`"off"`. Android used to ignore numbers and the word forms. For example,) Tj ET
+BT 1 0 0 1 70.69 349.89 Tm /F1 10.50 Tf (`uploadsEnabled: "no"` or `0` now disables uploads there.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 331.89 Tm (v1.7.12) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 313.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 313.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.12 on both platforms.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 295.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 295.89 Tm /F1 10.50 Tf (iOS: distance guidance \("move closer / back off"\) works on the AR camera.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 277.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 277.89 Tm /F1 10.50 Tf (Android: failed uploads retry on foreground and network return; the shelf overlay) Tj ET
+BT 1 0 0 1 70.69 263.89 Tm /F1 10.50 Tf (follows the camera.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 245.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 245.89 Tm /F1 10.50 Tf (Bridge: argument checks are the same on both platforms \(stricter rule\); see the) Tj ET
+BT 1 0 0 1 70.69 231.89 Tm /F1 10.50 Tf (CHANGELOG for the behaviour changes.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 213.89 Tm (v1.7.11) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 195.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 195.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.11 on both platforms.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 177.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 177.89 Tm /F1 10.50 Tf (Security \(iOS bridge\): the previous tenant's recognition provider is cleared on a) Tj ET
+BT 1 0 0 1 70.69 163.89 Tm /F1 10.50 Tf (credential change or a re-init without a key.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 145.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 145.89 Tm /F1 10.50 Tf (A whitespace-only `apiKey` is rejected on iOS, as on Android.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 127.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 127.89 Tm /F1 10.50 Tf (Android: the shelf overlay and live boxes sit on the products in portrait.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 109.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 109.89 Tm /F1 10.50 Tf (iOS: two crashes fixed \(extreme remote-config values; repeated `issuePriority`) Tj ET
+BT 1 0 0 1 70.69 95.89 Tm /F1 10.50 Tf (kinds\).) Tj ET
 endstream
 endobj
 19 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 18 0 R >>
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 18 0 R >>
 endobj
 20 0 obj
-<< /Length 5554 >>
+<< /Length 5507 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
 BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 9) Tj ET
 0.000000 0.000000 0.000000 rg
-BT 1 0 0 1 56.69 771.89 Tm /F1 10.50 Tf (- Mixpanel ingestion now lands in the EU region \(events were previously POSTed to the) Tj ET
-BT 1 0 0 1 56.69 757.89 Tm /F1 10.50 Tf (US endpoint and silently dropped\). iOS also fixes a separate bug where Mixpanel) Tj ET
-BT 1 0 0 1 56.69 743.89 Tm /F1 10.50 Tf (rejected every event because `time` was serialized as a string rather than a JSON) Tj ET
-BT 1 0 0 1 56.69 729.89 Tm /F1 10.50 Tf (number. - Done button stays responsive while the SDK persists captures - disk I/O) Tj ET
-BT 1 0 0 1 56.69 715.89 Tm /F1 10.50 Tf (moved off the main thread on both platforms, inline spinner / progress indicator) Tj ET
-BT 1 0 0 1 56.69 701.89 Tm /F1 10.50 Tf (surfaced. - Android: native `SIGSEGV` fix in) Tj ET
-BT 1 0 0 1 56.69 687.89 Tm /F1 10.50 Tf (`com.google.ai.edge.litert.Model.nativeLoadAsset` when the TFLite asset is stored) Tj ET
-BT 1 0 0 1 56.69 673.89 Tm /F1 10.50 Tf (compressed in the APK; the loader probes the asset with `AssetManager.openFd` first) Tj ET
-BT 1 0 0 1 56.69 659.89 Tm /F1 10.50 Tf (and extracts to internal storage when the asset is not mmap-able. - Onboarding barcode) Tj ET
-BT 1 0 0 1 56.69 645.89 Tm /F1 10.50 Tf (pipeline normalises to GTIN-14 end-to-end and propagates the scanned barcode format) Tj ET
-BT 1 0 0 1 56.69 631.89 Tm /F1 10.50 Tf (through every product-lookup client. - iOS: new `NLOperationsCatalogClient` \(in) Tj ET
-BT 1 0 0 1 56.69 617.89 Tm /F1 10.50 Tf (`ProductAuditKit`\) for the operations catalog; replaces `precondition`-based) Tj ET
-BT 1 0 0 1 56.69 603.89 Tm /F1 10.50 Tf (validation with thrown errors so a malformed barcode no longer crashes the host app.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 583.89 Tm (v1.2.5) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 565.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 565.89 Tm /F1 10.50 Tf (Native sequence-counter parity: Cordova bridge surfaces the) Tj ET
-BT 1 0 0 1 70.69 551.89 Tm /F1 10.50 Tf (`showsSequenceCounterLabel` \(and `showsCapturedCountLabel`\) options to match the) Tj ET
-BT 1 0 0 1 70.69 537.89 Tm /F1 10.50 Tf (native SDK toggles.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 519.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 519.89 Tm /F1 10.50 Tf (Demo SDK setup builds fixed; iOS Sentry injection timing hardened; Android LiteRT) Tj ET
-BT 1 0 0 1 70.69 505.89 Tm /F1 10.50 Tf (dependency pinning correction; sequence-counter argument plumbed through correctly.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 487.89 Tm (v1.2.3) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 469.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 469.89 Tm /F1 10.50 Tf (`openCamera` supports `cameraMode: "ar" | "default"` - `"default"` enables the 0.5/1) Tj ET
-BT 1 0 0 1 70.69 455.89 Tm /F1 10.50 Tf (lens switcher on both iOS and Android.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 437.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 437.89 Tm /F1 10.50 Tf (`init` supports `analyticsEnabled`, `sentryEnabled`, `sentryDsn` for controlling SDK) Tj ET
-BT 1 0 0 1 70.69 423.89 Tm /F1 10.50 Tf (analytics and crash reporting.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 405.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 405.89 Tm /F1 10.50 Tf (Tightened default quality validation thresholds \(blur, glare, perspective\) across) Tj ET
-BT 1 0 0 1 70.69 391.89 Tm /F1 10.50 Tf (both platforms.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 373.89 Tm (v1.2.2) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 355.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 355.89 Tm /F1 10.50 Tf (Internal: Android plugin integration handling refactor; no public JS API change.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 337.89 Tm (v1.2.1) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 319.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 319.89 Tm /F1 10.50 Tf (Cordova install hooks hardened; demo integration updated.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 301.89 Tm (v1.2.0) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 283.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 283.89 Tm /F1 10.50 Tf (Internal scaffolding for the v1.2.x line; no JS API change.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 265.89 Tm (v1.1.9) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 247.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 247.89 Tm /F1 10.50 Tf (Init and per-session routing use `taskUUID`.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 229.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 229.89 Tm /F1 10.50 Tf (Native detector/model warmup is enforced in `init` and guarded in `openCamera`.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 211.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 211.89 Tm /F1 10.50 Tf (`openCamera` can return `MODEL_INIT_FAILED` when native model initialization fails.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 193.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 193.89 Tm /F1 10.50 Tf (`autoCloseAfterCapture=true` now keeps preview enabled and closes after Save) Tj ET
-BT 1 0 0 1 70.69 179.89 Tm /F1 10.50 Tf (confirmation.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 161.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 161.89 Tm /F1 10.50 Tf (Manual finish \(`Done`\) is available when `autoCloseAfterCapture=false` and) Tj ET
-BT 1 0 0 1 70.69 147.89 Tm /F1 10.50 Tf (`allowManualFinish=true`.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 129.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 129.89 Tm /F1 10.50 Tf (`cameraClosed` event now includes `message`.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 111.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 111.89 Tm /F1 10.50 Tf (`captureQueued` events are deferred while camera is open and flushed after) Tj ET
-BT 1 0 0 1 70.69 97.89 Tm /F1 10.50 Tf (`cameraClosed`.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 771.89 Tm (v1.7.10) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 753.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 753.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.10 on both platforms.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 735.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 735.89 Tm /F1 10.50 Tf (Captures are portrait-only again: native 1.7.9's landscape orientation is switched) Tj ET
+BT 1 0 0 1 70.69 721.89 Tm /F1 10.50 Tf (off because the backend pipelines assume portrait images.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 703.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 703.89 Tm /F1 10.50 Tf (`openCamera` rejects a `customCameraTemplate` that is not an object with) Tj ET
+BT 1 0 0 1 70.69 689.89 Tm /F1 10.50 Tf (`INVALID_ARGUMENT`; one bad template field no longer discards the whole template on) Tj ET
+BT 1 0 0 1 70.69 675.89 Tm /F1 10.50 Tf (iOS.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 657.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 657.89 Tm /F1 10.50 Tf (Android `getPhoto` / `deletePhoto` reject with `INTERNAL_ERROR` instead of never) Tj ET
+BT 1 0 0 1 70.69 643.89 Tm /F1 10.50 Tf (settling when the queue read fails.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 625.89 Tm (v1.7.9) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 607.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 607.89 Tm /F1 10.50 Tf (Plugin pins the native SDKs' 1.7.9 on both platforms.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 589.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 589.89 Tm /F1 10.50 Tf (New `openCamera` options for AR capture, forwarded on both platforms: `captureMode:) Tj ET
+BT 1 0 0 1 70.69 575.89 Tm /F1 10.50 Tf ('guided' | 'continuous'` and the AR multi-bay preset \(`preset: 'multiBayAR'` or) Tj ET
+BT 1 0 0 1 70.69 561.89 Tm /F1 10.50 Tf (`multiBayAR: {...}`\). See section 6b.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 543.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 543.89 Tm /F1 10.50 Tf (AR detection boxes are always world-locked. There is no renderer option: a leftover) Tj ET
+BT 1 0 0 1 70.69 529.89 Tm /F1 10.50 Tf (`arBoxRenderer` key is ignored.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 511.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 511.89 Tm /F1 10.50 Tf (New `getARCapabilities\(\)` returning `{ worldTrackingSupported, depthSupported,) Tj ET
+BT 1 0 0 1 70.69 497.89 Tm /F1 10.50 Tf (installRequired }`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 479.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 479.89 Tm /F1 10.50 Tf (Android: ARCore dependency 1.52.0 -> 1.56.0.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 461.89 Tm (v1.3.2) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 443.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 443.89 Tm /F1 10.50 Tf (Plugin pulls native SDK v1.3.2 binaries on `cordova plugin add`: Android AAR + iOS) Tj ET
+BT 1 0 0 1 70.69 429.89 Tm /F1 10.50 Tf (xcframework refreshed via the mobile-dist manifests.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 411.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 411.89 Tm /F1 10.50 Tf (Native v1.3.2 highlights \(no JS surface change required\):) Tj ET
+BT 1 0 0 1 56.69 393.89 Tm /F1 10.50 Tf (- Mixpanel ingestion now lands in the EU region \(events were previously POSTed to the) Tj ET
+BT 1 0 0 1 56.69 379.89 Tm /F1 10.50 Tf (US endpoint and silently dropped\). iOS also fixes a separate bug where Mixpanel) Tj ET
+BT 1 0 0 1 56.69 365.89 Tm /F1 10.50 Tf (rejected every event because `time` was serialized as a string rather than a JSON) Tj ET
+BT 1 0 0 1 56.69 351.89 Tm /F1 10.50 Tf (number. - Done button stays responsive while the SDK persists captures - disk I/O) Tj ET
+BT 1 0 0 1 56.69 337.89 Tm /F1 10.50 Tf (moved off the main thread on both platforms, inline spinner / progress indicator) Tj ET
+BT 1 0 0 1 56.69 323.89 Tm /F1 10.50 Tf (surfaced. - Android: native `SIGSEGV` fix in) Tj ET
+BT 1 0 0 1 56.69 309.89 Tm /F1 10.50 Tf (`com.google.ai.edge.litert.Model.nativeLoadAsset` when the TFLite asset is stored) Tj ET
+BT 1 0 0 1 56.69 295.89 Tm /F1 10.50 Tf (compressed in the APK; the loader probes the asset with `AssetManager.openFd` first) Tj ET
+BT 1 0 0 1 56.69 281.89 Tm /F1 10.50 Tf (and extracts to internal storage when the asset is not mmap-able. - Onboarding barcode) Tj ET
+BT 1 0 0 1 56.69 267.89 Tm /F1 10.50 Tf (pipeline normalises to GTIN-14 end-to-end and propagates the scanned barcode format) Tj ET
+BT 1 0 0 1 56.69 253.89 Tm /F1 10.50 Tf (through every product-lookup client. - iOS: new `NLOperationsCatalogClient` \(in) Tj ET
+BT 1 0 0 1 56.69 239.89 Tm /F1 10.50 Tf (`ProductAuditKit`\) for the operations catalog; replaces `precondition`-based) Tj ET
+BT 1 0 0 1 56.69 225.89 Tm /F1 10.50 Tf (validation with thrown errors so a malformed barcode no longer crashes the host app.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 205.89 Tm (v1.2.5) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 187.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 187.89 Tm /F1 10.50 Tf (Native sequence-counter parity: Cordova bridge surfaces the) Tj ET
+BT 1 0 0 1 70.69 173.89 Tm /F1 10.50 Tf (`showsSequenceCounterLabel` \(and `showsCapturedCountLabel`\) options to match the) Tj ET
+BT 1 0 0 1 70.69 159.89 Tm /F1 10.50 Tf (native SDK toggles.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 141.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 141.89 Tm /F1 10.50 Tf (Demo SDK setup builds fixed; iOS Sentry injection timing hardened; Android LiteRT) Tj ET
+BT 1 0 0 1 70.69 127.89 Tm /F1 10.50 Tf (dependency pinning correction; sequence-counter argument plumbed through correctly.) Tj ET
 endstream
 endobj
 21 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 20 0 R >>
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 20 0 R >>
 endobj
 22 0 obj
-<< /Length 5613 >>
+<< /Length 5146 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
 BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 10) Tj ET
 0.000000 0.000000 0.000000 rg
-BT /F2 13.00 Tf 1 0 0 1 56.69 771.89 Tm (3. Install) Tj ET
-BT 1 0 0 1 56.69 749.89 Tm /F1 10.50 Tf (Download the plugin package from) Tj ET
-BT 1 0 0 1 56.69 735.89 Tm /F1 10.50 Tf (`https://github.com/neurolaboratories/neurolabs-mobile-dist/releases`. The install) Tj ET
-BT 1 0 0 1 56.69 721.89 Tm /F1 10.50 Tf (hooks download and wire up the native SDKs automatically - no manual AAR or) Tj ET
-BT 1 0 0 1 56.69 707.89 Tm /F1 10.50 Tf (xcframework placement needed.) Tj ET
-BT 1 0 0 1 56.69 687.89 Tm /F1 10.50 Tf (Native baseline requirements:) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 667.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 667.89 Tm /F1 10.50 Tf (Android: Android Gradle Plugin 8.9.1+ \(the SDK's androidx dependencies require it\)) Tj ET
-BT 1 0 0 1 70.69 653.89 Tm /F1 10.50 Tf (with Gradle 8.11.1+ \(AGP 8.9.1's minimum\), `compileSdkVersion 36`, `minSdkVersion) Tj ET
-BT 1 0 0 1 70.69 639.89 Tm /F1 10.50 Tf (26`, JDK 17+, Kotlin Gradle plugin 2.2+. Any cordova-android that builds with these) Tj ET
-BT 1 0 0 1 70.69 625.89 Tm /F1 10.50 Tf (works, 14 included. cordova-android 15's defaults \(AGP 8.10.1, Gradle 8.14.2, SDK) Tj ET
-BT 1 0 0 1 70.69 611.89 Tm /F1 10.50 Tf (36\) meet all but minSdk \(24\); cordova-android 14's \(AGP 8.7.3, Gradle 8.13, SDK 35,) Tj ET
-BT 1 0 0 1 70.69 597.89 Tm /F1 10.50 Tf (minSdk 24\) need the `config.xml` preferences below. The plugin injects) Tj ET
-BT 1 0 0 1 70.69 583.89 Tm /F1 10.50 Tf (`GradlePluginKotlinVersion 2.3.0` and raises the Java source/target compatibility to) Tj ET
-BT 1 0 0 1 70.69 569.89 Tm /F1 10.50 Tf (17 on its own; override the Kotlin version only via a `<platform) Tj ET
-BT 1 0 0 1 70.69 555.89 Tm /F1 10.50 Tf (name="android">`-scoped preference, and only to 2.2 or later.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 537.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 537.89 Tm /F1 10.50 Tf (iOS: deployment target iOS 17.0+, Xcode 16.4+ recommended \(release toolchain) Tj ET
-BT 1 0 0 1 70.69 523.89 Tm /F1 10.50 Tf (baseline\).) Tj ET
-BT 1 0 0 1 56.69 505.89 Tm /F2 10.50 Tf (Android toolchain check \(plugin 1.7.20+\). ) Tj /F1 10.50 Tf (Before the plugin is installed and before) Tj ET
-BT 1 0 0 1 56.69 491.89 Tm /F1 10.50 Tf (every Android prepare or build, a plugin hook checks the Android Gradle Plugin,) Tj ET
-BT 1 0 0 1 56.69 477.89 Tm /F1 10.50 Tf (Gradle, compileSdk, minSdk, the Kotlin Gradle plugin and the JDK. If any of them is) Tj ET
-BT 1 0 0 1 56.69 463.89 Tm /F1 10.50 Tf (too old, it stops with one message that names each unmet requirement, what it found) Tj ET
-BT 1 0 0 1 56.69 449.89 Tm /F1 10.50 Tf (and the plugin version. Without it, the build fails much later with a Kotlin metadata,) Tj ET
-BT 1 0 0 1 56.69 435.89 Tm /F1 10.50 Tf (manifest-merger or Gradle error. Plugin 1.7.20 also required cordova-android 15; from) Tj ET
-BT 1 0 0 1 56.69 421.89 Tm /F1 10.50 Tf (1.7.21 the cordova-android major is not checked. From 1.7.21 the check runs before the) Tj ET
-BT 1 0 0 1 56.69 407.89 Tm /F1 10.50 Tf (install, so a failed check installs nothing: fix `config.xml` and run `cordova plugin) Tj ET
-BT 1 0 0 1 56.69 393.89 Tm /F1 10.50 Tf (add` again. \(Plugin 1.7.20 checked after the install; after a failure there, run) Tj ET
-BT 1 0 0 1 56.69 379.89 Tm /F1 10.50 Tf (`cordova plugin rm ai.neurolabs.cordova` before retrying.\)) Tj ET
-BT 1 0 0 1 56.69 359.89 Tm /F1 10.50 Tf (The hook reads `config.xml` the way cordova-android does \(the Android-scoped) Tj ET
-BT 1 0 0 1 56.69 345.89 Tm /F1 10.50 Tf (preference wins, the last duplicate wins\), each else the installed cordova-android's) Tj ET
-BT 1 0 0 1 56.69 331.89 Tm /F1 10.50 Tf (default: `AndroidGradlePluginVersion`; `GradleVersion`; `android-compileSdkVersion`,) Tj ET
-BT 1 0 0 1 56.69 317.89 Tm /F1 10.50 Tf (else `android-targetSdkVersion`; `android-minSdkVersion`; `GradlePluginKotlinVersion`,) Tj ET
-BT 1 0 0 1 56.69 303.89 Tm /F1 10.50 Tf (else the plugin's injected 2.3.0. Where `config.xml` sets none, a value another) Tj ET
-BT 1 0 0 1 56.69 289.89 Tm /F1 10.50 Tf (installed plugin injects into `config.xml` \(recorded in) Tj ET
-BT 1 0 0 1 56.69 275.89 Tm /F1 10.50 Tf (`platforms/android/android.json`\) applies first, as in cordova-android's merged) Tj ET
-BT 1 0 0 1 56.69 261.89 Tm /F1 10.50 Tf (config; if two plugins inject different values, that check is skipped. The JDK comes) Tj ET
-BT 1 0 0 1 56.69 247.89 Tm /F1 10.50 Tf (from `javac -version` \(`CORDOVA_JAVA_HOME`, `JAVA_HOME` or `PATH`\). It skips a value) Tj ET
-BT 1 0 0 1 56.69 233.89 Tm /F1 10.50 Tf (something else may override: Gradle under `CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL`,) Tj ET
-BT 1 0 0 1 56.69 219.89 Tm /F1 10.50 Tf (and an SDK level under a `cdvCompileSdkVersion` or `cdvMinSdkVersion` Gradle property) Tj ET
-BT 1 0 0 1 56.69 205.89 Tm /F1 10.50 Tf (\(`--gradleArg=-P...`, `ORG_GRADLE_PROJECT_*`, a `gradle.properties`\). It skips a value) Tj ET
-BT 1 0 0 1 56.69 191.89 Tm /F1 10.50 Tf (it can't read, and iOS-only projects never run it.) Tj ET
-BT 1 0 0 1 56.69 177.89 Tm /F1 10.50 Tf (`NEUROLABS_SKIP_ANDROID_TOOLCHAIN_CHECK=1` turns the failure into a warning; that) Tj ET
-BT 1 0 0 1 56.69 163.89 Tm /F1 10.50 Tf (setup isn't supported.) Tj ET
-BT 1 0 0 1 56.69 143.89 Tm /F1 10.50 Tf (Add to `config.xml` on cordova-android 15 \(set `AndroidGradlePluginVersion` only to) Tj ET
-BT 1 0 0 1 56.69 129.89 Tm /F1 10.50 Tf (8.9.1 or later\):) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 771.89 Tm (v1.2.3) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 753.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 753.89 Tm /F1 10.50 Tf (`openCamera` supports `cameraMode: "ar" | "default"` - `"default"` enables the 0.5/1) Tj ET
+BT 1 0 0 1 70.69 739.89 Tm /F1 10.50 Tf (lens switcher on both iOS and Android.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 721.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 721.89 Tm /F1 10.50 Tf (`init` supports `analyticsEnabled`, `sentryEnabled`, `sentryDsn` for controlling SDK) Tj ET
+BT 1 0 0 1 70.69 707.89 Tm /F1 10.50 Tf (analytics and crash reporting.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 689.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 689.89 Tm /F1 10.50 Tf (Tightened default quality validation thresholds \(blur, glare, perspective\) across) Tj ET
+BT 1 0 0 1 70.69 675.89 Tm /F1 10.50 Tf (both platforms.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 657.89 Tm (v1.2.2) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 639.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 639.89 Tm /F1 10.50 Tf (Internal: Android plugin integration handling refactor; no public JS API change.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 621.89 Tm (v1.2.1) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 603.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 603.89 Tm /F1 10.50 Tf (Cordova install hooks hardened; demo integration updated.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 585.89 Tm (v1.2.0) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 567.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 567.89 Tm /F1 10.50 Tf (Internal scaffolding for the v1.2.x line; no JS API change.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 549.89 Tm (v1.1.9) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 531.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 531.89 Tm /F1 10.50 Tf (Init and per-session routing use `taskUUID`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 513.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 513.89 Tm /F1 10.50 Tf (Native detector/model warmup is enforced in `init` and guarded in `openCamera`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 495.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 495.89 Tm /F1 10.50 Tf (`openCamera` can return `MODEL_INIT_FAILED` when native model initialization fails.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 477.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 477.89 Tm /F1 10.50 Tf (`autoCloseAfterCapture=true` now keeps preview enabled and closes after Save) Tj ET
+BT 1 0 0 1 70.69 463.89 Tm /F1 10.50 Tf (confirmation.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 445.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 445.89 Tm /F1 10.50 Tf (Manual finish \(`Done`\) is available when `autoCloseAfterCapture=false` and) Tj ET
+BT 1 0 0 1 70.69 431.89 Tm /F1 10.50 Tf (`allowManualFinish=true`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 413.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 413.89 Tm /F1 10.50 Tf (`cameraClosed` event now includes `message`.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 395.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 395.89 Tm /F1 10.50 Tf (`captureQueued` events are deferred while camera is open and flushed after) Tj ET
+BT 1 0 0 1 70.69 381.89 Tm /F1 10.50 Tf (`cameraClosed`.) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 363.89 Tm (3. Install) Tj ET
+BT 1 0 0 1 56.69 341.89 Tm /F1 10.50 Tf (Download the plugin package from) Tj ET
+BT 1 0 0 1 56.69 327.89 Tm /F1 10.50 Tf (`https://github.com/neurolaboratories/neurolabs-mobile-dist/releases`. The install) Tj ET
+BT 1 0 0 1 56.69 313.89 Tm /F1 10.50 Tf (hooks download and wire up the native SDKs automatically - no manual AAR or) Tj ET
+BT 1 0 0 1 56.69 299.89 Tm /F1 10.50 Tf (xcframework placement needed.) Tj ET
+BT 1 0 0 1 56.69 279.89 Tm /F1 10.50 Tf (Native baseline requirements:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 259.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 259.89 Tm /F1 10.50 Tf (Android: Android Gradle Plugin 8.9.1+ \(the SDK's androidx dependencies require it\)) Tj ET
+BT 1 0 0 1 70.69 245.89 Tm /F1 10.50 Tf (with Gradle 8.11.1+ \(AGP 8.9.1's minimum\), `compileSdkVersion 36`, `minSdkVersion) Tj ET
+BT 1 0 0 1 70.69 231.89 Tm /F1 10.50 Tf (26`, JDK 17+, Kotlin Gradle plugin 2.2+. Any cordova-android that builds with these) Tj ET
+BT 1 0 0 1 70.69 217.89 Tm /F1 10.50 Tf (works, 14 included. cordova-android 15's defaults \(AGP 8.10.1, Gradle 8.14.2, SDK) Tj ET
+BT 1 0 0 1 70.69 203.89 Tm /F1 10.50 Tf (36\) meet all but minSdk \(24\); cordova-android 14's \(AGP 8.7.3, Gradle 8.13, SDK 35,) Tj ET
+BT 1 0 0 1 70.69 189.89 Tm /F1 10.50 Tf (minSdk 24\) need the `config.xml` preferences below. The plugin injects) Tj ET
+BT 1 0 0 1 70.69 175.89 Tm /F1 10.50 Tf (`GradlePluginKotlinVersion 2.3.0` and raises the Java source/target compatibility to) Tj ET
+BT 1 0 0 1 70.69 161.89 Tm /F1 10.50 Tf (17 on its own; override the Kotlin version only via a `<platform) Tj ET
+BT 1 0 0 1 70.69 147.89 Tm /F1 10.50 Tf (name="android">`-scoped preference, and only to 2.2 or later.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 129.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 129.89 Tm /F1 10.50 Tf (iOS: deployment target iOS 17.0+, Xcode 16.4+ recommended \(release toolchain) Tj ET
+BT 1 0 0 1 70.69 115.89 Tm /F1 10.50 Tf (baseline\).) Tj ET
 endstream
 endobj
 23 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 22 0 R >>
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 22 0 R >>
 endobj
 24 0 obj
-<< /Length 5252 >>
+<< /Length 5420 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
 BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 11) Tj ET
 0.000000 0.000000 0.000000 rg
+BT 1 0 0 1 56.69 771.89 Tm /F2 10.50 Tf (Android toolchain check \(plugin 1.7.20+\). ) Tj /F1 10.50 Tf (Before the plugin is installed and before) Tj ET
+BT 1 0 0 1 56.69 757.89 Tm /F1 10.50 Tf (every Android prepare or build, a plugin hook checks the Android Gradle Plugin,) Tj ET
+BT 1 0 0 1 56.69 743.89 Tm /F1 10.50 Tf (Gradle, compileSdk, minSdk, the Kotlin Gradle plugin and the JDK. If any of them is) Tj ET
+BT 1 0 0 1 56.69 729.89 Tm /F1 10.50 Tf (too old, it stops with one message that names each unmet requirement, what it found) Tj ET
+BT 1 0 0 1 56.69 715.89 Tm /F1 10.50 Tf (and the plugin version. Without it, the build fails much later with a Kotlin metadata,) Tj ET
+BT 1 0 0 1 56.69 701.89 Tm /F1 10.50 Tf (manifest-merger or Gradle error. Plugin 1.7.20 also required cordova-android 15; from) Tj ET
+BT 1 0 0 1 56.69 687.89 Tm /F1 10.50 Tf (1.7.21 the cordova-android major is not checked. From 1.7.21 the check runs before the) Tj ET
+BT 1 0 0 1 56.69 673.89 Tm /F1 10.50 Tf (install, so a failed check installs nothing: fix `config.xml` and run `cordova plugin) Tj ET
+BT 1 0 0 1 56.69 659.89 Tm /F1 10.50 Tf (add` again. \(Plugin 1.7.20 checked after the install; after a failure there, run) Tj ET
+BT 1 0 0 1 56.69 645.89 Tm /F1 10.50 Tf (`cordova plugin rm ai.neurolabs.cordova` before retrying.\)) Tj ET
+BT 1 0 0 1 56.69 625.89 Tm /F1 10.50 Tf (The hook reads `config.xml` the way cordova-android does \(the Android-scoped) Tj ET
+BT 1 0 0 1 56.69 611.89 Tm /F1 10.50 Tf (preference wins, the last duplicate wins\), each else the installed cordova-android's) Tj ET
+BT 1 0 0 1 56.69 597.89 Tm /F1 10.50 Tf (default: `AndroidGradlePluginVersion`; `GradleVersion`; `android-compileSdkVersion`,) Tj ET
+BT 1 0 0 1 56.69 583.89 Tm /F1 10.50 Tf (else `android-targetSdkVersion`; `android-minSdkVersion`; `GradlePluginKotlinVersion`,) Tj ET
+BT 1 0 0 1 56.69 569.89 Tm /F1 10.50 Tf (else the plugin's injected 2.3.0. Where `config.xml` sets none, a value another) Tj ET
+BT 1 0 0 1 56.69 555.89 Tm /F1 10.50 Tf (installed plugin injects into `config.xml` \(recorded in) Tj ET
+BT 1 0 0 1 56.69 541.89 Tm /F1 10.50 Tf (`platforms/android/android.json`\) applies first, as in cordova-android's merged) Tj ET
+BT 1 0 0 1 56.69 527.89 Tm /F1 10.50 Tf (config; if two plugins inject different values, that check is skipped. The JDK comes) Tj ET
+BT 1 0 0 1 56.69 513.89 Tm /F1 10.50 Tf (from `javac -version` \(`CORDOVA_JAVA_HOME`, `JAVA_HOME` or `PATH`\). It skips a value) Tj ET
+BT 1 0 0 1 56.69 499.89 Tm /F1 10.50 Tf (something else may override: Gradle under `CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL`,) Tj ET
+BT 1 0 0 1 56.69 485.89 Tm /F1 10.50 Tf (and an SDK level under a `cdvCompileSdkVersion` or `cdvMinSdkVersion` Gradle property) Tj ET
+BT 1 0 0 1 56.69 471.89 Tm /F1 10.50 Tf (\(`--gradleArg=-P...`, `ORG_GRADLE_PROJECT_*`, a `gradle.properties`\). It skips a value) Tj ET
+BT 1 0 0 1 56.69 457.89 Tm /F1 10.50 Tf (it can't read, and iOS-only projects never run it.) Tj ET
+BT 1 0 0 1 56.69 443.89 Tm /F1 10.50 Tf (`NEUROLABS_SKIP_ANDROID_TOOLCHAIN_CHECK=1` turns the failure into a warning; that) Tj ET
+BT 1 0 0 1 56.69 429.89 Tm /F1 10.50 Tf (setup isn't supported.) Tj ET
+BT 1 0 0 1 56.69 409.89 Tm /F1 10.50 Tf (Add to `config.xml` on cordova-android 15 \(set `AndroidGradlePluginVersion` only to) Tj ET
+BT 1 0 0 1 56.69 395.89 Tm /F1 10.50 Tf (8.9.1 or later\):) Tj ET
 0.929412 0.333333 0.000000 RG
-56.69 719.89 481.89 62.00 re S
-BT /F3 8.20 Tf 1 0 0 1 66.69 759.89 Tm (<platform name="android">) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 748.89 Tm (    <preference name="android-minSdkVersion" value="26" />) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 737.89 Tm (    <preference name="android-compileSdkVersion" value="36" />) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 726.89 Tm (</platform>) Tj ET
-BT 1 0 0 1 56.69 707.89 Tm /F1 10.50 Tf (On cordova-android 14, also raise AGP \(its default Gradle, 8.13, already meets) Tj ET
-BT 1 0 0 1 56.69 693.89 Tm /F1 10.50 Tf (8.11.1\):) Tj ET
+56.69 323.89 481.89 62.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 363.89 Tm (<platform name="android">) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 352.89 Tm (    <preference name="android-minSdkVersion" value="26" />) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 341.89 Tm (    <preference name="android-compileSdkVersion" value="36" />) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 330.89 Tm (</platform>) Tj ET
+BT 1 0 0 1 56.69 311.89 Tm /F1 10.50 Tf (On cordova-android 14, also raise AGP \(its default Gradle, 8.13, already meets) Tj ET
+BT 1 0 0 1 56.69 297.89 Tm /F1 10.50 Tf (8.11.1\):) Tj ET
 0.929412 0.333333 0.000000 RG
-56.69 610.89 481.89 73.00 re S
-BT /F3 8.20 Tf 1 0 0 1 66.69 661.89 Tm (<platform name="android">) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 650.89 Tm (    <preference name="AndroidGradlePluginVersion" value="8.9.1" />) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 639.89 Tm (    <preference name="android-minSdkVersion" value="26" />) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 628.89 Tm (    <preference name="android-compileSdkVersion" value="36" />) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 617.89 Tm (</platform>) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 598.89 Tm (Android \(Windows or macOS\)) Tj ET
+56.69 214.89 481.89 73.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 265.89 Tm (<platform name="android">) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 254.89 Tm (    <preference name="AndroidGradlePluginVersion" value="8.9.1" />) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 243.89 Tm (    <preference name="android-minSdkVersion" value="26" />) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 232.89 Tm (    <preference name="android-compileSdkVersion" value="36" />) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 221.89 Tm (</platform>) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 202.89 Tm (Android \(Windows or macOS\)) Tj ET
 0.929412 0.333333 0.000000 RG
-56.69 539.89 481.89 51.00 re S
-BT /F3 8.20 Tf 1 0 0 1 66.69 568.89 Tm (# Add the Android platform first, then install the plugin) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 557.89 Tm (cordova platform add android) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 546.89 Tm (cordova plugin add file:/absolute/path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz) Tj ET
-BT 1 0 0 1 56.69 527.89 Tm /F1 10.50 Tf (Give the `.tgz` as a `file:` spec with an absolute path. Cordova CLI 12 and 13 hand a) Tj ET
-BT 1 0 0 1 56.69 513.89 Tm /F1 10.50 Tf (bare path to npm, which fails with `E404`.) Tj ET
-BT 1 0 0 1 56.69 493.89 Tm /F1 10.50 Tf (The `before_plugin_install` hook downloads `neurolabs-android-sdk.aar` from the) Tj ET
-BT 1 0 0 1 56.69 479.89 Tm /F1 10.50 Tf (matching GitHub release, stores it inside the plugin, and `plugin.xml` copies it to) Tj ET
-BT 1 0 0 1 56.69 465.89 Tm /F1 10.50 Tf (`app/libs/` automatically. `neurolabs.gradle` wires it into the build via `flatDir`.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 445.89 Tm (iOS \(macOS only\)) Tj ET
-0.929412 0.333333 0.000000 RG
-56.69 386.89 481.89 51.00 re S
-BT /F3 8.20 Tf 1 0 0 1 66.69 415.89 Tm (# Add the iOS platform first, then install the plugin) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 404.89 Tm (cordova platform add ios) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 393.89 Tm (cordova plugin add file:/absolute/path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz) Tj ET
-BT 1 0 0 1 56.69 374.89 Tm /F1 10.50 Tf (The hook downloads `NeurolabsSDK.xcframework` from the matching GitHub release and) Tj ET
-BT 1 0 0 1 56.69 360.89 Tm /F1 10.50 Tf (Cordova embeds it automatically during build. Requires `curl` \(standard on macOS\) or) Tj ET
-BT 1 0 0 1 56.69 346.89 Tm /F1 10.50 Tf (`gh` CLI. For private releases set `GITHUB_TOKEN`.) Tj ET
-BT 1 0 0 1 56.69 326.89 Tm /F1 10.50 Tf (The iOS install hook injects the `Sentry` Swift Package dependency into the generated) Tj ET
-BT 1 0 0 1 56.69 312.89 Tm /F1 10.50 Tf (Xcode project automatically during platform preparation. If Xcode still reports) Tj ET
-BT 1 0 0 1 56.69 298.89 Tm /F1 10.50 Tf (`unable to find module dependency: Sentry`, re-run `cordova prepare ios` so the) Tj ET
-BT 1 0 0 1 56.69 284.89 Tm /F1 10.50 Tf (package graph refreshes in the generated project.) Tj ET
-BT 1 0 0 1 56.69 264.89 Tm /F2 10.50 Tf (Optional overrides ) Tj /F1 10.50 Tf (\(use a pre-downloaded file or a specific URL instead of) Tj ET
-BT 1 0 0 1 56.69 250.89 Tm /F1 10.50 Tf (auto-download\):) Tj ET
-0.929412 0.333333 0.000000 RG
-56.69 79.89 481.89 161.00 re S
-BT /F3 8.20 Tf 1 0 0 1 66.69 218.89 Tm (# Local file) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 207.89 Tm (NEUROLABS_IOS_XCFRAMEWORK_ZIP=/path/to/NeurolabsSDK.xcframework-vX.Y.Z.zip \\) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 196.89 Tm (  cordova plugin add file:/absolute/path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 185.89 Tm ( ) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 174.89 Tm (NEUROLABS_ANDROID_AAR_PATH=/path/to/neurolabs-android-sdk-vX.Y.Z.aar \\) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 163.89 Tm (  cordova plugin add file:/absolute/path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 152.89 Tm ( ) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 141.89 Tm (# Direct URL) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 130.89 Tm (NEUROLABS_IOS_XCFRAMEWORK_URL=https://github.com/.../NeurolabsSDK.xcframework-vX.Y.Z.zip \\) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 119.89 Tm (  cordova plugin add file:/absolute/path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 108.89 Tm ( ) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 97.89 Tm (NEUROLABS_ANDROID_AAR_URL=https://github.com/.../neurolabs-android-sdk-vX.Y.Z.aar \\) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 86.89 Tm (  cordova plugin add file:/absolute/path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz) Tj ET
+56.69 143.89 481.89 51.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 172.89 Tm (# Add the Android platform first, then install the plugin) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 161.89 Tm (cordova platform add android) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 150.89 Tm (cordova plugin add file:/absolute/path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz) Tj ET
+BT 1 0 0 1 56.69 131.89 Tm /F1 10.50 Tf (Give the `.tgz` as a `file:` spec with an absolute path. Cordova CLI 12 and 13 hand a) Tj ET
+BT 1 0 0 1 56.69 117.89 Tm /F1 10.50 Tf (bare path to npm, which fails with `E404`.) Tj ET
 endstream
 endobj
 25 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 24 0 R >>
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 24 0 R >>
 endobj
 26 0 obj
-<< /Length 6126 >>
+<< /Length 3738 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
 BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 12) Tj ET
 0.000000 0.000000 0.000000 rg
-BT /F2 11.50 Tf 1 0 0 1 56.69 771.89 Tm (iOS + Android \(macOS\)) Tj ET
-BT 1 0 0 1 56.69 753.89 Tm /F1 10.50 Tf (Add both platforms before installing the plugin - both hooks run in a single `cordova) Tj ET
-BT 1 0 0 1 56.69 739.89 Tm /F1 10.50 Tf (plugin add`.) Tj ET
-BT /F2 13.00 Tf 1 0 0 1 56.69 719.89 Tm (4. SDK Initialization + Warmup) Tj ET
+BT 1 0 0 1 56.69 771.89 Tm /F1 10.50 Tf (The `before_plugin_install` hook downloads `neurolabs-android-sdk.aar` from the) Tj ET
+BT 1 0 0 1 56.69 757.89 Tm /F1 10.50 Tf (matching GitHub release, stores it inside the plugin, and `plugin.xml` copies it to) Tj ET
+BT 1 0 0 1 56.69 743.89 Tm /F1 10.50 Tf (`app/libs/` automatically. `neurolabs.gradle` wires it into the build via `flatDir`.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 723.89 Tm (iOS \(macOS only\)) Tj ET
 0.929412 0.333333 0.000000 RG
-56.69 458.89 481.89 249.00 re S
-BT /F3 8.20 Tf 1 0 0 1 66.69 685.89 Tm (const Neurolabs = cordova.require\('ai.neurolabs.cordova.Neurolabs'\);) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 674.89 Tm ( ) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 663.89 Tm (await Neurolabs.init\({) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 652.89 Tm (  apiKey: '<API_KEY>',) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 641.89 Tm (  operationsApiKey: '<OPERATIONS_API_KEY>', // REQUIRED for uploads \(see note below\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 630.89 Tm (  // operationsBaseUrl: 'https://api.operations.staging.neurolabs.ai/v1', // optional overrid) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 619.89 Tm (e \(staging / self-hosted\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 608.89 Tm (  taskUUID: '<DEFAULT_TASK_UUID>',) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 597.89 Tm (  allowBase64PhotoExport: false,) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 586.89 Tm (  returnCaptureFileUris: false,    // v1.6.5 opt-in file-URI streaming \(see 8.1\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 575.89 Tm (  analyticsEnabled: true,          // SDK analytics \(default true\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 564.89 Tm (  sentryEnabled: true,             // Sentry crash reporting \(default true\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 553.89 Tm (  // maxRetainedPhotos: 500,       // kept uploaded photos before retainedPhotosHigh warns \(s) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 542.89 Tm (ee 5\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 531.89 Tm (  // retainedPhotoExpiryDays: 14,  // delete kept uploaded photos after N days \(default off\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 520.89 Tm (  // captureGeolocation: false,    // location in each capture's metadata; the app owns the p) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 509.89 Tm (ermission \(see 4a\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 498.89 Tm (  // captureDepth: false,          // AR depth map with each AR capture \(see 4a\)) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 487.89 Tm (  // sentryDsn: 'https://...',     // optional custom Sentry DSN) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 476.89 Tm (  // yoloModelVariant: 'all_in_one', // the only detector; see below) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 465.89 Tm (}\);) Tj ET
-BT 1 0 0 1 56.69 446.89 Tm /F1 10.50 Tf (> ) Tj /F2 10.50 Tf (Upgrade note \(pre-1.6 integrators\): `operationsApiKey` is now required for uploads.) Tj ET
-BT 1 0 0 1 56.69 432.89 Tm /F1 10.50 Tf (> > The legacy `/images` upload endpoint has been removed - the native > capture queue) Tj ET
-BT 1 0 0 1 56.69 418.89 Tm /F1 10.50 Tf (is operations-only. If you call `init\(\)` ) Tj /F2 10.50 Tf (without ) Tj /F1 10.50 Tf (> `operationsApiKey`, `init\(\)` and) Tj ET
-BT 1 0 0 1 56.69 404.89 Tm /F1 10.50 Tf (`openCamera\(\)` still succeed and photos > still queue, but ) Tj /F2 10.50 Tf (every upload fails) Tj ET
-BT 1 0 0 1 56.69 390.89 Tm /F2 10.50 Tf (silently) Tj /F1 10.50 Tf (: the queue item errors > with `OPERATIONS_KEY_REQUIRED` \(non-retryable\),) Tj ET
-BT 1 0 0 1 56.69 376.89 Tm /F1 10.50 Tf (surfaced only through the > `uploadFailed` event. There is no console error and no) Tj ET
-BT 1 0 0 1 56.69 362.89 Tm /F1 10.50 Tf (init-time > rejection, so this is easy to miss during an upgrade. > > ```js >) Tj ET
-BT 1 0 0 1 56.69 348.89 Tm /F1 10.50 Tf (Neurolabs.addListener\('uploadFailed', \({ errorCode, message }\) => { > if \(errorCode) Tj ET
-BT 1 0 0 1 56.69 334.89 Tm /F1 10.50 Tf (=== 'OPERATIONS_KEY_REQUIRED'\) { > console.error\('Missing operationsApiKey in init\(\) -) Tj ET
-BT 1 0 0 1 56.69 320.89 Tm /F1 10.50 Tf (uploads will never succeed.', message\); > } > }\); > ``` > > `operationsBaseUrl`) Tj ET
-BT 1 0 0 1 56.69 306.89 Tm /F1 10.50 Tf (\(optional\) overrides the operations endpoint for > staging / self-hosted deployments.) Tj ET
-BT 1 0 0 1 56.69 292.89 Tm /F1 10.50 Tf (It must be an `https` URL with a host > and no embedded credentials; `http`,) Tj ET
-BT 1 0 0 1 56.69 278.89 Tm /F1 10.50 Tf (malformed, or userinfo-bearing > values reject at `init\(\)` with `INVALID_ARGUMENT`.) Tj ET
-BT 1 0 0 1 56.69 264.89 Tm /F1 10.50 Tf (Omit it to keep the > production default \(`https://api.operations.neurolabs.ai/v1`\).) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 244.89 Tm (Detector model \(downloaded at runtime\)) Tj ET
-BT 1 0 0 1 56.69 226.89 Tm /F1 10.50 Tf (Since native SDK 1.7.13 the SDK bundles ) Tj /F2 10.50 Tf (no ) Tj /F1 10.50 Tf (detector model. Its one detector,) Tj ET
-BT 1 0 0 1 56.69 212.89 Tm /F1 10.50 Tf (`all_in_one`, is downloaded on first use through the Operations API with the same) Tj ET
-BT 1 0 0 1 56.69 198.89 Tm /F1 10.50 Tf (operations credential as uploads, verified against a pinned sha256 and cached on the) Tj ET
-BT 1 0 0 1 56.69 184.89 Tm /F1 10.50 Tf (device. The plugin package is about 100 MB smaller per platform as a result.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 164.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 164.89 Tm /F2 10.50 Tf (The first launch needs network for detection. ) Tj /F1 10.50 Tf (Until the model is on the device,) Tj ET
-BT 1 0 0 1 70.69 150.89 Tm /F1 10.50 Tf (capture, the shutter, the upload queue and the pixel quality checks \(light, glare,) Tj ET
-BT 1 0 0 1 70.69 136.89 Tm /F1 10.50 Tf (blur\) all work; live detection, the product overlay and detection-based guidance do) Tj ET
-BT 1 0 0 1 70.69 122.89 Tm /F1 10.50 Tf (not, and the native camera shows a "Detector downloading. You can still capture.") Tj ET
-BT 1 0 0 1 70.69 108.89 Tm /F1 10.50 Tf (chip. When the download lands, detection switches on mid-session with no restart.) Tj ET
+56.69 664.89 481.89 51.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 693.89 Tm (# Add the iOS platform first, then install the plugin) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 682.89 Tm (cordova platform add ios) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 671.89 Tm (cordova plugin add file:/absolute/path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz) Tj ET
+BT 1 0 0 1 56.69 652.89 Tm /F1 10.50 Tf (The hook downloads `NeurolabsSDK.xcframework` from the matching GitHub release and) Tj ET
+BT 1 0 0 1 56.69 638.89 Tm /F1 10.50 Tf (Cordova embeds it automatically during build. Requires `curl` \(standard on macOS\) or) Tj ET
+BT 1 0 0 1 56.69 624.89 Tm /F1 10.50 Tf (`gh` CLI. For private releases set `GITHUB_TOKEN`.) Tj ET
+BT 1 0 0 1 56.69 604.89 Tm /F1 10.50 Tf (The iOS install hook injects the `Sentry` Swift Package dependency into the generated) Tj ET
+BT 1 0 0 1 56.69 590.89 Tm /F1 10.50 Tf (Xcode project automatically during platform preparation. If Xcode still reports) Tj ET
+BT 1 0 0 1 56.69 576.89 Tm /F1 10.50 Tf (`unable to find module dependency: Sentry`, re-run `cordova prepare ios` so the) Tj ET
+BT 1 0 0 1 56.69 562.89 Tm /F1 10.50 Tf (package graph refreshes in the generated project.) Tj ET
+BT 1 0 0 1 56.69 542.89 Tm /F2 10.50 Tf (Optional overrides ) Tj /F1 10.50 Tf (\(use a pre-downloaded file or a specific URL instead of) Tj ET
+BT 1 0 0 1 56.69 528.89 Tm /F1 10.50 Tf (auto-download\):) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 357.89 481.89 161.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 496.89 Tm (# Local file) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 485.89 Tm (NEUROLABS_IOS_XCFRAMEWORK_ZIP=/path/to/NeurolabsSDK.xcframework-vX.Y.Z.zip \\) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 474.89 Tm (  cordova plugin add file:/absolute/path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 463.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 452.89 Tm (NEUROLABS_ANDROID_AAR_PATH=/path/to/neurolabs-android-sdk-vX.Y.Z.aar \\) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 441.89 Tm (  cordova plugin add file:/absolute/path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 430.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 419.89 Tm (# Direct URL) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 408.89 Tm (NEUROLABS_IOS_XCFRAMEWORK_URL=https://github.com/.../NeurolabsSDK.xcframework-vX.Y.Z.zip \\) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 397.89 Tm (  cordova plugin add file:/absolute/path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 386.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 375.89 Tm (NEUROLABS_ANDROID_AAR_URL=https://github.com/.../neurolabs-android-sdk-vX.Y.Z.aar \\) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 364.89 Tm (  cordova plugin add file:/absolute/path/to/neurolabs-cordova-sdk-vX.Y.Z.tgz) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 345.89 Tm (iOS + Android \(macOS\)) Tj ET
+BT 1 0 0 1 56.69 327.89 Tm /F1 10.50 Tf (Add both platforms before installing the plugin - both hooks run in a single `cordova) Tj ET
+BT 1 0 0 1 56.69 313.89 Tm /F1 10.50 Tf (plugin add`.) Tj ET
 endstream
 endobj
 27 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 26 0 R >>
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 26 0 R >>
 endobj
 28 0 obj
-<< /Length 5835 >>
+<< /Length 6314 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
 BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 13) Tj ET
 0.000000 0.000000 0.000000 rg
-BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 771.89 Tm /F2 10.50 Tf (Loading progress. ) Tj /F1 10.50 Tf (Without the model the SDK reaches `loadingProgress.step ===) Tj ET
-BT 1 0 0 1 70.69 757.89 Tm /F1 10.50 Tf ("ready"` \("Ready \(detector downloading...\)"\) and never emits `"model_ready"`.) Tj ET
-BT 1 0 0 1 70.69 743.89 Tm /F1 10.50 Tf (`waitUntilReady\(\)` resolves on `"ready"`; never wait for `"model_ready"` alone.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 725.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 725.89 Tm /F2 10.50 Tf (Status. ) Tj /F1 10.50 Tf (`Neurolabs.getDetectorModelStatus\(\)` resolves `{ state, ready, reason? }`) Tj ET
-BT 1 0 0 1 70.69 711.89 Tm /F1 10.50 Tf (\(`state`: `"not_downloaded" | "downloading" | "ready" | "failed"`\), and) Tj ET
-BT 1 0 0 1 70.69 697.89 Tm /F1 10.50 Tf (`detectorModelStatusChanged` fires on every change.) Tj ET
-BT 1 0 0 1 70.69 683.89 Tm /F1 10.50 Tf (`Neurolabs.prefetchDetectorModel\(\)` \(after `init`\) starts the download now, e.g. on) Tj ET
-BT 1 0 0 1 70.69 669.89 Tm /F1 10.50 Tf (Wi-Fi before the first capture; a failed download resolves with `state: "failed"`) Tj ET
-BT 1 0 0 1 70.69 655.89 Tm /F1 10.50 Tf (and a `reason`, it does not reject. `reason` is one of `no_credentials`,) Tj ET
-BT 1 0 0 1 70.69 641.89 Tm /F1 10.50 Tf (`not_entitled`, `unknown_model`, `pin_mismatch`, `sha_mismatch`, `download_failed`,) Tj ET
-BT 1 0 0 1 70.69 627.89 Tm /F1 10.50 Tf (`api_unavailable`, `compile_failed`, `insufficient_storage`, `load_failed` on both) Tj ET
-BT 1 0 0 1 70.69 613.89 Tm /F1 10.50 Tf (platforms; anything else arrives as `download_failed`. The first five are retried) Tj ET
-BT 1 0 0 1 70.69 599.89 Tm /F1 10.50 Tf (after 1 h, the next three after 60 s; `insufficient_storage` \(native SDK 1.7.14\) is) Tj ET
-BT 1 0 0 1 70.69 585.89 Tm /F1 10.50 Tf (retried with no wait once space is freed \(next capture session or) Tj ET
-BT 1 0 0 1 70.69 571.89 Tm /F1 10.50 Tf (`prefetchDetectorModel\(\)`\), and `load_failed` \( 1.7.14\) only after the app is) Tj ET
-BT 1 0 0 1 70.69 557.89 Tm /F1 10.50 Tf (relaunched.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 539.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 539.89 Tm /F2 10.50 Tf (Downloading only on Wi-Fi. ) Tj /F1 10.50 Tf (`init\({ detectorPrefetchPolicy: 'unmetered' }\)` \(native) Tj ET
-BT 1 0 0 1 70.69 525.89 Tm /F1 10.50 Tf (SDK 1.7.16\) holds the SDK's own download until the device is on an unmetered) Tj ET
-BT 1 0 0 1 70.69 511.89 Tm /F1 10.50 Tf (network. Meanwhile the status is `not_downloaded` with `reason:) Tj ET
-BT 1 0 0 1 70.69 497.89 Tm /F1 10.50 Tf ("waiting_for_unmetered_network"`, which is not a failure, and) Tj ET
-BT 1 0 0 1 70.69 483.89 Tm /F1 10.50 Tf (`prefetchDetectorModel\(\)` still downloads at once. See 6c.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 465.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 465.89 Tm /F2 10.50 Tf (`DETECTOR_UNAVAILABLE` ) Tj /F1 10.50 Tf (\(detection before the model lands\) is expected and retryable.) Tj ET
-BT 1 0 0 1 70.69 451.89 Tm /F1 10.50 Tf (The plugin never reports it as `uploadFailed` or as an error.) Tj ET
-BT 1 0 0 1 56.69 433.89 Tm /F1 10.50 Tf (`yoloModelVariant` \(optional\) is now effectively fixed: its default and only value is) Tj ET
-BT 1 0 0 1 56.69 419.89 Tm /F1 10.50 Tf (`all_in_one`. The legacy values `nlb_model`, `yolo_v26`, `yolo_v11_seg`, `shelf_rows`) Tj ET
-BT 1 0 0 1 56.69 405.89 Tm /F1 10.50 Tf (and `yolo11l_seg_sam` are ) Tj /F2 10.50 Tf (deprecated ) Tj /F1 10.50 Tf (aliases of `all_in_one`: still accepted, so) Tj ET
-BT 1 0 0 1 56.69 391.89 Tm /F1 10.50 Tf (existing configs keep working, but they no longer select a different model. An unknown) Tj ET
-BT 1 0 0 1 56.69 377.89 Tm /F1 10.50 Tf (value raises `INVALID_ARGUMENT`.) Tj ET
-BT 1 0 0 1 56.69 357.89 Tm /F1 10.50 Tf (Warmup is native-side; monitor progress through `loadingProgress` event.) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 771.89 Tm (4. SDK Initialization + Warmup) Tj ET
 0.929412 0.333333 0.000000 RG
-56.69 296.89 481.89 51.00 re S
-BT /F3 8.20 Tf 1 0 0 1 66.69 325.89 Tm (Neurolabs.addListener\('loadingProgress', \(payload\) => {) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 314.89 Tm (  console.log\('loading', payload\);) Tj ET
-BT /F3 8.20 Tf 1 0 0 1 66.69 303.89 Tm (}\);) Tj ET
-BT /F2 13.00 Tf 1 0 0 1 56.69 272.89 Tm (4a. Per-capture metadata, location and depth \(native SDK 1.7.18\)) Tj ET
-BT 1 0 0 1 56.69 250.89 Tm /F1 10.50 Tf (From native SDK 1.7.18 the SDK camera records a metadata record for every photo it) Tj ET
-BT 1 0 0 1 56.69 236.89 Tm /F1 10.50 Tf (takes \(capture contract v1\): shutter time, device and OS, camera mode, image size, the) Tj ET
-BT 1 0 0 1 56.69 222.89 Tm /F1 10.50 Tf (detector's boxes, an EXIF subset \(never GPS or a serial number\), the device's) Tj ET
-BT 1 0 0 1 56.69 208.89 Tm /F1 10.50 Tf (attitude, the camera intrinsics and, on the AR camera, the camera pose. The record) Tj ET
-BT 1 0 0 1 56.69 194.89 Tm /F1 10.50 Tf (goes up after its image, off the image path: a metadata failure never holds up or) Tj ET
-BT 1 0 0 1 56.69 180.89 Tm /F1 10.50 Tf (fails the image or the mission submit. The detections go up only with) Tj ET
-BT 1 0 0 1 56.69 166.89 Tm /F1 10.50 Tf (`sendDetectionsMetadata: true`.) Tj ET
-BT 1 0 0 1 56.69 146.89 Tm /F1 10.50 Tf (The same record reaches your app as `captureResult.captureMetadata`, in camelCase with) Tj ET
-BT 1 0 0 1 56.69 132.89 Tm /F1 10.50 Tf (epoch-millisecond times \(the `CaptureMetadata` type in `types/index.d.ts`\). It is) Tj ET
-BT 1 0 0 1 56.69 118.89 Tm /F1 10.50 Tf (absent for a capture the SDK camera did not take.) Tj ET
-BT 1 0 0 1 56.69 98.89 Tm /F1 10.50 Tf (Two `init` opt-ins add more, both off by default:) Tj ET
+56.69 510.89 481.89 249.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 737.89 Tm (const Neurolabs = cordova.require\('ai.neurolabs.cordova.Neurolabs'\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 726.89 Tm ( ) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 715.89 Tm (await Neurolabs.init\({) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 704.89 Tm (  apiKey: '<API_KEY>',) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 693.89 Tm (  operationsApiKey: '<OPERATIONS_API_KEY>', // REQUIRED for uploads \(see note below\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 682.89 Tm (  // operationsBaseUrl: 'https://api.operations.staging.neurolabs.ai/v1', // optional overrid) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 671.89 Tm (e \(staging / self-hosted\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 660.89 Tm (  taskUUID: '<DEFAULT_TASK_UUID>',) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 649.89 Tm (  allowBase64PhotoExport: false,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 638.89 Tm (  returnCaptureFileUris: false,    // v1.6.5 opt-in file-URI streaming \(see 8.1\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 627.89 Tm (  analyticsEnabled: true,          // SDK analytics \(default true\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 616.89 Tm (  sentryEnabled: true,             // Sentry crash reporting \(default true\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 605.89 Tm (  // maxRetainedPhotos: 500,       // kept uploaded photos before retainedPhotosHigh warns \(s) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 594.89 Tm (ee 5\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 583.89 Tm (  // retainedPhotoExpiryDays: 14,  // delete kept uploaded photos after N days \(default off\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 572.89 Tm (  // captureGeolocation: false,    // location in each capture's metadata; the app owns the p) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 561.89 Tm (ermission \(see 4a\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 550.89 Tm (  // captureDepth: false,          // AR depth map with each AR capture \(see 4a\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 539.89 Tm (  // sentryDsn: 'https://...',     // optional custom Sentry DSN) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 528.89 Tm (  // yoloModelVariant: 'all_in_one', // the only detector; see below) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 517.89 Tm (}\);) Tj ET
+BT 1 0 0 1 56.69 498.89 Tm /F1 10.50 Tf (> ) Tj /F2 10.50 Tf (Upgrade note \(pre-1.6 integrators\): `operationsApiKey` is now required for uploads.) Tj ET
+BT 1 0 0 1 56.69 484.89 Tm /F1 10.50 Tf (> > The legacy `/images` upload endpoint has been removed - the native > capture queue) Tj ET
+BT 1 0 0 1 56.69 470.89 Tm /F1 10.50 Tf (is operations-only. If you call `init\(\)` ) Tj /F2 10.50 Tf (without ) Tj /F1 10.50 Tf (> `operationsApiKey`, `init\(\)` and) Tj ET
+BT 1 0 0 1 56.69 456.89 Tm /F1 10.50 Tf (`openCamera\(\)` still succeed and photos > still queue, but ) Tj /F2 10.50 Tf (every upload fails) Tj ET
+BT 1 0 0 1 56.69 442.89 Tm /F2 10.50 Tf (silently) Tj /F1 10.50 Tf (: the queue item errors > with `OPERATIONS_KEY_REQUIRED` \(non-retryable\),) Tj ET
+BT 1 0 0 1 56.69 428.89 Tm /F1 10.50 Tf (surfaced only through the > `uploadFailed` event. There is no console error and no) Tj ET
+BT 1 0 0 1 56.69 414.89 Tm /F1 10.50 Tf (init-time > rejection, so this is easy to miss during an upgrade. > > ```js >) Tj ET
+BT 1 0 0 1 56.69 400.89 Tm /F1 10.50 Tf (Neurolabs.addListener\('uploadFailed', \({ errorCode, message }\) => { > if \(errorCode) Tj ET
+BT 1 0 0 1 56.69 386.89 Tm /F1 10.50 Tf (=== 'OPERATIONS_KEY_REQUIRED'\) { > console.error\('Missing operationsApiKey in init\(\) -) Tj ET
+BT 1 0 0 1 56.69 372.89 Tm /F1 10.50 Tf (uploads will never succeed.', message\); > } > }\); > ``` > > `operationsBaseUrl`) Tj ET
+BT 1 0 0 1 56.69 358.89 Tm /F1 10.50 Tf (\(optional\) overrides the operations endpoint for > staging / self-hosted deployments.) Tj ET
+BT 1 0 0 1 56.69 344.89 Tm /F1 10.50 Tf (It must be an `https` URL with a host > and no embedded credentials; `http`,) Tj ET
+BT 1 0 0 1 56.69 330.89 Tm /F1 10.50 Tf (malformed, or userinfo-bearing > values reject at `init\(\)` with `INVALID_ARGUMENT`.) Tj ET
+BT 1 0 0 1 56.69 316.89 Tm /F1 10.50 Tf (Omit it to keep the > production default \(`https://api.operations.neurolabs.ai/v1`\).) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 296.89 Tm (Detector model \(downloaded at runtime\)) Tj ET
+BT 1 0 0 1 56.69 278.89 Tm /F1 10.50 Tf (Since native SDK 1.7.13 the SDK bundles ) Tj /F2 10.50 Tf (no ) Tj /F1 10.50 Tf (detector model. Its one detector,) Tj ET
+BT 1 0 0 1 56.69 264.89 Tm /F1 10.50 Tf (`all_in_one`, is downloaded on first use through the Operations API with the same) Tj ET
+BT 1 0 0 1 56.69 250.89 Tm /F1 10.50 Tf (operations credential as uploads, verified against a pinned sha256 and cached on the) Tj ET
+BT 1 0 0 1 56.69 236.89 Tm /F1 10.50 Tf (device. The plugin package is about 100 MB smaller per platform as a result.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 216.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 216.89 Tm /F2 10.50 Tf (The first launch needs network for detection. ) Tj /F1 10.50 Tf (Until the model is on the device,) Tj ET
+BT 1 0 0 1 70.69 202.89 Tm /F1 10.50 Tf (capture, the shutter, the upload queue and the pixel quality checks \(light, glare,) Tj ET
+BT 1 0 0 1 70.69 188.89 Tm /F1 10.50 Tf (blur\) all work; live detection, the product overlay and detection-based guidance do) Tj ET
+BT 1 0 0 1 70.69 174.89 Tm /F1 10.50 Tf (not, and the native camera shows a "Detector downloading. You can still capture.") Tj ET
+BT 1 0 0 1 70.69 160.89 Tm /F1 10.50 Tf (chip. When the download lands, detection switches on mid-session with no restart.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 142.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 142.89 Tm /F2 10.50 Tf (Loading progress. ) Tj /F1 10.50 Tf (Without the model the SDK reaches `loadingProgress.step ===) Tj ET
+BT 1 0 0 1 70.69 128.89 Tm /F1 10.50 Tf ("ready"` \("Ready \(detector downloading...\)"\) and never emits `"model_ready"`.) Tj ET
+BT 1 0 0 1 70.69 114.89 Tm /F1 10.50 Tf (`waitUntilReady\(\)` resolves on `"ready"`; never wait for `"model_ready"` alone.) Tj ET
 endstream
 endobj
 29 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 28 0 R >>
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 28 0 R >>
 endobj
 30 0 obj
-<< /Length 5538 >>
+<< /Length 5381 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
 BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 14) Tj ET
+0.000000 0.000000 0.000000 rg
+BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 771.89 Tm /F2 10.50 Tf (Status. ) Tj /F1 10.50 Tf (`Neurolabs.getDetectorModelStatus\(\)` resolves `{ state, ready, reason? }`) Tj ET
+BT 1 0 0 1 70.69 757.89 Tm /F1 10.50 Tf (\(`state`: `"not_downloaded" | "downloading" | "ready" | "failed"`\), and) Tj ET
+BT 1 0 0 1 70.69 743.89 Tm /F1 10.50 Tf (`detectorModelStatusChanged` fires on every change.) Tj ET
+BT 1 0 0 1 70.69 729.89 Tm /F1 10.50 Tf (`Neurolabs.prefetchDetectorModel\(\)` \(after `init`\) starts the download now, e.g. on) Tj ET
+BT 1 0 0 1 70.69 715.89 Tm /F1 10.50 Tf (Wi-Fi before the first capture; a failed download resolves with `state: "failed"`) Tj ET
+BT 1 0 0 1 70.69 701.89 Tm /F1 10.50 Tf (and a `reason`, it does not reject. `reason` is one of `no_credentials`,) Tj ET
+BT 1 0 0 1 70.69 687.89 Tm /F1 10.50 Tf (`not_entitled`, `unknown_model`, `pin_mismatch`, `sha_mismatch`, `download_failed`,) Tj ET
+BT 1 0 0 1 70.69 673.89 Tm /F1 10.50 Tf (`api_unavailable`, `compile_failed`, `insufficient_storage`, `load_failed` on both) Tj ET
+BT 1 0 0 1 70.69 659.89 Tm /F1 10.50 Tf (platforms; anything else arrives as `download_failed`. The first five are retried) Tj ET
+BT 1 0 0 1 70.69 645.89 Tm /F1 10.50 Tf (after 1 h, the next three after 60 s; `insufficient_storage` \(native SDK 1.7.14\) is) Tj ET
+BT 1 0 0 1 70.69 631.89 Tm /F1 10.50 Tf (retried with no wait once space is freed \(next capture session or) Tj ET
+BT 1 0 0 1 70.69 617.89 Tm /F1 10.50 Tf (`prefetchDetectorModel\(\)`\), and `load_failed` \( 1.7.14\) only after the app is) Tj ET
+BT 1 0 0 1 70.69 603.89 Tm /F1 10.50 Tf (relaunched.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 585.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 585.89 Tm /F2 10.50 Tf (Downloading only on Wi-Fi. ) Tj /F1 10.50 Tf (`init\({ detectorPrefetchPolicy: 'unmetered' }\)` \(native) Tj ET
+BT 1 0 0 1 70.69 571.89 Tm /F1 10.50 Tf (SDK 1.7.16\) holds the SDK's own download until the device is on an unmetered) Tj ET
+BT 1 0 0 1 70.69 557.89 Tm /F1 10.50 Tf (network. Meanwhile the status is `not_downloaded` with `reason:) Tj ET
+BT 1 0 0 1 70.69 543.89 Tm /F1 10.50 Tf ("waiting_for_unmetered_network"`, which is not a failure, and) Tj ET
+BT 1 0 0 1 70.69 529.89 Tm /F1 10.50 Tf (`prefetchDetectorModel\(\)` still downloads at once. See 6c.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 511.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 511.89 Tm /F2 10.50 Tf (`DETECTOR_UNAVAILABLE` ) Tj /F1 10.50 Tf (\(detection before the model lands\) is expected and retryable.) Tj ET
+BT 1 0 0 1 70.69 497.89 Tm /F1 10.50 Tf (The plugin never reports it as `uploadFailed` or as an error.) Tj ET
+BT 1 0 0 1 56.69 479.89 Tm /F1 10.50 Tf (`yoloModelVariant` \(optional\) is now effectively fixed: its default and only value is) Tj ET
+BT 1 0 0 1 56.69 465.89 Tm /F1 10.50 Tf (`all_in_one`. The legacy values `nlb_model`, `yolo_v26`, `yolo_v11_seg`, `shelf_rows`) Tj ET
+BT 1 0 0 1 56.69 451.89 Tm /F1 10.50 Tf (and `yolo11l_seg_sam` are ) Tj /F2 10.50 Tf (deprecated ) Tj /F1 10.50 Tf (aliases of `all_in_one`: still accepted, so) Tj ET
+BT 1 0 0 1 56.69 437.89 Tm /F1 10.50 Tf (existing configs keep working, but they no longer select a different model. An unknown) Tj ET
+BT 1 0 0 1 56.69 423.89 Tm /F1 10.50 Tf (value raises `INVALID_ARGUMENT`.) Tj ET
+BT 1 0 0 1 56.69 403.89 Tm /F1 10.50 Tf (Warmup is native-side; monitor progress through `loadingProgress` event.) Tj ET
+0.929412 0.333333 0.000000 RG
+56.69 342.89 481.89 51.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 371.89 Tm (Neurolabs.addListener\('loadingProgress', \(payload\) => {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 360.89 Tm (  console.log\('loading', payload\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 349.89 Tm (}\);) Tj ET
+BT /F2 13.00 Tf 1 0 0 1 56.69 318.89 Tm (4a. Per-capture metadata, location and depth \(native SDK 1.7.18\)) Tj ET
+BT 1 0 0 1 56.69 296.89 Tm /F1 10.50 Tf (From native SDK 1.7.18 the SDK camera records a metadata record for every photo it) Tj ET
+BT 1 0 0 1 56.69 282.89 Tm /F1 10.50 Tf (takes \(capture contract v1\): shutter time, device and OS, camera mode, image size, the) Tj ET
+BT 1 0 0 1 56.69 268.89 Tm /F1 10.50 Tf (detector's boxes, an EXIF subset \(never GPS or a serial number\), the device's) Tj ET
+BT 1 0 0 1 56.69 254.89 Tm /F1 10.50 Tf (attitude, the camera intrinsics and, on the AR camera, the camera pose. The record) Tj ET
+BT 1 0 0 1 56.69 240.89 Tm /F1 10.50 Tf (goes up after its image, off the image path: a metadata failure never holds up or) Tj ET
+BT 1 0 0 1 56.69 226.89 Tm /F1 10.50 Tf (fails the image or the mission submit. The detections go up only with) Tj ET
+BT 1 0 0 1 56.69 212.89 Tm /F1 10.50 Tf (`sendDetectionsMetadata: true`.) Tj ET
+BT 1 0 0 1 56.69 192.89 Tm /F1 10.50 Tf (The same record reaches your app as `captureResult.captureMetadata`, in camelCase with) Tj ET
+BT 1 0 0 1 56.69 178.89 Tm /F1 10.50 Tf (epoch-millisecond times \(the `CaptureMetadata` type in `types/index.d.ts`\). It is) Tj ET
+BT 1 0 0 1 56.69 164.89 Tm /F1 10.50 Tf (absent for a capture the SDK camera did not take.) Tj ET
+BT 1 0 0 1 56.69 144.89 Tm /F1 10.50 Tf (Two `init` opt-ins add more, both off by default:) Tj ET
+endstream
+endobj
+31 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 30 0 R >>
+endobj
+32 0 obj
+<< /Length 5538 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 15) Tj ET
 0.000000 0.000000 0.000000 rg
 BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
 BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (`captureGeolocation: true` adds the device's location \(`geolocation: { lat, lon,) Tj ET
@@ -962,16 +1012,16 @@ BT 1 0 0 1 56.69 133.89 Tm /F1 10.50 Tf (`not_claimed_by_*`\), and a call within
 BT 1 0 0 1 56.69 119.89 Tm /F1 10.50 Tf (retry button or timer cannot reset every backoff.) Tj ET
 endstream
 endobj
-31 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 30 0 R >>
+33 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 32 0 R >>
 endobj
-32 0 obj
+34 0 obj
 << /Length 6068 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 15) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 16) Tj ET
 0.000000 0.000000 0.000000 rg
 BT 1 0 0 1 56.69 771.89 Tm /F1 10.50 Tf (To re-send those refusals too, call `flushQueue\({ force: true }\)`: it gives every) Tj ET
 BT 1 0 0 1 56.69 757.89 Tm /F1 10.50 Tf (failed photo a fresh cycle first, on iOS and Android. Use it for an explicit user) Tj ET
@@ -1024,16 +1074,16 @@ BT 1 0 0 1 56.69 121.89 Tm /F1 10.50 Tf (completionHandler: completionHandler\) 
 BT 1 0 0 1 56.69 107.89 Tm /F1 10.50 Tf (completionHandler once for them completionHandler\(\) } } ```) Tj ET
 endstream
 endobj
-33 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 32 0 R >>
+35 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 34 0 R >>
 endobj
-34 0 obj
+36 0 obj
 << /Length 6135 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 16) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 17) Tj ET
 0.000000 0.000000 0.000000 rg
 BT 1 0 0 1 56.69 771.89 Tm /F1 10.50 Tf (An Objective-C `AppDelegate` handles its own sessions and passes any other identifier) Tj ET
 BT 1 0 0 1 56.69 757.89 Tm /F1 10.50 Tf (to the plugin's method with `[super application:application) Tj ET
@@ -1089,16 +1139,16 @@ BT 1 0 0 1 70.69 119.89 Tm /F1 10.50 Tf (ago, at the next flush or launch. Photo
 BT 1 0 0 1 70.69 105.89 Tm /F1 10.50 Tf (never expire.) Tj ET
 endstream
 endobj
-35 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 34 0 R >>
+37 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 36 0 R >>
 endobj
-36 0 obj
+38 0 obj
 << /Length 2272 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 17) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 18) Tj ET
 0.000000 0.000000 0.000000 rg
 BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
 BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (Both are process-wide on the native side, so every `init` sets them; omitting one) Tj ET
@@ -1124,16 +1174,16 @@ BT /F3 8.20 Tf 1 0 0 1 66.69 555.89 Tm (es) Tj ET
 BT /F3 8.20 Tf 1 0 0 1 66.69 544.89 Tm (}\);) Tj ET
 endstream
 endobj
-37 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 36 0 R >>
+39 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 38 0 R >>
 endobj
-38 0 obj
+40 0 obj
 << /Length 4646 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 18) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 19) Tj ET
 0.000000 0.000000 0.000000 rg
 BT /F2 13.00 Tf 1 0 0 1 56.69 771.89 Tm (6. Open Custom Camera) Tj ET
 0.929412 0.333333 0.000000 RG
@@ -1195,16 +1245,16 @@ BT 1 0 0 1 70.69 137.89 Tm /F1 10.50 Tf (It applies to the default \(non-AR\) ca
 BT 1 0 0 1 70.69 123.89 Tm /F1 10.50 Tf (AR camera. There is no per-shot preview, whatever `showCapturePreview` says.) Tj ET
 endstream
 endobj
-39 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 38 0 R >>
+41 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 40 0 R >>
 endobj
-40 0 obj
+42 0 obj
 << /Length 5119 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 19) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 20) Tj ET
 0.000000 0.000000 0.000000 rg
 BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
 BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (Done, or the count that ends the session today \(`maxCaptures`, the auto-close) Tj ET
@@ -1232,7 +1282,7 @@ BT 1 0 0 1 56.69 473.89 Tm /F1 10.50 Tf (1. the value you pass to `openCamera`; 
 BT 1 0 0 1 56.69 459.89 Tm /F1 10.50 Tf (\(`sdkCapture.maxImageDimension` / `sdkCapture.imageCompressionQuality` in `GET) Tj ET
 BT 1 0 0 1 56.69 445.89 Tm /F1 10.50 Tf (/v1/recognition-config`, set by Neurolabs per organisation\); 3. the SDK default: a) Tj ET
 BT 1 0 0 1 56.69 431.89 Tm /F2 10.50 Tf (4032 px long edge at JPEG quality 0.9 ) Tj /F1 10.50 Tf (\(native SDK 1.7.16\).) Tj ET
-BT 1 0 0 1 56.69 411.89 Tm /F1 10.50 Tf (The plugin pins native 1.7.25 \(the default dates from 1.7.16\), so on both platforms an) Tj ET
+BT 1 0 0 1 56.69 411.89 Tm /F1 10.50 Tf (The plugin pins native 1.7.26 \(the default dates from 1.7.16\), so on both platforms an) Tj ET
 BT 1 0 0 1 56.69 397.89 Tm /F1 10.50 Tf (omitted value means 4032 px at 0.9 unless your organisation overrides it. Invalid) Tj ET
 BT 1 0 0 1 56.69 383.89 Tm /F1 10.50 Tf (values \(`<= 0`, or a quality outside `0..1`\) reject with `INVALID_ARGUMENT` on both) Tj ET
 BT 1 0 0 1 56.69 369.89 Tm /F1 10.50 Tf (platforms.) Tj ET
@@ -1249,16 +1299,16 @@ BT 1 0 0 1 56.69 217.89 Tm /F1 10.50 Tf (organisation overrides them.) Tj ET
 BT 1 0 0 1 56.69 197.89 Tm /F1 10.50 Tf (Manual-finish example:) Tj ET
 endstream
 endobj
-41 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 40 0 R >>
+43 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 42 0 R >>
 endobj
-42 0 obj
+44 0 obj
 << /Length 5469 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 20) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 21) Tj ET
 0.000000 0.000000 0.000000 rg
 0.929412 0.333333 0.000000 RG
 56.69 664.89 481.89 117.00 re S
@@ -1318,16 +1368,16 @@ BT 1 0 0 1 56.69 105.89 Tm /F1 10.50 Tf (unavailable \(no ARKit / ARCore world t
 BT 1 0 0 1 56.69 91.89 Tm /F1 10.50 Tf (| 'glance'` \(case-insensitive\) selects the guidance overlay style.) Tj ET
 endstream
 endobj
-43 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 42 0 R >>
+45 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 44 0 R >>
 endobj
-44 0 obj
+46 0 obj
 << /Length 6022 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 21) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 22) Tj ET
 0.000000 0.000000 0.000000 rg
 BT 1 0 0 1 56.69 771.89 Tm /F1 10.50 Tf (Attach free-text submit notes to the session before its payload uploads:) Tj ET
 0.929412 0.333333 0.000000 RG
@@ -1385,16 +1435,16 @@ BT 1 0 0 1 70.69 107.89 Tm /F1 10.50 Tf (it into `realogram` and deletes the fil
 BT 1 0 0 1 70.69 93.89 Tm /F1 10.50 Tf (platforms.) Tj ET
 endstream
 endobj
-45 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 44 0 R >>
+47 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 46 0 R >>
 endobj
-46 0 obj
+48 0 obj
 << /Length 5886 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 22) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 23) Tj ET
 0.000000 0.000000 0.000000 rg
 BT 1 0 0 1 56.69 771.89 Tm /F1 10.50 Tf (There is no partner-facing in-camera bay-mode switch: the Single Multi-bay toggle) Tj ET
 BT 1 0 0 1 56.69 757.89 Tm /F1 10.50 Tf (shown in Neurolabs demo builds is internal debug chrome \(gated behind) Tj ET
@@ -1449,16 +1499,16 @@ BT 1 0 0 1 70.69 119.89 Tm /F1 10.50 Tf (appearance only for an organisation Ope
 BT 1 0 0 1 70.69 105.89 Tm /F1 10.50 Tf (until it is on the device or when it is not granted.) Tj ET
 endstream
 endobj
-47 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 46 0 R >>
+49 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 48 0 R >>
 endobj
-48 0 obj
+50 0 obj
 << /Length 6191 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 23) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 24) Tj ET
 0.000000 0.000000 0.000000 rg
 BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
 BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (`arAppearanceWithoutRecognition` \(default `true`\) turns this on; `false` keeps) Tj ET
@@ -1519,16 +1569,16 @@ BT 1 0 0 1 70.69 113.89 Tm /F1 10.50 Tf (1.7.16's SDK-managed camera takes no pr
 BT 1 0 0 1 70.69 99.89 Tm /F1 10.50 Tf (unnamed.) Tj ET
 endstream
 endobj
-49 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 48 0 R >>
+51 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 50 0 R >>
 endobj
-50 0 obj
+52 0 obj
 << /Length 5662 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 24) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 25) Tj ET
 0.000000 0.000000 0.000000 rg
 BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
 BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (`arLiveCount: true` shows a "~ N products" chip: the distinct boxes seen stable this) Tj ET
@@ -1583,16 +1633,16 @@ BT 1 0 0 1 70.69 161.89 Tm /F1 10.50 Tf (other boolean options \(`true`, `'yes'`
 BT 1 0 0 1 70.69 147.89 Tm /F1 10.50 Tf (boolean is ignored.) Tj ET
 endstream
 endobj
-51 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 50 0 R >>
+53 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 52 0 R >>
 endobj
-52 0 obj
+54 0 obj
 << /Length 5403 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 25) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 26) Tj ET
 0.000000 0.000000 0.000000 rg
 0.929412 0.333333 0.000000 RG
 56.69 620.89 481.89 161.00 re S
@@ -1654,16 +1704,16 @@ BT 1 0 0 1 70.69 105.89 Tm /F1 10.50 Tf (options; `multiBayAR: {...}` reads them
 BT 1 0 0 1 70.69 91.89 Tm /F1 10.50 Tf (places rejects with `INVALID_ARGUMENT`.) Tj ET
 endstream
 endobj
-53 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 52 0 R >>
+55 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 54 0 R >>
 endobj
-54 0 obj
+56 0 obj
 << /Length 3577 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 26) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 27) Tj ET
 0.000000 0.000000 0.000000 rg
 BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
 BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (Any other option you set explicitly overrides that one field of the preset \(e.g.) Tj ET
@@ -1701,16 +1751,16 @@ BT 1 0 0 1 56.69 401.89 Tm /F1 10.50 Tf (downloads on Wi-Fi or Ethernet.) Tj ET
 BT 1 0 0 1 56.69 381.89 Tm /F2 10.50 Tf (Config.) Tj ET
 endstream
 endobj
-55 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 54 0 R >>
+57 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 56 0 R >>
 endobj
-56 0 obj
+58 0 obj
 << /Length 5592 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 27) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 28) Tj ET
 0.000000 0.000000 0.000000 rg
 0.929412 0.333333 0.000000 RG
 56.69 389.89 481.89 392.00 re S
@@ -1773,16 +1823,16 @@ BT 1 0 0 1 70.69 117.89 Tm /F1 10.50 Tf (on the AR camera \(`cameraMode: 'ar'`\)
 BT 1 0 0 1 70.69 103.89 Tm /F1 10.50 Tf (world-locked boxes.) Tj ET
 endstream
 endobj
-57 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 56 0 R >>
+59 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 58 0 R >>
 endobj
-58 0 obj
+60 0 obj
 << /Length 3917 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 28) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 29) Tj ET
 0.000000 0.000000 0.000000 rg
 BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
 BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (With both overlays off and no `validationPreset`, both platforms use their lenient) Tj ET
@@ -1817,16 +1867,16 @@ BT 1 0 0 1 56.69 361.89 Tm /F1 10.50 Tf (a capture, quality, review, queue and p
 BT 1 0 0 1 56.69 347.89 Tm /F1 10.50 Tf (that brought each one.) Tj ET
 endstream
 endobj
-59 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 58 0 R >>
+61 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 60 0 R >>
 endobj
-60 0 obj
+62 0 obj
 << /Length 14392 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 29) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 30) Tj ET
 0.000000 0.000000 0.000000 rg
 BT 1 0 0 1 56.69 771.89 Tm /F1 10.50 Tf (1. ) Tj /F2 10.50 Tf (No bundled detector \(1.7.13\). ) Tj /F1 10.50 Tf (The detector downloads at runtime, so the first) Tj ET
 BT 1 0 0 1 56.69 757.89 Tm /F1 10.50 Tf (launch needs a network for detection. Capture and uploads work without it. With) Tj ET
@@ -1932,16 +1982,16 @@ BT 1 0 0 1 56.69 -628.11 Tm /F1 10.50 Tf (default to `true`. Pass `false` to tur
 BT 1 0 0 1 56.69 -642.11 Tm /F1 10.50 Tf (native SDK version.) Tj ET
 endstream
 endobj
-61 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 60 0 R >>
+63 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 62 0 R >>
 endobj
-62 0 obj
+64 0 obj
 << /Length 5446 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 30) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 31) Tj ET
 0.000000 0.000000 0.000000 rg
 BT 1 0 0 1 56.69 771.89 Tm /F2 10.50 Tf (Up to plugin 1.7.18 \(native 1.7.18\): ) Tj /F1 10.50 Tf (- ) Tj /F2 10.50 Tf (Android. ) Tj /F1 10.50 Tf (The SDK never starts Sentry globally,) Tj ET
 BT 1 0 0 1 56.69 757.89 Tm /F1 10.50 Tf (and the plugin turns off `io.sentry.auto-init`. Only errors the SDK captures itself) Tj ET
@@ -1982,16 +2032,16 @@ BT 1 0 0 1 56.69 269.89 Tm /F1 10.50 Tf (`config.xml`:) Tj ET
 BT 1 0 0 1 56.69 249.89 Tm /F1 10.50 Tf (```xml <preference name="NeurolabsSentryEnabled" value="false" /> ```) Tj ET
 endstream
 endobj
-63 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 62 0 R >>
+65 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 64 0 R >>
 endobj
-64 0 obj
+66 0 obj
 << /Length 6333 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 31) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 32) Tj ET
 0.000000 0.000000 0.000000 rg
 BT 1 0 0 1 56.69 771.89 Tm /F1 10.50 Tf (- ) Tj /F2 10.50 Tf (Default: on. ) Tj /F1 10.50 Tf (Without the preference, Sentry behaves as described above. Only a clear) Tj ET
 BT 1 0 0 1 56.69 757.89 Tm /F1 10.50 Tf (false \(`false`, `0` or `no`, in any case\) turns it off. Any other value leaves it on.) Tj ET
@@ -2043,16 +2093,16 @@ BT /F3 8.20 Tf 1 0 0 1 66.69 126.89 Tm (;) Tj ET
 BT /F3 8.20 Tf 1 0 0 1 66.69 115.89 Tm (}) Tj ET
 endstream
 endobj
-65 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 64 0 R >>
+67 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 66 0 R >>
 endobj
-66 0 obj
+68 0 obj
 << /Length 5505 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 32) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 33) Tj ET
 0.000000 0.000000 0.000000 rg
 BT 1 0 0 1 56.69 771.89 Tm /F1 10.50 Tf (It never rejects on network or state. `refreshFailure` \(absent when every fetch was) Tj ET
 BT 1 0 0 1 56.69 757.89 Tm /F1 10.50 Tf (applied\) is `no_credentials`, `no_offline_identity`, `no_valid_outlet_ids`, `denied`,) Tj ET
@@ -2110,16 +2160,16 @@ BT 1 0 0 1 70.69 140.89 Tm /F1 10.50 Tf (store context and a payload that passes
 BT 1 0 0 1 70.69 126.89 Tm /F1 10.50 Tf (stays on the device.) Tj ET
 endstream
 endobj
-67 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 66 0 R >>
+69 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 68 0 R >>
 endobj
-68 0 obj
-<< /Length 3739 >>
+70 0 obj
+<< /Length 5687 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 33) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 34) Tj ET
 0.000000 0.000000 0.000000 rg
 BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
 BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (One event per session that finished with photos, not cancelled, while visit KPIs are) Tj ET
@@ -2153,32 +2203,91 @@ BT /F1 10.50 Tf 1 0 0 1 56.69 401.89 Tm (-) Tj ET
 BT 1 0 0 1 70.69 401.89 Tm /F1 10.50 Tf (The store-context calls and `setVisitKpisEnabled` work before `init\(\)`: the reads) Tj ET
 BT 1 0 0 1 70.69 387.89 Tm /F1 10.50 Tf (resolve `missing` / `no_credentials`, a clear runs when `init\(\)` installs the SDK,) Tj ET
 BT 1 0 0 1 70.69 373.89 Tm /F1 10.50 Tf (and the switch and the identity hold across re-inits.) Tj ET
-endstream
-endobj
-69 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 68 0 R >>
-endobj
-70 0 obj
-<< /Length 340 >>
-stream
+BT 1 0 0 1 56.69 355.89 Tm /F2 10.50 Tf (Compute a session again with your own store context \(native SDK 1.7.25\).) Tj ET
+BT 1 0 0 1 56.69 341.89 Tm /F1 10.50 Tf (`computeVisitKpis\(sessionId, storeContext, context?\)` computes the KPIs of a session) Tj ET
+BT 1 0 0 1 56.69 327.89 Tm /F1 10.50 Tf (the SDK's camera finished, by its session id, against a store context you hand it) Tj ET
+BT 1 0 0 1 56.69 313.89 Tm /F1 10.50 Tf (instead of the one cached for the outlet. Use it for a preview, a demo or a test) Tj ET
+BT 1 0 0 1 56.69 299.89 Tm /F1 10.50 Tf (without Operations, or to see a visit against other targets.) Tj ET
 0.929412 0.333333 0.000000 RG
-56.69 43.94 m 538.58 43.94 l S
-BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 34) Tj ET
-0.000000 0.000000 0.000000 rg
-BT /F2 13.00 Tf 1 0 0 1 56.69 771.89 Tm (7. Post-Processing + Lifecycle Events) Tj ET
+56.69 117.89 481.89 172.00 re S
+BT /F3 8.20 Tf 1 0 0 1 66.69 267.89 Tm (const { sessionId } = await Neurolabs.openCamera\({ type: 'shelf' }\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 256.89 Tm (// ... after cameraClosed:) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 245.89 Tm (try {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 234.89 Tm (  const kpis = await Neurolabs.computeVisitKpis\(sessionId, {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 223.89 Tm (    storePart: JSON.stringify\(storeContextPart\), // nl.store_context v1 \(targets, assortment,) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 212.89 Tm ( planograms\)) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 201.89 Tm (    orgPart: JSON.stringify\(storeContextOrgPart\), // nl.store_context_org v1, the same org) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 190.89 Tm (  }\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 179.89 Tm (  showKpis\(kpis.payload, { label: 'Preview', score: kpis.perfectStoreScoreBp }\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 168.89 Tm (} catch \(e\) {) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 157.89 Tm (  if \(e.code === 'VISIT_KPIS_SESSION_UNKNOWN'\) showMessage\('That visit is no longer on this d) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 146.89 Tm (evice.'\);) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 135.89 Tm (  else throw e;) Tj ET
+BT /F3 8.20 Tf 1 0 0 1 66.69 124.89 Tm (}) Tj ET
 endstream
 endobj
 71 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 70 0 R >>
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 70 0 R >>
 endobj
 72 0 obj
-<< /Length 6792 >>
+<< /Length 2936 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
 BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 35) Tj ET
+0.000000 0.000000 0.000000 rg
+BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (It resolves the `visitKpis` event's shape, `payload` included. The result is) Tj ET
+BT 1 0 0 1 70.69 757.89 Tm /F1 10.50 Tf (read-only: `willSubmit` is always `false`, nothing rides the mission submit, and no) Tj ET
+BT 1 0 0 1 70.69 743.89 Tm /F1 10.50 Tf (`visitKpis` event fires for it.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 725.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 725.89 Tm /F1 10.50 Tf (The SDK checks only the parts' shape \(each part's `schema` and `version`, and that) Tj ET
+BT 1 0 0 1 70.69 711.89 Tm /F1 10.50 Tf (both name the same org\), never a signature. A store part past its `valid_until`) Tj ET
+BT 1 0 0 1 70.69 697.89 Tm /F1 10.50 Tf (gives `storeContext: 'expired'` and no Perfect Store score.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 679.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 679.89 Tm /F1 10.50 Tf (`context` is the object `setVisitKpiContext` takes. Leave it out \(or pass `null`\) to) Tj ET
+BT 1 0 0 1 70.69 665.89 Tm /F1 10.50 Tf (use the context set for the session, which still applies after the session ended.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 647.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 647.89 Tm /F1 10.50 Tf (The SDK keeps the newest 8 sessions its camera finished with at least one photo,) Tj ET
+BT 1 0 0 1 70.69 633.89 Tm /F1 10.50 Tf (cancelled or not, in memory for the app's lifetime. It keeps no pixels and nothing) Tj ET
+BT 1 0 0 1 70.69 619.89 Tm /F1 10.50 Tf (on disk, so a session from an earlier app run is unknown.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 601.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 601.89 Tm /F1 10.50 Tf (Errors: `INVALID_ARGUMENT` for malformed arguments \(same rules and messages as) Tj ET
+BT 1 0 0 1 70.69 587.89 Tm /F1 10.50 Tf (`setVisitKpiContext`, plus `storeContext must be an object` and) Tj ET
+BT 1 0 0 1 70.69 573.89 Tm /F1 10.50 Tf (`storeContext.storePart` / `storeContext.orgPart must be a non-blank string`\),) Tj ET
+BT 1 0 0 1 70.69 559.89 Tm /F1 10.50 Tf (`NOT_INITIALIZED` before `init\(\)`, and the SDK's own codes, unchanged:) Tj ET
+BT 1 0 0 1 70.69 545.89 Tm /F1 10.50 Tf (`VISIT_KPIS_DISABLED` \(visit KPIs are off\), `VISIT_KPIS_STORE_CONTEXT_INVALID` \(a) Tj ET
+BT 1 0 0 1 70.69 531.89 Tm /F1 10.50 Tf (part is not the v1 shape, or the two name different orgs\),) Tj ET
+BT 1 0 0 1 70.69 517.89 Tm /F1 10.50 Tf (`VISIT_KPIS_SESSION_UNKNOWN` \(no such session on this device: another app run, a) Tj ET
+BT 1 0 0 1 70.69 503.89 Tm /F1 10.50 Tf (session without photos, or one that newer sessions pushed out\),) Tj ET
+BT 1 0 0 1 70.69 489.89 Tm /F1 10.50 Tf (`VISIT_KPIS_NO_CAPTURES`, `VISIT_KPIS_FAILED` \(the computation failed\).) Tj ET
+endstream
+endobj
+73 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 72 0 R >>
+endobj
+74 0 obj
+<< /Length 340 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 36) Tj ET
+0.000000 0.000000 0.000000 rg
+BT /F2 13.00 Tf 1 0 0 1 56.69 771.89 Tm (7. Post-Processing + Lifecycle Events) Tj ET
+endstream
+endobj
+75 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 74 0 R >>
+endobj
+76 0 obj
+<< /Length 6792 >>
+stream
+0.929412 0.333333 0.000000 RG
+56.69 43.94 m 538.58 43.94 l S
+BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 37) Tj ET
 0.000000 0.000000 0.000000 rg
 0.929412 0.333333 0.000000 RG
 56.69 92.89 481.89 689.00 re S
@@ -2245,16 +2354,16 @@ BT /F3 8.20 Tf 1 0 0 1 66.69 110.89 Tm (Neurolabs.addListener\('queueStatusChang
 BT /F3 8.20 Tf 1 0 0 1 66.69 99.89 Tm (tus\)\);) Tj ET
 endstream
 endobj
-73 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 72 0 R >>
+77 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 76 0 R >>
 endobj
-74 0 obj
+78 0 obj
 << /Length 5970 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 36) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 38) Tj ET
 0.000000 0.000000 0.000000 rg
 BT /F2 11.50 Tf 1 0 0 1 56.69 771.89 Tm (How a session ends \(native SDK 1.7.25\)) Tj ET
 BT 1 0 0 1 56.69 753.89 Tm /F1 10.50 Tf (Every session ends with exactly one `cameraClosed`. Its photos reach you through) Tj ET
@@ -2309,16 +2418,16 @@ BT 1 0 0 1 56.69 117.89 Tm /F1 10.50 Tf (`UNSUPPORTED_FORMAT` - base64 export is
 BT 1 0 0 1 56.69 103.89 Tm /F1 10.50 Tf (the > `imageFileUri` handed to you on `captureQueued` directly.) Tj ET
 endstream
 endobj
-75 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 74 0 R >>
+79 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 78 0 R >>
 endobj
-76 0 obj
+80 0 obj
 << /Length 5686 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 37) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 39) Tj ET
 0.000000 0.000000 0.000000 rg
 BT /F2 13.00 Tf 1 0 0 1 56.69 771.89 Tm (8.1 Capture File-URI Streaming \(v1.6.5, OOM fix\)) Tj ET
 BT 1 0 0 1 56.69 749.89 Tm /F1 10.50 Tf (Large multi-capture sessions \(wide shelves, dozens of full-resolution JPEGs\) could) Tj ET
@@ -2376,16 +2485,16 @@ BT 1 0 0 1 70.69 113.89 Tm /F1 10.50 Tf (Use the strict shelf payload above for 
 BT 1 0 0 1 70.69 99.89 Tm /F1 10.50 Tf (after a validated save.) Tj ET
 endstream
 endobj
-77 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 76 0 R >>
+81 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 80 0 R >>
 endobj
-78 0 obj
+82 0 obj
 << /Length 5588 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 38) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 40) Tj ET
 0.000000 0.000000 0.000000 rg
 BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
 BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (`liveQualityChecksEnabled=true` is required for pill/rotation/warning/error guidance) Tj ET
@@ -2441,16 +2550,16 @@ BT 1 0 0 1 70.69 129.89 Tm /F1 10.50 Tf (the reconfigure-wipe - even sessions th
 BT 1 0 0 1 70.69 115.89 Tm /F1 10.50 Tf (this way. There is nothing to migrate.) Tj ET
 endstream
 endobj
-79 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 78 0 R >>
+83 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 82 0 R >>
 endobj
-80 0 obj
+84 0 obj
 << /Length 2705 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
-BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 39) Tj ET
+BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 41) Tj ET
 0.000000 0.000000 0.000000 rg
 BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
 BT 1 0 0 1 70.69 771.89 Tm /F2 10.50 Tf (Upgrading stops the loss going forward. ) Tj /F1 10.50 Tf (From native v1.6.1+ \(plugin bundling native) Tj ET
@@ -2477,103 +2586,107 @@ BT 1 0 0 1 56.69 490.89 Tm /F1 10.50 Tf (Results are cached natively for 24 h. i
 BT 1 0 0 1 56.69 476.89 Tm /F1 10.50 Tf (in a follow-up release; `getProductDetails` works on both platforms today.) Tj ET
 endstream
 endobj
-81 0 obj
-<< /Type /Page /Parent 82 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 80 0 R >>
+85 0 obj
+<< /Type /Page /Parent 86 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 84 0 R >>
 endobj
-82 0 obj
-<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R 21 0 R 23 0 R 25 0 R 27 0 R 29 0 R 31 0 R 33 0 R 35 0 R 37 0 R 39 0 R 41 0 R 43 0 R 45 0 R 47 0 R 49 0 R 51 0 R 53 0 R 55 0 R 57 0 R 59 0 R 61 0 R 63 0 R 65 0 R 67 0 R 69 0 R 71 0 R 73 0 R 75 0 R 77 0 R 79 0 R 81 0 R] /Count 39 >>
+86 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R 21 0 R 23 0 R 25 0 R 27 0 R 29 0 R 31 0 R 33 0 R 35 0 R 37 0 R 39 0 R 41 0 R 43 0 R 45 0 R 47 0 R 49 0 R 51 0 R 53 0 R 55 0 R 57 0 R 59 0 R 61 0 R 63 0 R 65 0 R 67 0 R 69 0 R 71 0 R 73 0 R 75 0 R 77 0 R 79 0 R 81 0 R 83 0 R 85 0 R] /Count 41 >>
 endobj
-83 0 obj
-<< /Type /Catalog /Pages 82 0 R >>
+87 0 obj
+<< /Type /Catalog /Pages 86 0 R >>
 endobj
 xref
-0 84
+0 88
 0000000000 65535 f 
 0000000015 00000 n 
 0000000085 00000 n 
 0000000160 00000 n 
 0000000228 00000 n 
-0000005477 00000 n 
-0000005630 00000 n 
-0000011968 00000 n 
-0000012121 00000 n 
-0000018022 00000 n 
-0000018175 00000 n 
-0000024441 00000 n 
-0000024596 00000 n 
-0000030867 00000 n 
-0000031022 00000 n 
-0000037220 00000 n 
-0000037375 00000 n 
-0000043320 00000 n 
-0000043475 00000 n 
-0000048214 00000 n 
-0000048369 00000 n 
-0000053976 00000 n 
-0000054131 00000 n 
-0000059797 00000 n 
-0000059952 00000 n 
-0000065257 00000 n 
-0000065412 00000 n 
-0000071591 00000 n 
-0000071746 00000 n 
-0000077634 00000 n 
-0000077789 00000 n 
-0000083380 00000 n 
-0000083535 00000 n 
-0000089656 00000 n 
-0000089811 00000 n 
-0000095999 00000 n 
-0000096154 00000 n 
-0000098479 00000 n 
-0000098634 00000 n 
-0000103333 00000 n 
-0000103488 00000 n 
-0000108660 00000 n 
-0000108815 00000 n 
-0000114337 00000 n 
-0000114492 00000 n 
-0000120567 00000 n 
-0000120722 00000 n 
-0000126661 00000 n 
-0000126816 00000 n 
-0000133060 00000 n 
-0000133215 00000 n 
-0000138930 00000 n 
-0000139085 00000 n 
-0000144541 00000 n 
-0000144696 00000 n 
-0000148326 00000 n 
-0000148481 00000 n 
-0000154126 00000 n 
-0000154281 00000 n 
-0000158251 00000 n 
-0000158406 00000 n 
-0000172852 00000 n 
-0000173007 00000 n 
-0000178506 00000 n 
-0000178661 00000 n 
-0000185047 00000 n 
-0000185202 00000 n 
-0000190760 00000 n 
-0000190915 00000 n 
-0000194707 00000 n 
-0000194862 00000 n 
-0000195254 00000 n 
-0000195409 00000 n 
-0000202254 00000 n 
-0000202409 00000 n 
-0000208432 00000 n 
-0000208587 00000 n 
-0000214326 00000 n 
-0000214481 00000 n 
-0000220122 00000 n 
-0000220277 00000 n 
-0000223035 00000 n 
-0000223190 00000 n 
-0000223513 00000 n 
+0000004982 00000 n 
+0000005135 00000 n 
+0000011180 00000 n 
+0000011333 00000 n 
+0000017716 00000 n 
+0000017869 00000 n 
+0000023784 00000 n 
+0000023939 00000 n 
+0000030290 00000 n 
+0000030445 00000 n 
+0000036575 00000 n 
+0000036730 00000 n 
+0000043093 00000 n 
+0000043248 00000 n 
+0000049108 00000 n 
+0000049263 00000 n 
+0000054823 00000 n 
+0000054978 00000 n 
+0000060177 00000 n 
+0000060332 00000 n 
+0000065805 00000 n 
+0000065960 00000 n 
+0000069751 00000 n 
+0000069906 00000 n 
+0000076273 00000 n 
+0000076428 00000 n 
+0000081862 00000 n 
+0000082017 00000 n 
+0000087608 00000 n 
+0000087763 00000 n 
+0000093884 00000 n 
+0000094039 00000 n 
+0000100227 00000 n 
+0000100382 00000 n 
+0000102707 00000 n 
+0000102862 00000 n 
+0000107561 00000 n 
+0000107716 00000 n 
+0000112888 00000 n 
+0000113043 00000 n 
+0000118565 00000 n 
+0000118720 00000 n 
+0000124795 00000 n 
+0000124950 00000 n 
+0000130889 00000 n 
+0000131044 00000 n 
+0000137288 00000 n 
+0000137443 00000 n 
+0000143158 00000 n 
+0000143313 00000 n 
+0000148769 00000 n 
+0000148924 00000 n 
+0000152554 00000 n 
+0000152709 00000 n 
+0000158354 00000 n 
+0000158509 00000 n 
+0000162479 00000 n 
+0000162634 00000 n 
+0000177080 00000 n 
+0000177235 00000 n 
+0000182734 00000 n 
+0000182889 00000 n 
+0000189275 00000 n 
+0000189430 00000 n 
+0000194988 00000 n 
+0000195143 00000 n 
+0000200883 00000 n 
+0000201038 00000 n 
+0000204027 00000 n 
+0000204182 00000 n 
+0000204574 00000 n 
+0000204729 00000 n 
+0000211574 00000 n 
+0000211729 00000 n 
+0000217752 00000 n 
+0000217907 00000 n 
+0000223646 00000 n 
+0000223801 00000 n 
+0000229442 00000 n 
+0000229597 00000 n 
+0000232355 00000 n 
+0000232510 00000 n 
+0000232847 00000 n 
 trailer
-<< /Size 84 /Root 83 0 R >>
+<< /Size 88 /Root 87 0 R >>
 startxref
-223564
+232898
 %%EOF

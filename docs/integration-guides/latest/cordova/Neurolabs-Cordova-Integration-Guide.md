@@ -11,6 +11,38 @@ listed here come from the underlying `neurolabs-android-sdk` and
 `scripts/prepare-sdk.js` at install time. No public JS API has been broken
 since v1.1.9.
 
+### v1.7.26
+- Plugin pins the native SDKs' 1.7.26 on both platforms. Nothing is removed
+  from the plugin's API, and nothing is required of a host.
+- New: `computeVisitKpis(sessionId, storeContext, context?)` computes a
+  finished session's visit KPIs again, by its session id, against a store
+  context you supply. It resolves the `visitKpis` event's shape, is
+  read-only (`willSubmit` is always `false`, no `visitKpis` event fires) and
+  can reject with `VISIT_KPIS_SESSION_UNKNOWN` once the SDK no longer holds
+  the session (it keeps the newest 8). See 6d.
+- Native: the camera's detector message says what to do. With no room for
+  the product detector it reads "Not enough free space. Free about N MB to
+  use the product detector. You can still capture." (N is 200 on iOS, 150
+  on Android); a download held for Wi-Fi reads "Waiting for Wi-Fi to download
+  the product detector. You can still capture." Other reasons keep
+  "Detector unavailable. You can still capture." The `reason` codes in
+  `detectorModelStatusChanged` and `getDetectorModelStatus()` are
+  unchanged.
+- Native: the AR multi-bay walk shows one detector message at a time, and
+  waits for a loading detector (45 s at most) only once per app launch.
+- Native: a detector download is no longer held for an hour when the
+  credential arrives just after the SDK starts or after an earlier
+  failure; the next camera downloads it.
+- Native: after a re-`init` with a new key or base URL, a request built
+  for the old credential is aborted before anything is sent. A queued
+  upload still reports `UPLOAD_CREDENTIALS_CHANGED` (`retryable: true`) and
+  uploads under the new credential, as in 1.7.25.
+- Native 1.7.26 also adds a catalogue-mirror gate for recognition
+  snapshots, an Android product-capture camera failure callback, and a
+  `stopSession` that waits for the session's own `enqueueCapture` calls.
+  None has a plugin API: the plugin keeps no catalogue mirror, opens no
+  product-capture camera, and its cameras queue their own photos.
+
 ### v1.7.25
 - Plugin pins the native SDKs' 1.7.25 on both platforms. No plugin API
   change: native 1.7.25 adds no camera option or event the plugin needs to
@@ -793,7 +825,7 @@ each one in this order:
 3. the SDK default: a **4032 px long edge at JPEG quality 0.9** (native SDK
    1.7.16).
 
-The plugin pins native 1.7.25 (the default dates from 1.7.16), so on both platforms an omitted value means
+The plugin pins native 1.7.26 (the default dates from 1.7.16), so on both platforms an omitted value means
 4032 px at 0.9 unless your organisation overrides it. Invalid values (`<= 0`, or a
 quality outside `0..1`) reject with `INVALID_ARGUMENT` on both platforms.
 
@@ -1364,6 +1396,29 @@ Neurolabs.addListener('visitKpis', (event) => {
 - `clearStoreContextCache()` deletes every cached store context on the device (sign-out).
 - `setStoreContextIdentity(identity)` names the cache after the signed-in rep. It only matters when the operations credential comes from a host auth provider; with the API key this plugin uses, the key names the cache and the SDK ignores the identity.
 - The store-context calls and `setVisitKpisEnabled` work before `init()`: the reads resolve `missing` / `no_credentials`, a clear runs when `init()` installs the SDK, and the switch and the identity hold across re-inits.
+
+**Compute a session again with your own store context (native SDK 1.7.25).** `computeVisitKpis(sessionId, storeContext, context?)` computes the KPIs of a session the SDK's camera finished, by its session id, against a store context you hand it instead of the one cached for the outlet. Use it for a preview, a demo or a test without Operations, or to see a visit against other targets.
+
+```js
+const { sessionId } = await Neurolabs.openCamera({ type: 'shelf' });
+// ... after cameraClosed:
+try {
+  const kpis = await Neurolabs.computeVisitKpis(sessionId, {
+    storePart: JSON.stringify(storeContextPart), // nl.store_context v1 (targets, assortment, planograms)
+    orgPart: JSON.stringify(storeContextOrgPart), // nl.store_context_org v1, the same org
+  });
+  showKpis(kpis.payload, { label: 'Preview', score: kpis.perfectStoreScoreBp });
+} catch (e) {
+  if (e.code === 'VISIT_KPIS_SESSION_UNKNOWN') showMessage('That visit is no longer on this device.');
+  else throw e;
+}
+```
+
+- It resolves the `visitKpis` event's shape, `payload` included. The result is read-only: `willSubmit` is always `false`, nothing rides the mission submit, and no `visitKpis` event fires for it.
+- The SDK checks only the parts' shape (each part's `schema` and `version`, and that both name the same org), never a signature. A store part past its `valid_until` gives `storeContext: 'expired'` and no Perfect Store score.
+- `context` is the object `setVisitKpiContext` takes. Leave it out (or pass `null`) to use the context set for the session, which still applies after the session ended.
+- The SDK keeps the newest 8 sessions its camera finished with at least one photo, cancelled or not, in memory for the app's lifetime. It keeps no pixels and nothing on disk, so a session from an earlier app run is unknown.
+- Errors: `INVALID_ARGUMENT` for malformed arguments (same rules and messages as `setVisitKpiContext`, plus `storeContext must be an object` and `storeContext.storePart` / `storeContext.orgPart must be a non-blank string`), `NOT_INITIALIZED` before `init()`, and the SDK's own codes, unchanged: `VISIT_KPIS_DISABLED` (visit KPIs are off), `VISIT_KPIS_STORE_CONTEXT_INVALID` (a part is not the v1 shape, or the two name different orgs), `VISIT_KPIS_SESSION_UNKNOWN` (no such session on this device: another app run, a session without photos, or one that newer sessions pushed out), `VISIT_KPIS_NO_CAPTURES`, `VISIT_KPIS_FAILED` (the computation failed).
 
 ## 7. Post-Processing + Lifecycle Events
 

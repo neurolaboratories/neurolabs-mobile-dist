@@ -11,6 +11,38 @@ working as is. Recommended defaults: strict shelf guidance with
 `validationPreset = IOS_PARITY`, `liveQualityChecksEnabled = true`,
 `autoCloseAfterCapture = true` for single-capture parity flows.
 
+### v1.7.26
+No `NLConfiguration` changes and no removals. New APIs are additive: `sdk.api`
+only gains lines. Nothing is required.
+
+New, all optional:
+- An `NLProductCaptureCameraHost` overload with `onCameraFailure` reports why
+  the product-capture camera could not run: `NLProductCaptureCameraFailure`
+  with a `reason` (`PERMISSION_DENIED`, `CAMERA_IN_USE`,
+  `CAMERA_UNAVAILABLE`, `CONFIGURATION_INVALID`), a `message` and
+  `retryable` (section 10, "Product-capture camera failures").
+- `NLRecognitionBootstrap.Configuration.mirrorGate` holds a recognition
+  snapshot until your catalogue mirror has reached it, and
+  `NLRecognitionBootstrap.joinDegraded` says when one activated without it
+  (section 11, "Catalogue-mirror gate").
+
+Behaviour changes, with no opt-in:
+- `stopSession` waits for the session's `enqueueCapture` calls already
+  running, at most 5 s, before the KPI stop run and the mission submit
+  (section 12, "Queue before you stop the session").
+- A long-lived operations client binds the credential when it is built. Read
+  `sdk.operationsClient` again after a key, auth-provider or base change: a
+  client kept from before fails every request with a retryable
+  `NLOperationsError.Transport` and sends nothing.
+- The background product-capture retry sends only to the SDK's current
+  operations base, under the credential it was scheduled with. With a catalog
+  base other than the operations base, pending uploads wait for a foreground
+  `retryPendingUploads`.
+- The detector says what to do: the `insufficient_storage` chip says how much
+  space to free, the AR walk shows one detector message at a time and waits at
+  most once per process for a loading model, and a new credential clears an
+  earlier failure's wait at once.
+
 ### v1.7.25
 No `NLConfiguration` changes and no removals. New APIs are additive: `sdk.api`
 only gains lines. Nothing is required.
@@ -727,6 +759,51 @@ sdk.delegate = object : NeurolabsSDKDelegate {
 }
 ```
 
+### Product-capture camera failures (1.7.26)
+
+`NLProductCaptureCameraHost` has an overload with `onCameraFailure`. Use it to learn why the camera could not run, instead of showing a black card. The overload without it keeps its signature and runs the same checks with a no-op callback: it does not bind without the `CAMERA` permission, and it binds when the permission is granted later.
+
+```kotlin
+var hostKey by remember { mutableIntStateOf(0) }
+var failure by remember { mutableStateOf<NLProductCaptureCameraFailure?>(null) }
+
+key(hostKey) {
+    NLProductCaptureCameraHost(
+        scanningEnabled = true,
+        videoModeActive = false,
+        videoConfig = NLProductCaptureVideoConfig(),
+        onVideoProgress = { _, _ -> },
+        onVideoReady = { _, _, _, _, _ -> },
+        onVideoError = {},
+        onCameraFailure = { failure = it },
+        onBarcodeScanned = { scan -> /* ... */ },
+    )
+}
+
+failure?.let { current ->
+    // Show your own copy by current.reason.
+    if (current.retryable) {
+        Button(onClick = { failure = null; hostKey++ }) { Text("Try again") }
+    }
+}
+```
+
+| `reason` | When | `retryable` |
+|---|---|---|
+| `PERMISSION_DENIED` | No `CAMERA` permission (the SDK does not bind without it; ask for it first), or a device policy disables the camera. | no: send the user to Settings |
+| `CAMERA_IN_USE` | Another app holds the camera, or too many cameras are open, and the camera has not opened within 10 s while CameraX retried. | yes |
+| `CAMERA_UNAVAILABLE` | No back camera, or the camera hardware or session failed. | yes |
+| `CONFIGURATION_INVALID` | CameraX refused the setup: the lifecycle had ended, your own CameraX use cases or `CameraXConfig` conflict with the SDK's, or the device cannot stream the combination. | no: fix the integration |
+
+- The callback runs on the main thread. Each reason is reported once until the camera opens again.
+- A busy camera (`CAMERA_IN_USE`, or another error CameraX retries) is reported only if the camera has not opened within 10 s. Any other error is reported at once.
+- Ask for the `CAMERA` permission yourself. Without it the SDK does not bind and reports `PERMISSION_DENIED`; once the permission is granted and the activity resumes, it binds.
+- `NLProductCaptureFlow` puts the failure's `message` in its state's `message`.
+- To try again, recreate the host (a new `key`). Leaving composition unbinds exactly what that host bound.
+- `message` is fixed English copy for logs. It never carries an exception's text.
+- None of these failures is sent to the SDK's Sentry project: each is a device, user or integration condition.
+- A recording that fails still reports through `onVideoError` only.
+
 ## 11. On-Device Recognition (v1.7.1)
 
 Per-account, config-gated: your operations API key resolves YOUR org's
@@ -837,6 +914,36 @@ recognition did not run (no provider, the kill switch on, a provider not
 ready, or an image that does not decode), and an empty map means it ran and
 matched nothing. Nothing is queued or uploaded.
 
+**Catalogue-mirror gate (1.7.26).** If your app keeps a catalogue mirror
+from the change feed, tell the bootstrap where it is, so a recognised product
+is never missing from it:
+
+```kotlin
+import ai.neurolabs.sdk.recognition.NLMirrorGateConfiguration
+import ai.neurolabs.sdk.recognition.NLMirrorStatus
+
+val configuration = NLRecognitionBootstrap.Configuration(
+    operationsApiKey = "<your operations key>",
+    operationsBaseUrl = "https://api.operations.neurolabs.ai/v1",
+)
+configuration.mirrorGate = NLMirrorGateConfiguration(
+    provider = { NLMirrorStatus(mirror.cursor, mirror.consecutiveFailures) },
+)
+val bootstrap = NLRecognitionBootstrap(context, configuration)
+bootstrap.onJoinDegradedChange = { reason -> /* null: back to normal */ }
+```
+
+Set it before building the bootstrap. The provider reports the active
+account's mirror, on a background thread, and must not throw. A fresh
+snapshot stamped with a feed position your mirror has not reached is held:
+the bootstrap keeps serving the last good build. The hold ends when the
+mirror reaches the stamp, or after 7 days or 5 consecutive mirror failures
+(`NLMirrorGatePolicy`); the snapshot then activates and `joinDegraded` says
+why (`MIRROR_TIMEOUT`, `MIRROR_FAILURES`, or `NO_PRIOR_SNAPSHOT` when there
+was no earlier build to serve). While it is set, resolve a recognised item
+missing from your mirror through `canonical_uuids`. Call `close()` on
+sign-out. Without `mirrorGate` nothing changes.
+
 **A crop and its recognition (1.7.25).** A crop keeps the capture id. Once the
 camera has reported the crop (`onCaptureCropReplaced`, bound or not), the core
 forgets the uncropped photo's `recognitionMatches`, `unknownEmbeddings` and
@@ -864,6 +971,8 @@ sdk.clearStoreContextCache()                  // sign-out
 After an SDK-managed session (`NLCaptureActivity`, the bridge, Cordova) finishes with at least one capture, the SDK computes the visit's KPIs on the device and calls `NeurolabsSDKDelegate.onVisitKpis(result, sessionId)` (default no-op). On by default; `setVisitKpisEnabled(false)` turns it off.
 
 With your own capture UI (`NLCustomCameraView`, or photos you queue with `enqueueCapture`), `stopSession(sessionId)` computes them once instead (1.7.23), from the photos queued for that session, under the same rules. Set the context on the session you stop. Since 1.7.24 what the run needs is recorded on disk, so a visit that spans an app kill counts every photo, with its recognition matches, once you call `stopSession` after the relaunch. A session the SDK submits on its own after a relaunch, with no `stopSession`, goes without `device_kpis`.
+
+**Queue before you stop the session.** If you launch `enqueueCapture` in a coroutine from a per-photo callback and call `stopSession` when the camera finishes, the stop can come before the last enqueue returns. Since 1.7.26 the SDK covers this: `stopSession` waits for the session's `enqueueCapture` calls already running when it is called, up to 5 s, before the KPI run and the mission submit. On the bound it logs and goes on without them; it cancels nothing. An `enqueueCapture` you start after `stopSession` is not waited for, and on 1.7.25 and earlier the SDK does not wait at all. Awaiting your own enqueues (join their jobs, bounded) before `stopSession` is still recommended, as the demo's `DemoPendingEnqueues` does.
 
 ```kotlin
 sdk.setVisitKpiContext(sessionId, NLVisitKpiContext(outletId, sectionsByCaptureId = emptyMap(), sectionsByBayIndex = emptyMap()))
