@@ -11,6 +11,19 @@ working as is. Recommended defaults: strict shelf guidance with
 `validationPreset = IOS_PARITY`, `liveQualityChecksEnabled = true`,
 `autoCloseAfterCapture = true` for single-capture parity flows.
 
+### v1.7.27
+No `NLConfiguration` changes, no new APIs and no removals: `sdk.api` is
+unchanged.
+
+Behaviour changes, with no opt-in:
+- A guided (shutter) multi-bay walk, and any multi-bay session on the default
+  camera, may plan up to 20 bays: `NLMultiBayOptions.MAX_SUPPORTED_BAYS` is 20
+  (it was 8), and `sanitized()` and the capture screen clamp `maxBays` to it.
+  The default stays 8 bays. A host that asked for 9–20 bays and was clamped to
+  8 now gets what it asked for (section 8). A continuous AR sweep keeps its
+  30. `MAX_SUPPORTED_BAYS` is a `const val`: code that reads it sees 20 only
+  once it is recompiled against v1.7.27.
+
 ### v1.7.26
 No `NLConfiguration` changes and no removals. New APIs are additive: `sdk.api`
 only gains lines. Nothing is required.
@@ -641,7 +654,7 @@ val config = NLNativeCaptureConfig(
     guidanceMode = NLCaptureGuidanceMode.STRICT,
     multiBay = NLMultiBayOptions(
         minBays = 2,                   // minimum bays before the session can finish (default 1)
-        maxBays = 4,                   // maximum bays per session (default 8; cap 8, or 30 for a continuous AR sweep)
+        maxBays = 4,                   // maximum bays per session (default 8; cap 20, or 30 for a continuous AR sweep)
         targetOverlapFraction = 0.30,  // fraction of the previous bay kept visible (default 0.30)
         minDetectionConfidence = 0.5,  // confidence floor for merge/count participation (default 0.5)
         onDeviceDedup = true,          // run overlap dedup at session finish (default true)
@@ -659,7 +672,13 @@ sdk.openNativeCaptureUI(
 
 The same `multiBay` field exists on `NLCameraConfiguration` for the custom-camera config path, and on the WebView/Cordova bridge payload (camelCase field names identical across iOS, Android, and Cordova; absent fields take the defaults above).
 
-The bay cap depends on the session's mode: a continuous sweep (`captureMode = NLCaptureMode.CONTINUOUS`) on the AR camera may plan up to `NLMultiBayOptions.MAX_SUPPORTED_CONTINUOUS_BAYS` (30) bays; every other session, and a continuous sweep that falls back to CameraX, keeps 8. A value outside the cap is clamped and logged when the camera opens. From v1.7.17 the WebView bridge resolves `maxBays` the same way; in v1.7.16 it clamped to 8 on every mode. Cordova's `NLCaptureActivity` launch already followed the mode in v1.7.16.
+The bay cap depends on the session's mode: a continuous sweep (`captureMode = NLCaptureMode.CONTINUOUS`) on the AR camera may plan up to `NLMultiBayOptions.MAX_SUPPORTED_CONTINUOUS_BAYS` (30) bays; every other session (a guided walk, any session on the default camera), and a continuous sweep that falls back to CameraX, may plan up to `NLMultiBayOptions.MAX_SUPPORTED_BAYS` (20 from v1.7.27; 8 before). A value outside the cap is clamped and logged when the camera opens. From v1.7.17 the WebView bridge resolves `maxBays` the same way; in v1.7.16 it clamped to 8 on every mode. Cordova's `NLCaptureActivity` launch already followed the mode in v1.7.16.
+
+**Long guided walks (v1.7.27).** A guided (shutter) walk, and any session on the default camera, may plan up to `NLMultiBayOptions.MAX_SUPPORTED_BAYS` (20; 8 before v1.7.27); the default stays 8. A 10 m shelf is about 10–14 bays. The cost of a long walk does not grow with the ceiling: past 8 bays the finish-time dedup decodes each bay smaller so its working set stays at the 8-bay budget, and the AR "Review shelf" pages through segments of up to 8 bays (20 → 7 + 7 + 6), as for a long continuous sweep. `previewImageData` is still the one panorama, so past 8 bays treat it as a thumbnail (about 205 px a bay at 20). The bridge resolves the same 20. Hosts that asked for 9–20 bays on a guided or default-camera session were clamped to 8 and now get that many: check your plan if you relied on the clamp. `MAX_SUPPORTED_BAYS` is a `const val`, inlined where you read it: recompile against v1.7.27 to see 20.
+
+```kotlin
+val options = NLMultiBayOptions(minBays = 2, maxBays = 20) // guided: up to 20
+```
 
 ### "Review shelf" for long sweeps and "On this shelf" (1.7.17)
 

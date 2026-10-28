@@ -11,6 +11,22 @@ listed here come from the underlying `neurolabs-android-sdk` and
 `scripts/prepare-sdk.js` at install time. No public JS API has been broken
 since v1.1.9.
 
+### v1.7.27
+- Plugin pins the native SDKs' 1.7.27 on both platforms. Nothing is removed
+  from the plugin's API, and nothing is required of a host. Plugin 1.7.27
+  needs native 1.7.27: 1.7.26 natives would clamp a guided plan above 8 bays
+  back to 8 without an error.
+- Changed: a guided (shutter) multi-bay walk, and any multi-bay session on the
+  default camera, may plan up to 20 bays (was 8). `multiBay.minBays` takes
+  `1..20` and `multiBay.maxBays` `2..20`; `21` or more still rejects with
+  `INVALID_ARGUMENT`. A 10 m shelf is about 10-14 bays. A continuous AR
+  sweep keeps `1..30` / `2..30`, and a host that passes nothing keeps the
+  native default of 8 bays. See 6a.
+- Native: on the standard (non-AR) camera the stitched preview past 8 bays is
+  a thumbnail (about 205 px a bay at 20); review each bay in the bay list.
+  The AR camera's "Review shelf" pages a long walk 8 bays at a time, and a
+  long walk costs no more memory than an 8-bay one.
+
 ### v1.7.26
 - Plugin pins the native SDKs' 1.7.26 on both platforms. Nothing is removed
   from the plugin's API, and nothing is required of a host.
@@ -825,7 +841,7 @@ each one in this order:
 3. the SDK default: a **4032 px long edge at JPEG quality 0.9** (native SDK
    1.7.16).
 
-The plugin pins native 1.7.26 (the default dates from 1.7.16), so on both platforms an omitted value means
+The plugin pins native 1.7.27 (the default dates from 1.7.16), so on both platforms an omitted value means
 4032 px at 0.9 unless your organisation overrides it. Invalid values (`<= 0`, or a
 quality outside `0..1`) reject with `INVALID_ARGUMENT` on both platforms.
 
@@ -869,8 +885,8 @@ await Neurolabs.openCamera({
   type: 'shelf',
   guidanceMode: 'strict',
   multiBay: {
-    minBays: 2,                  // 1..8 (1..30 for a continuous AR sweep)
-    maxBays: 4,                  // 2..8 (2..30 for a continuous AR sweep)
+    minBays: 2,                  // 1..20 (1..30 for a continuous AR sweep)
+    maxBays: 4,                  // 2..20 (2..30 for a continuous AR sweep)
     targetOverlapFraction: 0.30, // 0.05..0.9 (native default 0.30)
     onDeviceDedup: true,         // de-duplicate detections across bays on device
     generatePreview: true,       // build a stitched display-only preview
@@ -885,15 +901,19 @@ both platforms:
 
 - **Continuous AR sweep: up to 30 bays.** A continuous sweep commits a bay
   on every auto-capture, so a shutter-free walk past several fixtures needs
-  more than 8. The session counts as one when the effective `captureMode` is
+  more than a guided walk. The session counts as one when the effective `captureMode` is
   `'continuous'` and the camera is AR: the `multiBayAR` preset (section 6b,
   which always runs AR), or an explicit `cameraMode: 'ar'`. There
   `minBays` takes `1..30` and `maxBays` `2..30`.
-- **Everything else: up to 8 bays.** Guided capture, `cameraMode:
+- **Everything else: up to 20 bays.** Guided capture, `cameraMode:
   'default'`, and a continuous sweep with `cameraMode` omitted outside the
   preset (the two native SDKs pick a different camera when it is omitted, so
-  the plugin does not assume AR). `9` or more rejects with
-  `INVALID_ARGUMENT` (`multiBay.maxBays must be between 2 and 8`).
+  the plugin does not assume AR). A 10 m shelf is about 10–14 bays. `21` or
+  more rejects with `INVALID_ARGUMENT` (`multiBay.maxBays must be between 2
+  and 20`; `multiBay.minBays must be between 1 and 20`). The native SDKs
+  honour a guided plan above 8 from 1.7.27; earlier natives clamp it to 8.
+  On the standard (non-AR) camera the stitched preview past 8 bays is a
+  thumbnail (about 205 px a bay at 20); review each bay in the bay list.
 
 ```js
 await Neurolabs.openCamera({
@@ -906,8 +926,9 @@ Which native SDK honours it: Android from native 1.7.16; iOS from native
 1.7.17. With the native 1.7.16 iOS SDK the bridge type
 (`NLNativeMultiBayConfig`) still clamps the plan to 8, so an iOS session
 asked for 20 bays runs 8. Native 1.7.17 resolves it for the session's mode,
-and the camera itself still falls back to 8 if the AR camera is unavailable
-(no ARKit / ARCore world tracking). An optional
+and the camera itself still falls back to the guided ceiling (20 from native
+1.7.27, 8 before) if the AR camera is unavailable (no ARKit / ARCore world
+tracking). An optional
 `guidanceStyle: 'classic' | 'glance'` (case-insensitive) selects the
 guidance overlay style.
 

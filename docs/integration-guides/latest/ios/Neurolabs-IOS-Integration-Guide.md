@@ -14,6 +14,16 @@ custom-camera flows that need a minimum capture count and a higher
 maximum cap. `showsCapturedCountLabel` hides the `N captured` chip in
 custom camera and multi-capture flow UIs.
 
+### v1.7.27
+No initialiser changes, no new APIs and no removals.
+
+Behaviour changes, with no opt-in:
+- A guided (shutter) multi-bay walk, and any multi-bay session on the default
+  camera, may plan up to 20 bays: `NLMultiBayOptions.maxSupportedBays` is 20
+  (it was 8), and `init` clamps `maxBays` to it. The default stays 8 bays. A
+  host that asked for 9–20 bays and was clamped to 8 now gets what it asked
+  for (section 9). A continuous AR sweep keeps its 30.
+
 ### v1.7.26
 No initialiser changes and no removals. New APIs are additive.
 
@@ -912,7 +922,7 @@ the default):
 var config = NLCameraConfiguration()
 config.multiBay = NLMultiBayOptions(
     minBays: 2,                   // minimum bays before the session can finish (default 1)
-    maxBays: 4,                   // maximum bays per session (default 8; init clamps to 8)
+    maxBays: 4,                   // maximum bays per session (default 8; init clamps to 20)
     targetOverlapFraction: 0.30,  // fraction of the previous bay kept visible (default 0.30)
     minDetectionConfidence: 0.5,  // confidence floor for merge/count participation (default 0.5)
     onDeviceDedup: true,          // run overlap dedup at session finish (default true)
@@ -926,19 +936,36 @@ sdk.openCustomCameraUI(configuration: config, handlers: handlers)
 **Long continuous AR sweeps (v1.7.16).** A continuous (shutter-free) sweep on
 the AR camera commits a bay on every auto-capture, so it may plan up to
 `NLMultiBayOptions.maxSupportedContinuousBays` (30). `init` still clamps to
-`maxSupportedBays` (8); set `maxBays` after init. The capture screen clamps
-it to `minBays...30` for `captureMode == .continuous` on the AR camera and to
-8 otherwise, and logs a clamp. From v1.7.17 the bridge
+`maxSupportedBays` (8; 20 from v1.7.27); set `maxBays` after init. The
+capture screen clamps it to `minBays...30` for `captureMode == .continuous` on
+the AR camera and to `maxSupportedBays` otherwise, and logs a clamp. From v1.7.17 the bridge
 (`NLNativeMultiBayConfig`, used by the WebView bridge and Cordova) resolves
 `maxBays` the same way when the camera opens; in v1.7.16 it clamped to 8 on
 every mode.
 
 ```swift
 var options = NLMultiBayOptions(minBays: 2)
-options.maxBays = 20 // after init; honoured only for a continuous AR sweep
+options.maxBays = 30 // after init; past 20 honoured only for a continuous AR sweep
 config.cameraMode = .ar
 config.captureMode = .continuous
 config.multiBay = options
+```
+
+**Long guided walks (v1.7.27).** A guided (shutter) walk, and any session on
+the default camera, may plan up to `NLMultiBayOptions.maxSupportedBays` (20;
+8 before v1.7.27), set straight in `init`; the default stays 8. A 10 m shelf
+is about 10–14 bays. The cost of a long walk does not grow with the ceiling:
+past 8 bays the finish-time dedup decodes each bay smaller so its working set
+stays at the 8-bay budget (about 39 MB), and the AR "Review shelf" pages
+through segments of up to 8 bays (20 → 7 + 7 + 6), as for a long continuous
+sweep. `previewImageData` is still the one panorama, so past 8 bays treat it
+as a thumbnail (about 205 px a bay at 20). The bridge resolves the same 20.
+Hosts that asked for 9–20 bays on a guided or default-camera session were
+clamped to 8 and now get that many: check your plan if you relied on the
+clamp.
+
+```swift
+config.multiBay = NLMultiBayOptions(minBays: 2, maxBays: 20) // guided: up to 20
 ```
 
 **"Review shelf" for long sweeps (v1.7.17).** Past 8 bays the AR flow's
