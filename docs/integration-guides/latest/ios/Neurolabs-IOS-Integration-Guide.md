@@ -14,6 +14,36 @@ custom-camera flows that need a minimum capture count and a higher
 maximum cap. `showsCapturedCountLabel` hides the `N captured` chip in
 custom camera and multi-capture flow UIs.
 
+### v1.7.28
+No initialiser changes and no removals. New APIs are additive.
+
+New APIs: `NLValidationIssueKind.shelfFramingPoor` and the shelf-framing
+properties on `NLValidationOptions` (section 7, "Shelf framing and Retake
+recommended"); the fixture API v2 methods on `client.outlets` and
+`client.missions`, with `NLFixtureAPIError` (section 5); the testing seam
+`NLFrameSource` (with `NLFrameSourcePhoto`) / `NLDetectionSource` through
+`NLCameraConfiguration.frameSource` and `.detectionSource`, `isSynthetic` on
+captures and the error code `SYNTHETIC_CAPTURE_REFUSED` (section 6);
+`NLJoinDegradedReason.snapshotMismatch` (section 12); and
+`NLOperationsHttpError.retryAfter` in `OperationsCore`.
+`Outlets.addOutletSubsections` is deprecated; use `addOutletFixture`. A host
+that switches over `NLValidationIssueKind` or `NLJoinDegradedReason` without
+`@unknown default` needs the new cases.
+
+Behaviour changes, with no opt-in:
+- A still whose detections show a badly framed shelf carries a
+  `shelfFramingPoor` issue (severity ERROR) but stays acceptable, and the
+  capture review reads a red "Retake recommended" for a kept photo with an
+  ERROR (section 7). Turn the check off with
+  `enableShelfFramingCheck = false`.
+- During scheduled maintenance (a 503 with `error_code: maintenance`) a queued
+  photo stays pending with `lastErrorCode` `UPLOAD_MAINTENANCE` and spends no
+  retry, for up to 24 h (section 6).
+- Operations client calls wait out a 503's `Retry-After` (capped at 60 s) when
+  they retry (section 5).
+- With `mirrorGate` set, a snapshot granted under a different id from the one
+  the config announced is gated too (section 12).
+
 ### v1.7.27
 No initialiser changes, no new APIs and no removals.
 
@@ -477,6 +507,28 @@ every request with a retryable `NLOperationsError.transport` ("operations
 credentials changed during the request") and never sends the new key to the
 old base. `sdk.operationsClient` is rebuilt on the next read.
 
+**Fixture API v2 (v1.7.28).** `client.outlets` gains `listOutletFixtures`,
+`addOutletFixture`, `getFixture`, `updateFixtureLocationNote`,
+`retireFixture`, `reactivateFixture`, `replaceFixture`, `fixtureHistory`,
+`outletFixtureHistory`, `listFixtureTypes` and `listFixturesUpdatedSince`;
+`client.missions` gains `missionChecklist`. They return untyped `NLJSON`.
+- A fixture POST sends an `Idempotency-Key`. Pass your own UUID to reuse it
+  across your own retries; without one the SDK generates one per call and
+  reuses it across its internal retries only.
+- These methods throw `NLFixtureAPIError` for an HTTP or local validation
+  failure (`status`, `errorCode`, `currentVersion`, `retryAfter`,
+  `message`), and `NLOperationsError` for transport and decoding failures.
+  Catch both: a v2 401 is an `NLFixtureAPIError`, so a global
+  `catch NLOperationsError.unauthorized` handler does not see it.
+- `Outlets.addOutletSubsections` is deprecated in favour of
+  `addOutletFixture` (unchanged, not removed).
+
+**`Retry-After` on a 503 (v1.7.28).** When an operations client call retries
+a 503 that carries `Retry-After: <seconds>`, it waits
+`max(backoff, min(Retry-After, 60 s))`. Two retries can therefore hold one
+call about 120 s; cancel the calling task to stop it (it throws
+`CancellationError`). A 429 keeps waiting the header's seconds, uncapped.
+
 ## 6. Queue Management
 
 ```swift
@@ -501,6 +553,16 @@ refusal that cannot succeed as sent (`wrong_status`, `submission_mismatch`,
 any `not_claimed_by_*`); only `flushQueue(force: true)` re-sends those.
 Since 1.7.20 a call within 60 s of the previous one does nothing, so a retry
 button or timer cannot reset every backoff.
+
+**Scheduled maintenance (v1.7.28).** While zia-operations is in maintenance
+its writes answer `503` with `error_code: maintenance`. A queued photo that
+gets this answer stays `.pending` with `lastErrorCode == "UPLOAD_MAINTENANCE"`,
+spends no retry, and is tried again after the server's `Retry-After` (2 to
+60 s). Show it as waiting, not failed. After 24 h of deferral a maintenance
+answer spends retries like any other failure, so a server stuck in
+maintenance still ends `.failed`, revivable as before. The events
+`queue_upload_failed` and `upload_attempt_finished` carry
+`reason: maintenance_wait` while it waits.
 
 ### Inspecting the queue at launch
 
@@ -557,6 +619,12 @@ print("kept=\(status.retainedCount) bytes=\(status.retainedBytes)")
   reported to the SDK's Sentry. Since 1.7.20 the SDK's default camera
   (`openNativeCaptureUI`) also tells the rep why it refused the photo, for
   `STORAGE_LOW` and `QUEUE_FULL`.
+- A capture taken under an injected `NLCameraConfiguration.frameSource` (a
+  testing seam) is synthetic (`isSynthetic`, id prefix `nlsynth-`). The queue
+  refuses it with `SYNTHETIC_CAPTURE_REFUSED` (not retryable, a client
+  condition, never reported to Sentry) and persists nothing;
+  `onUploadRequested` never receives it, and its visit's KPI payload is never
+  submitted.
 
 ### Uploads after the app is backgrounded
 
@@ -719,6 +787,30 @@ Recommended capture payload notes:
 - Use `NLCameraConfiguration.captureRange(...)` to express a minimum capture requirement plus a larger maximum cap.
 - Use `showsCapturedCountLabel = false` to hide the count chip when you do not want `N captured` shown.
 - `guidanceMode: .guidance` should only be used as a temporary fallback if a partner explicitly wants looser guidance than the parity path.
+
+### Shelf framing and Retake recommended (v1.7.28)
+
+A still whose detections show the shelf badly framed carries one
+`NLValidationIssue` of kind `.shelfFramingPoor`, severity ERROR. It fires
+when the product boxes cover under 20% of the frame, when ten or more boxes
+leave over 35% of the frame empty below the lowest, when the rows are rolled
+8 degrees or more or converge 15 degrees or more, or, in the SDK cameras,
+when the live shelf yaw read 12 degrees or more just before the shutter. It
+needs detection in the same pass (every SDK camera, or `processImage` with
+`detect` and `validate`); without a detector it never fires.
+
+- It never refuses the photo: `isAcceptable`, the score and the metrics are
+  unchanged, so `.strict` keeps it too.
+- The capture review reads "Retake recommended" in red for a kept photo with
+  an ERROR issue (it read "Acceptable - minor warnings"), and the toast names
+  the issue ("Shelf not well framed, retake").
+- Tune or turn it off on `NLValidationOptions`: `enableShelfFramingCheck`
+  (true; false in `.minimal`), `shelfFramingMinAreaShare` (0.20),
+  `shelfFramingMaxFloorShare` (0.35), `shelfFramingMinBoxesForFloor` (10),
+  `shelfFramingMaxRollDegrees` (8), `shelfFramingMaxConvergenceDegrees` (15),
+  `shelfFramingMaxLiveYawDegrees` (12; 0 turns that leg off).
+- Custom copy: the template key `shelfFramingPoor` in `issueLabels` and
+  `bannerMessages`. Android has the same rule.
 
 ### Offline chip (v1.7.17)
 
@@ -1331,6 +1423,16 @@ bootstrap.onJoinDegradedChange = { reason in /* main queue */ }
   through the server's `canonical_uuids` lookup. With no earlier build to
   keep (a first install), the snapshot activates at once with
   `.noPriorSnapshot`.
+- If a snapshot is published between the config and the snapshot download,
+  the downloaded snapshot is not the one the config announced. The SDK then
+  fetches the config once more and gates again before activating (a snapshot
+  ahead of your mirror is held as usual). If the two still differ, the
+  downloaded snapshot activates with `joinDegraded = .snapshotMismatch`
+  (1.7.28). That second config answer is handled as the first one: a 401/403
+  skips the build and forgets the offline cache, recognition switched off
+  skips it as `recognition-config disabled`, and an unmet `minSdkVersion`
+  skips it; any other error (offline, 5xx, 404) falls back to
+  `.snapshotMismatch`.
 - A build from the offline cache never gates. Without `mirrorGate`,
   snapshots activate exactly as before. Android has the same types and
   rules.

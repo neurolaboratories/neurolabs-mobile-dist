@@ -11,6 +11,37 @@ listed here come from the underlying `neurolabs-android-sdk` and
 `scripts/prepare-sdk.js` at install time. No public JS API has been broken
 since v1.1.9.
 
+### v1.7.28
+- Plugin pins the native SDKs' 1.7.28 on both platforms. Nothing is removed
+  from the plugin's API, and nothing is required of a host.
+- Fixed (iOS): `detectorModelStatusChanged` takes its `reason` from the
+  status notification it reports, so a reason can no longer land on the
+  wrong status. The payload's shape and values are unchanged and the same
+  on both platforms.
+- Native: a badly framed shelf now gets a warning. A photo whose
+  detections show the shelf too small in the frame, too much floor below
+  it, or the rows rolled, converging or yawed carries the issue
+  `shelf_framing_poor` in `captureResult.quality.issues`, and the capture
+  review reads a red "Retake recommended". It never refuses the photo:
+  `isAcceptable` is unchanged, so it causes no strict reject on its own.
+  The plugin has no switch for it; `validationPreset: 'minimal'` is the only
+  preset without it. Custom copy: the template key `shelfFramingPoor` in
+  `issueLabels` and `bannerMessages`; `issuePriority` takes it in any
+  spelling.
+- Native: while the Neurolabs backend is in scheduled maintenance, a
+  queued photo waits it out (up to 24 h) instead of spending its retries.
+  Each wait reports `uploadFailed` with `errorCode: 'UPLOAD_MAINTENANCE'`
+  and `retryable: true`; the photo stays queued and is retried after the
+  server's `Retry-After` (2-60 s). Show it as waiting, not failed.
+- Native: the SDK's own backend calls (configuration, store context,
+  detector download grants, product names) wait out a 503's `Retry-After`,
+  capped at 60 s a retry.
+- Native 1.7.28 also adds the Operations client's fixture API v2, a
+  `snapshotMismatch` reason for the catalogue-mirror gate, and (iOS only)
+  a testing seam for injected camera frames. None has a plugin API: the
+  plugin exposes no Operations client, keeps no catalogue mirror and sets
+  no frame source.
+
 ### v1.7.27
 - Plugin pins the native SDKs' 1.7.27 on both platforms. Nothing is removed
   from the plugin's API, and nothing is required of a host. Plugin 1.7.27
@@ -841,7 +872,7 @@ each one in this order:
 3. the SDK default: a **4032 px long edge at JPEG quality 0.9** (native SDK
    1.7.16).
 
-The plugin pins native 1.7.27 (the default dates from 1.7.16), so on both platforms an omitted value means
+The plugin pins native 1.7.28 (the default dates from 1.7.16), so on both platforms an omitted value means
 4032 px at 0.9 unless your organisation overrides it. Invalid values (`<= 0`, or a
 quality outside `0..1`) reject with `INVALID_ARGUMENT` on both platforms.
 

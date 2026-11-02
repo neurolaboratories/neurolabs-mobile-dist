@@ -11,6 +11,38 @@ working as is. Recommended defaults: strict shelf guidance with
 `validationPreset = IOS_PARITY`, `liveQualityChecksEnabled = true`,
 `autoCloseAfterCapture = true` for single-capture parity flows.
 
+### v1.7.28
+No `NLConfiguration` changes and no removals. New APIs are additive and
+binary-compatible (the previous `NLValidationOptions` constructor and `copy`
+stay as hidden overloads); `apiCheck` passes.
+
+New APIs: `NLValidationIssueKind.SHELF_FRAMING_POOR` and the seven
+shelf-framing parameters on `NLValidationOptions` (section 7, "Shelf framing
+and Retake recommended"); the fixture API v2 methods on
+`NLOperationsOutletsApi` and `NLOperationsMissionsApi`, with `errorCode` and
+`currentVersion` on `NLOperationsError` and `retryAfterSeconds` on
+`NLOperationsError.Server` (section 5); and
+`NLJoinDegradedReason.SNAPSHOT_MISMATCH` (section 11).
+`NLOperationsOutletsApi.addOutletSubsections` is deprecated; use
+`addOutletFixture`. A host with an exhaustive `when` over
+`NLValidationIssueKind` or `NLJoinDegradedReason` needs the new branches.
+iOS 1.7.28's testing seam for injected camera frames and detections has no
+Android equivalent yet.
+
+Behaviour changes, with no opt-in:
+- A still whose detections show a badly framed shelf carries a
+  `SHELF_FRAMING_POOR` issue (severity ERROR) but stays acceptable, and the
+  capture review reads a red "Retake recommended" for a kept photo with an
+  ERROR (section 7). Turn the check off with
+  `enableShelfFramingCheck = false`.
+- During scheduled maintenance (a 503 with `error_code: maintenance`) a queued
+  photo stays pending with `lastErrorCode` `UPLOAD_MAINTENANCE` and spends no
+  retry, for up to 24 h (section 6).
+- Operations client calls wait out a 503's `Retry-After` (capped at 60 s) when
+  they retry (section 5).
+- With `mirrorGate` set, a snapshot granted under a different id from the one
+  the config announced is gated too (section 11).
+
 ### v1.7.27
 No `NLConfiguration` changes, no new APIs and no removals: `sdk.api` is
 unchanged.
@@ -368,6 +400,31 @@ lifecycleScope.launch { NLDetectorModels.prefetch(context) }
 
 Allow `api.operations.neurolabs.ai` and `storage.googleapis.com` in any egress allowlist. The detector reads its input size and class order from the model, and live frames are sized to it. It costs about 2.25× the pixels per frame of a 640-px model, so check the live frame rate on your lowest-end device first.
 
+**Fixture API v2 (1.7.28).** `sdk.operationsClient.outlets` gains
+`listOutletFixtures`, `addOutletFixture`, `getFixture`,
+`updateFixtureLocationNote`, `retireFixture`, `reactivateFixture`,
+`replaceFixture`, `fixtureHistory`, `outletFixtureHistory`,
+`listFixtureTypes` and `listFixturesUpdatedSince`;
+`sdk.operationsClient.missions` gains `missionChecklist`. They return untyped
+`NLJSON`.
+- A fixture POST sends an `Idempotency-Key`. Pass your own UUID to reuse it
+  across your own retries; without one the SDK generates one per call and
+  reuses it across its internal retries only.
+- These methods fail with `NLOperationsError`, as the v1 calls do. `BadRequest`
+  and `Server` carry the server's `errorCode` and, on a 412, `currentVersion`;
+  a 401, 403, 404 or 429 does not carry `errorCode`. A local validation
+  failure is a `BadRequest` with `errorCode` `invalid_idempotency_key`,
+  `invalid_if_match` or `invalid_request`, raised before anything is sent.
+- `NLOperationsOutletsApi.addOutletSubsections` is deprecated in favour of
+  `addOutletFixture` (unchanged, not removed).
+
+**`Retry-After` on a 503 (1.7.28).** When an operations client call retries
+a 503 that carries `Retry-After: <seconds>`, it waits at least that long,
+capped at 60 s (`NLOperationsError.Server.retryAfterSeconds` carries the
+header). Two retries can therefore hold one call about 120 s; cancel the
+calling coroutine to stop it. A 429 keeps waiting the header's seconds,
+uncapped.
+
 ## 6. Queue Management
 
 ```kotlin
@@ -391,6 +448,16 @@ println("pending=${status.pendingCount} failed=${status.failedCount}")
 ```
 
 `retryFailedUploads()` gives failed photos a fresh cycle, except a mission refusal that cannot succeed as sent (`wrong_status`, `submission_mismatch`, `mission_not_found`, `invalid_subsection_name`, `invalid_subsection_id`, or any `not_claimed_by_*`); `flushQueue(force = true)` and `retryQueuedItems(ids)` still revive those. Since 1.7.20 a call within 60 s of the previous one does nothing, so a retry button or timer cannot reset every backoff; the SDK reports the calls hourly (`queue_manual_retry`).
+
+**Scheduled maintenance (1.7.28).** While zia-operations is in maintenance
+its writes answer `503` with `error_code: maintenance`. A queued photo that
+gets this answer stays pending with `lastErrorCode == "UPLOAD_MAINTENANCE"`,
+spends no retry, and is tried again after the server's `Retry-After` (2 to
+60 s). Show it as waiting, not failed. After 24 h of deferral a maintenance
+answer spends retries like any other failure, so a server stuck in
+maintenance still ends FAILED, revivable as before. The events
+`queue_upload_failed` and `upload_attempt_finished` carry
+`reason: maintenance_wait` while it waits.
 
 ### Inspecting the queue at launch
 
@@ -573,6 +640,32 @@ Before 1.7.19 the camera deleted these files when it left the composition, so a 
 - A camera that cannot start raises `onError` with `NLCaptureErrorCodes.CAMERA_UNAVAILABLE` once per session and tells the rep "The camera could not start. Another app may be using it."
 - `CapturedImageData.validationResult` (`isAcceptable`, `overallScore`, `issues`) carries the quality verdict; null when nothing validated the capture. A strict failure never reaches `onCapture`.
 - The SDK unbinds only its own CameraX use cases, so a camera your app runs (a barcode scanner, say) keeps running.
+
+### Shelf framing and Retake recommended (1.7.28)
+
+A still whose detections show the shelf badly framed carries one
+`NLValidationIssue` of kind `SHELF_FRAMING_POOR`, severity ERROR. It fires
+when the product boxes cover under 20% of the frame, when ten or more boxes
+leave over 35% of the frame empty below the lowest, when the rows are rolled
+8 degrees or more or converge 15 degrees or more, or, in the SDK cameras,
+when the live shelf yaw read 12 degrees or more just before the shutter. The
+SDK cameras judge the detector's last live run, at most 1.5 s old;
+`NLImageProcessor.process(detect = true)` judges its own detections. Without
+a fresh run or a ready detector it never fires.
+
+- It never refuses the photo: `isAcceptable`, the score and the metrics are
+  unchanged, so strict mode keeps it too.
+- The capture review reads "Retake recommended" in red for a kept photo with
+  an ERROR issue (it read "Acceptable - minor warnings"), and the toast names
+  the issue ("Shelf not well framed, retake").
+- Tune or turn it off on `NLValidationOptions`: `enableShelfFramingCheck`
+  (true; false in `MINIMAL`), `shelfFramingMinAreaShare` (0.20),
+  `shelfFramingMaxFloorShare` (0.35), `shelfFramingMinBoxesForFloor` (10),
+  `shelfFramingMaxRollDegrees` (8.0), `shelfFramingMaxConvergenceDegrees`
+  (15.0), `shelfFramingMaxLiveYawDegrees` (12.0).
+- Custom copy: the template key `shelfFramingPoor` in `issueLabels` and
+  `bannerMessages`. iOS has the same rule; it judges the still's own
+  detections rather than the last live run.
 
 ### Offline chip (1.7.17)
 
@@ -959,7 +1052,12 @@ the bootstrap keeps serving the last good build. The hold ends when the
 mirror reaches the stamp, or after 7 days or 5 consecutive mirror failures
 (`NLMirrorGatePolicy`); the snapshot then activates and `joinDegraded` says
 why (`MIRROR_TIMEOUT`, `MIRROR_FAILURES`, or `NO_PRIOR_SNAPSHOT` when there
-was no earlier build to serve). While it is set, resolve a recognised item
+was no earlier build to serve, or `SNAPSHOT_MISMATCH` (1.7.28) when the
+snapshot downloaded is not the one the config announced and one more config
+fetch did not reconcile them). That extra fetch is read like the first one:
+if it says recognition is off, is refused (401/403), or needs a newer SDK,
+the build stops with the same reason and nothing activates (a refusal also
+deletes the offline cache). While it is set, resolve a recognised item
 missing from your mirror through `canonical_uuids`. Call `close()` on
 sign-out. Without `mirrorGate` nothing changes.
 
