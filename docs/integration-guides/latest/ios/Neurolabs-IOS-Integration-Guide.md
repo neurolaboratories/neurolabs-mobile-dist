@@ -14,6 +14,29 @@ custom-camera flows that need a minimum capture count and a higher
 maximum cap. `showsCapturedCountLabel` hides the `N captured` chip in
 custom camera and multi-capture flow UIs.
 
+### v1.7.29
+No initialiser changes and no removals. New APIs are additive.
+
+New APIs: `NLCaptureMode.puzzle` (section 9); `NLMultiBayResult.layout`
+(`NLMultiBayLayout`) and `.tiles` (`NLMultiBayTile`, `NLPlaneRect`) and
+`NLMergedProduct.sourceDetectionIds` (section 9); `layout` and `tiles` on the
+bridge's `NLNativeMultiBayResultSummary` (`NLNativeMultiBayTile`);
+`NLCameraConfiguration.arProductMarkers` with `NLARProductMarkerStyle`
+(section 13); and the `NLTheme` presets `NLTheme.ziaLens` (the default) and
+`NLTheme.neutral` (the opt-out), its tokens, font providers and `NLTypeRole`
+(section 14, "Theming the SDK screens"). A host that switches over `NLCaptureMode` without
+`@unknown default` needs the `.puzzle` case.
+
+Behaviour changes, with no opt-in:
+- The default look is the ZIA Lens v3 design system: `NLTheme.current` and the
+  AR capture camera's chrome change colour, shape and glyphs. To keep the
+  previous look, set `NLTheme.current = .neutral` once at setup (section 14).
+  The bridge has no theme field, so a WebView or Cordova app opts out in its
+  native layer.
+- The AR screen takes the recognition lab's guidance chrome: the instruction
+  sits in the middle of the screen, a level marker shows square and level, and
+  the copy reads "Step left" / "Step right" and "Capture".
+
 ### v1.7.28
 No initialiser changes and no removals. New APIs are additive.
 
@@ -361,7 +384,7 @@ New APIs:
 - Capture images default to 4032 px / JPEG 0.9, overridable per org by the
   remote config (section 7).
 - AR options: `arBoxStyle`, `arBoxHighlightColor`, `arCoverageStyle`,
-  `arCoverageOutlineColor`, `arBoxPersistence`, `arLiveLabels`,
+  `arCoverageOutlineColor`, `arBoxPersistence`, `arProductMarkers`, `arLiveLabels`,
   `arLiveCount`, `productDetailsSource`; 12 MP AR stills (section 13);
   `NLMultiBayOptions.maxSupportedContinuousBays` (section 9).
 
@@ -1073,6 +1096,16 @@ recognition (section 12). Names come from your `productDetailsSource`, else
 from the SDK's default names (v1.7.25, names only, so brands read "Unknown
 brand"); without recognition it shows the product total only. No API change.
 
+**Puzzle mode (v1.7.29).** `NLCaptureMode.puzzle` (wire name `"puzzle"`) is a
+third AR mode for coolers and displays a left-to-right walk does not fit: the
+rep photographs any part of the fixture, in any order. The dock points at
+uncovered ground and turns green at "Looks complete · tap Done"; Done is
+allowed from `minBays` tiles on, and the plan allows up to 30 tiles. The
+entry chooser offers "Puzzle"; without AR it runs guided. After Done the
+review shows the tiles as a mosaic on the shelf plane, lists the tiles the
+plane could not place in a "Not placed" row and retakes a tile in place.
+Manual (`.guided`) stays the default capture mode.
+
 On the WebView bridge the same options travel as
 `NLNativeCaptureOptions.multiBay` (`NLNativeMultiBayConfig`): every field
 is optional and absent fields take the `NLMultiBayOptions` defaults. The
@@ -1087,6 +1120,18 @@ Reading merged results:
   v1.7.18 it also carries `segments` (`[NLDedupSegment]`: `fromBay`,
   `toBay`, `trusted`, `countsByLabel`, one per run of linked bays) and
   `realogram`.
+- `NLMergedProduct.sourceDetectionIds` (`[String: [String]]`, capture id to
+  the ids of that capture's detections merged into the product, the
+  representative's own included) holds the same ids as the recognition
+  result's `detections[].detectionId`, so you can map per-photo recognition
+  onto unique facings. Additive.
+- `NLMultiBayResult.layout` (`NLMultiBayLayout`: `.walk` or `.puzzle`) says
+  how the session's photos sit on the shelf, and `tiles`
+  (`[NLMultiBayTile]`: `captureId`, `rect`, `trusted`) lists a puzzle
+  session's photos with where each landed on the shelf plane (`NLPlaneRect`,
+  metres; nil when it could not be placed). A walk reads `.walk` with no
+  tiles. A trusted puzzle's `realogram` lays the tiles where the plane put
+  them, stacked rows above each other. Additive.
 - `countsByLabel` (`counts_by_label` on the wire) is keyed by detector
   class (`sku_single`, `sku_multipack`, price tag, promo, poster), not by
   product or SKU. Shelf, row and slot positions are in
@@ -1495,6 +1540,7 @@ config.arBoxUnmatchedColor = "#FACC15"     // #RRGGBB, default #FACC15
 config.arCoverageStyle = .tintAndOutline   // .tint (default), .outline, .tintAndOutline
 config.arCoverageOutlineColor = "#FACC15"  // #RRGGBB, default #FACC15
 config.arBoxPersistence = .session         // .standard (default), .session
+config.arProductMarkers = .dots            // .boxes (default), .dots (experimental)
 config.arLiveLabels = true                 // experimental, default false
 config.arLiveCount = true                  // experimental, default false
 config.arLiveKPIRings = true               // experimental, default false (AR-4)
@@ -1515,6 +1561,19 @@ config.productDetailsSource = detailsSource // names for arLiveLabels
 - `arBoxPersistence = .session` keeps every box that settled for the rest of
   the session as a dimmed outline (at most 300). `.standard` fades a box once
   tracking drops it. Presentation only: counts and coverage are unchanged.
+- `arProductMarkers = .dots` (experimental, v1.7.29) draws one small dot per
+  product at its centre instead of a box. A product still settling is a faint
+  small white dot, a settled one a larger white dot, one inside a photo
+  already taken turns orange with a dark hairline, and one the live labels
+  looked at but could not name (`arLiveLabels`) is a hollow ring; each state
+  differs in size or shape, not only in colour. At most the 64 dots nearest
+  the screen centre are drawn. Dots replace the boxes (`arBoxStyle` has no
+  effect with dots); coverage, counts and the live labels are unchanged. New
+  dots and dots turning orange pop in; with Reduce Motion they appear at once,
+  and when the phone runs hot (thermal state serious or critical) the pop is
+  dropped. Wire key `arProductMarkers`, values "boxes" and "dots".
+  `NLARProductMarkerStyle` is non-frozen: an exhaustive `switch` over it needs
+  `@unknown default`.
 - `arLiveLabels` draws the top-1 product name on each stable box, only at a
   match score of 0.6 or more. It needs a ready recognition provider
   (`setRecognitionProvider(_:)`, section 12), and it stops while the
@@ -1657,6 +1716,10 @@ let preview = try await sdk.computeVisitKPIs(forSession: sessionId, context: nil
 - An id the SDK holds nothing for (another process, no photo, or 8 newer sessions since) throws `VISIT_KPIS_SESSION_UNKNOWN`. `VISIT_KPIS_DISABLED` and `VISIT_KPIS_STORE_CONTEXT_INVALID` come first.
 
 `NLVisitKPIResult` carries the canonical `nl.visit_kpis` v1 JSON (`payloadJSON`), `isProvisional` (always true on the device: label it "Provisional"), `storeContext` (`.used(offline:)`, `.missing`, `.expired`), `perfectStoreScoreBp`, `actionCount` and `willSubmit`. Without a store context, show gaps and price-tag presence only, as "Needs store targets". The payload rides the mission submit as `client_metadata.device_kpis` only when the store context was ready and signature-verified and the payload passes the backend's checks; a `400 invalid_device_kpis` makes the SDK resubmit once without it. Details are in the README ("Visit KPIs").
+
+### Theming the SDK screens
+
+The SDK's screens read `NLTheme.current`, and its default is the ZIA Lens v3 design system (orange action colour, ink text, 8/16 pt radii); the SDK ships no fonts, so Geist, Geist Mono and Plus Jakarta Sans are used only when your app registers them, and the system faces stand in otherwise. To keep the look from before Lens v3, set `NLTheme.current = .neutral` once at setup, or assign your own `NLTheme`. For a partial override start from a preset, `var t = NLTheme.neutral; t.tint = myColor; NLTheme.current = t`, because `NLTheme(tint: myColor)` fills every other token with the Lens defaults. `success`, `info`, `warning` and `danger` are a separate signal palette (green, blue, orange, red) for detection boxes and status tones, and `NLTypeRole` with `theme.font(.body)` gives the Lens type ramp with Dynamic Type. Text on the action colour follows `onTint` (automatic: ink, or white when ink would not reach 4.5:1 against your `tint`). Your own `textFont` and `monoFont` closures serve the fixed-size calls `textFont(size:weight:)` and `monoFont(size:weight:)`; the Dynamic Type calls (`theme.font(...)` and the `relativeTo:` overloads) never call them: they use the brand faces when registered, or the system faces scaled with Dynamic Type when you set `usesBrandFaces = false`. The AR capture camera follows the theme too: by default it draws the Lens v3 chrome (the `surfaceCamera` plate, the orange CTA with ink text, orange progress and in-position, Lucide glyphs); under `NLTheme.neutral` it restores the previous camera (the `#101215` plate, cyan progress, green ready, the white capsule Finish / Done and the previous radii) with the Lucide glyphs and the system faces. The standard (non-AR) camera's guidance keeps its own colours either way.
 
 ### Telemetry and privacy (Sentry)
 

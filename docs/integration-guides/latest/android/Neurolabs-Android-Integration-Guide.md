@@ -11,6 +11,27 @@ working as is. Recommended defaults: strict shelf guidance with
 `validationPreset = IOS_PARITY`, `liveQualityChecksEnabled = true`,
 `autoCloseAfterCapture = true` for single-capture parity flows.
 
+### v1.7.29
+No `NLConfiguration` changes and no removals. New APIs are additive and
+binary-compatible (the previous constructor and `copy` of six classes stay as
+hidden overloads); `apiCheck` passes.
+
+New APIs: `NLCaptureMode.PUZZLE` (section 8); `NLMultiBayResult.layout`
+(`NLMultiBayLayout`) and `tiles` (`NLMultiBayTile`, `NLPlaneRect`) and
+`NLMergedProduct.sourceDetectionIds` (section 8); `NLARProductMarkerStyle` and
+`arProductMarkers` on `NLCameraConfiguration` and `CaptureScreenConfig`
+(section 7, "AR product dots"); and `layout`, `tiles` and `arProductMarkers`
+on the WebView bridge types. A host with an exhaustive `when` over
+`NLCaptureMode` needs a branch for `PUZZLE`.
+
+Behaviour changes, with no opt-in: none for a guided or continuous walk. A
+puzzle session (the host's default, or the rep's pick on the entry chooser)
+counts each facing once across overlapping tiles, reviews as a mosaic of its
+tiles and lets the rep retake a tile in place; it has no walk direction, no
+stitched strip and, untrusted, no `realogram`. Product dots are off unless you
+set `arProductMarkers = DOTS`. iOS 1.7.29 also takes the Lens v3 default look
+and capture chrome; Android takes them in a later release.
+
 ### v1.7.28
 No `NLConfiguration` changes and no removals. New APIs are additive and
 binary-compatible (the previous `NLValidationOptions` constructor and `copy`
@@ -732,6 +753,44 @@ about 2 Hz; no KPI engine runs while capturing. They hide while the guidance
 dock is amber or red and during a review, and TalkBack reads them as one
 element.
 
+### AR product dots (1.7.29, experimental)
+
+`arProductMarkers = NLARProductMarkerStyle.DOTS` (on `NLCameraConfiguration`
+and `CaptureScreenConfig`; `BOXES` is the default) draws one small dot per
+product at its centre on the AR camera instead of a box. A product still
+settling is a faint small white dot, a settled one a larger white dot, one
+inside a photo already taken turns orange with a dark hairline, and one the
+live labels looked at but could not name (`arLiveLabels`) is a hollow ring;
+each state differs in size or shape, not only in colour. At most the 64 dots
+nearest the screen centre are drawn. Dots replace the boxes (`arBoxStyle` has
+no effect with dots); coverage, counts and the live labels are unchanged. New
+dots and dots turning orange pop in; with animations off (the system's
+animator duration scale at 0) they appear at once, and when the phone runs hot
+(thermal status severe or worse) the pop is dropped.
+
+On the bridge the key is `arProductMarkers` (`"boxes"` or `"dots"`, the iOS
+values) on `NLNativeCaptureConfig` and `NLNativeCaptureOptions`: options, then
+config, then boxes. An unknown or non-string value is ignored and falls
+through to the next level instead of failing the config. Same name and values
+as iOS `NLCameraConfiguration.arProductMarkers`.
+
+### Theming the SDK screens (1.7.30)
+
+`ai.neurolabs.sdk.ui.theme.NLTheme` holds the SDK's design tokens (ARGB
+colours, dp radii and spacing, the `NLTypeRole` type ramp in sp); its default
+is the ZIA Lens v3 design system, with Geist, Geist Mono and Plus Jakarta Sans
+used only when your app ships them as font resources (`geist_regular`, …,
+`plus_jakarta_sans_bold`), and `NLTheme.neutral` is iOS's pre-Lens look (the
+LNS-102 camera look on Android; a later release moves a neutral host's
+off-camera screens onto these values). Assign a new theme to `NLTheme.current`
+once at setup (for example
+`NLTheme.current = NLTheme.neutral.copy { tint = myColor }`) and never mutate
+`current` in place. A reassignment takes effect for SDK screens presented
+after it; a screen already showing is not recomposed by it (as on iOS, where
+`NLTheme.current` is not observed either). No SDK screen reads it yet, so
+nothing on screen changes until the AR capture chrome adopts it in a later
+release.
+
 ## 8. Multi-Bay Capture (Long Shelves)
 
 Multi-bay capture handles shelves too long for a single photo: the user side-steps along the shelf and captures one overlapping photo per bay, the SDK guides the side-step, dedups the overlap on device, and reports merged product counts across bays in a single session result.
@@ -765,7 +824,7 @@ sdk.openNativeCaptureUI(
 
 The same `multiBay` field exists on `NLCameraConfiguration` for the custom-camera config path, and on the WebView/Cordova bridge payload (camelCase field names identical across iOS, Android, and Cordova; absent fields take the defaults above).
 
-The bay cap depends on the session's mode: a continuous sweep (`captureMode = NLCaptureMode.CONTINUOUS`) on the AR camera may plan up to `NLMultiBayOptions.MAX_SUPPORTED_CONTINUOUS_BAYS` (30) bays; every other session (a guided walk, any session on the default camera), and a continuous sweep that falls back to CameraX, may plan up to `NLMultiBayOptions.MAX_SUPPORTED_BAYS` (20 from v1.7.27; 8 before). A value outside the cap is clamped and logged when the camera opens. From v1.7.17 the WebView bridge resolves `maxBays` the same way; in v1.7.16 it clamped to 8 on every mode. Cordova's `NLCaptureActivity` launch already followed the mode in v1.7.16.
+The bay cap depends on the session's mode: a continuous sweep (`captureMode = NLCaptureMode.CONTINUOUS`) or a puzzle (`NLCaptureMode.PUZZLE`, from v1.7.29; also when the rep picks Puzzle on the entry chooser under a guided default) on the AR camera may plan up to `NLMultiBayOptions.MAX_SUPPORTED_CONTINUOUS_BAYS` (30) bays; every other session (a guided walk, any session on the default camera), and a continuous sweep or a puzzle that falls back to CameraX, may plan up to `NLMultiBayOptions.MAX_SUPPORTED_BAYS` (20 from v1.7.27; 8 before). A value outside the cap is clamped and logged when the camera opens. From v1.7.17 the WebView bridge resolves `maxBays` the same way; in v1.7.16 it clamped to 8 on every mode. Cordova's `NLCaptureActivity` launch already followed the mode in v1.7.16.
 
 **Long guided walks (v1.7.27).** A guided (shutter) walk, and any session on the default camera, may plan up to `NLMultiBayOptions.MAX_SUPPORTED_BAYS` (20; 8 before v1.7.27); the default stays 8. A 10 m shelf is about 10–14 bays. The cost of a long walk does not grow with the ceiling: past 8 bays the finish-time dedup decodes each bay smaller so its working set stays at the 8-bay budget, and the AR "Review shelf" pages through segments of up to 8 bays (20 → 7 + 7 + 6), as for a long continuous sweep. `previewImageData` is still the one panorama, so past 8 bays treat it as a thumbnail (about 205 px a bay at 20). The bridge resolves the same 20. Hosts that asked for 9–20 bays on a guided or default-camera session were clamped to 8 and now get that many: check your plan if you relied on the clamp. `MAX_SUPPORTED_BAYS` is a `const val`, inlined where you read it: recompile against v1.7.27 to see 20.
 
@@ -780,9 +839,11 @@ val options = NLMultiBayOptions(minBays = 2, maxBays = 20) // guided: up to 20
 - No API change.
 
 Reading merged results:
-- Activity Result / bridge: `NLNativeCaptureResultPayload.multiBay` (`NLNativeMultiBayResultSummary?`, null unless the session ran multi-bay) carries `countsByLabel: Map<String, Int>`, `baysCount`, `dedupTrusted`, and `previewImageFileUri`. It also carries the optional `realogram` (`NLStitchedRealogram` with camelCase keys: `version`, `coordinateSpace`, `sdkVersion`, `bays`, `shelves[{shelfIndex, rows[{rowIndex, slots[{slotIndex, xMin, yMin, xMax, yMax, bayIndex, detectorClass, trackId, productId, stackIndex, score}]}]}]`, `truncated`, `omittedProductCount`) and `segments` (`[{fromBay, toBay, trusted, countsByLabel}]`), each left out when the SDK built none. The realogram never crosses Binder: the WebView bridge carries it inline, while the Activity result carries `realogramFileUri` instead, a `file://` URI to `<cacheDir>/neurolabs/realogram-<sessionId>.json` holding the same JSON. Read it, then delete it; the SDK deletes any left older than 24 h at init.
+- Activity Result / bridge: `NLNativeCaptureResultPayload.multiBay` (`NLNativeMultiBayResultSummary?`, null unless the session ran multi-bay) carries `countsByLabel: Map<String, Int>`, `baysCount`, `dedupTrusted`, and `previewImageFileUri`. A puzzle session adds `layout` (`"puzzle"`) and `tiles` (`[{captureId, rect: [minU, maxU, minV, maxV] | null, trusted}]`, `rect` in metres on the shelf plane), set together and both absent for a walk (v1.7.29). The summary also carries the optional `realogram` (`NLStitchedRealogram` with camelCase keys: `version`, `coordinateSpace`, `sdkVersion`, `bays`, `shelves[{shelfIndex, rows[{rowIndex, slots[{slotIndex, xMin, yMin, xMax, yMax, bayIndex, detectorClass, trackId, productId, stackIndex, score}]}]}]`, `truncated`, `omittedProductCount`) and `segments` (`[{fromBay, toBay, trusted, countsByLabel}]`), each left out when the SDK built none. The realogram never crosses Binder: the WebView bridge carries it inline, while the Activity result carries `realogramFileUri` instead, a `file://` URI to `<cacheDir>/neurolabs/realogram-<sessionId>.json` holding the same JSON. Read it, then delete it; the SDK deletes any left older than 24 h at init.
 - Bridge: `arAppearanceWithoutRecognition` (`Boolean?`) on `NLNativeCaptureOptions` / `NLNativeCaptureConfig` resolves options, then config, then `true`, into `CaptureScreenConfig.arAppearanceWithoutRecognition`. `arHighResolutionStills` (`Boolean?`) resolves the same way, then `false`.
 - Compose: `NLCaptureScreen` / `NLCustomCameraView` accept an `onMultiBayResult: ((NLMultiBayResult) -> Unit)?` callback delivering the full result — `bays: List<NLBaySummary>`, `mergedProducts: List<NLMergedProduct>` (one entry per physical product instance after cross-bay dedup), `countsByLabel`, the stitched preview (`previewImageData`), and `dedupTrusted`.
+- `NLMergedProduct.sourceDetectionIds` (`Map<String, List<String>>`, capture id to the ids of that capture's detections merged into the product, the representative's own included) holds the same ids as the recognition result's `detections[].detectionId`, so you can map per-photo recognition onto unique facings. Additive.
+- `NLMultiBayResult.layout` (`NLMultiBayLayout`: `WALK` or `PUZZLE`) says how the session's photos sit on the shelf, and `tiles` (`List<NLMultiBayTile>`: `captureId`, `rect`, `trusted`) lists a puzzle session's photos with where each landed on the shelf plane (`NLPlaneRect`, metres; null when it could not be placed). A walk reads `WALK` with no tiles. A trusted puzzle's `realogram` lays the tiles where the plane put them, stacked rows above each other. Additive.
 - Use `NLMultiBayResult.productCount` for a product tally — it sums only `sku_single` + `sku_multipack`; `countsByLabel` also carries price/promo/poster buckets, so summing every label over-counts products.
 - `countsByLabel` (`counts_by_label` on the wire) is keyed by detector class (`sku_single`, `sku_multipack`, price tag, promo, poster), not by product or SKU. Shelf, row and slot positions are in `NLMultiBayResult.realogram` (`NLStitchedRealogram`).
 

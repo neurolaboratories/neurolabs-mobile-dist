@@ -11,6 +11,26 @@ listed here come from the underlying `neurolabs-android-sdk` and
 `scripts/prepare-sdk.js` at install time. No public JS API has been broken
 since v1.1.9.
 
+### v1.7.29
+- Plugin pins the native SDKs' 1.7.29 on both platforms. Nothing is removed
+  from the plugin's API, and nothing is required of a host.
+- Look of the SDK's own screens: from 1.7.29 every iOS host gets the ZIA
+  Lens design-system look by default. `init({ theme: 'neutral' })` keeps the
+  previous look (LNS-102). On Android the option is accepted and applied
+  from the Android SDK release that carries the theme object.
+- New `captureMode: 'puzzle'` on the AR camera, on both platforms: the rep
+  photographs any part of the fixture in any order and each photo is a tile
+  on the shelf plane. The `cameraClosed` `multiBay` summary of a puzzle
+  session gains `layout: 'puzzle'` and `tiles`; a walk's summary is
+  unchanged. See 6b "Puzzle capture".
+- New `arProductMarkers: 'boxes' | 'dots'` capture option (AR camera): one
+  small dot per product instead of a box. Applied on both platforms from
+  native 1.7.29.
+- New `theme: 'brand' | 'neutral'` init option: `'neutral'` keeps the look of
+  the SDK's own screens from before the ZIA Lens design system, for hosts with
+  their own branding. Applied on iOS from native 1.7.29; accepted and ignored
+  on Android until its theme preset ships.
+
 ### v1.7.28
 - Plugin pins the native SDKs' 1.7.28 on both platforms. Nothing is removed
   from the plugin's API, and nothing is required of a host.
@@ -247,7 +267,7 @@ since v1.1.9.
 - Plugin pins the native SDKs' 1.7.17 on both platforms.
 - Native: the default and AR cameras show an offline chip while there is no network ("Offline", plus "uploads queued" when photos wait), or "Waiting for Wi-Fi" while Wi-Fi-only uploads hold photos on cellular. It is on by default and never blocks the shutter; `openCamera({ showsOfflineIndicator: false })` hides it (see 6).
 - Native: the AR flow's "Review shelf" screen adds "On this shelf": the walk's brands, share of shelf and SKUs from on-device recognition, or the total only when recognition is unavailable on the device.
-- A continuous AR sweep (`multiBayAR` preset, or `cameraMode: 'ar'` with `captureMode: 'continuous'`) may plan up to 30 bays through the plugin on both platforms; every other session keeps 8 (see 6a).
+- A continuous or puzzle AR session (`multiBayAR` preset, or `cameraMode: 'ar'` with `captureMode: 'continuous'` or `'puzzle'`) may plan up to 30 bays through the plugin on both platforms; every other session keeps 8 (see 6a).
 - New `openCamera({ arBoxUnmatchedColor })`: under `arBoxStyle: 'highlight'` with live labels on, a box the labels have looked at and not matched is drawn in this colour (default `#FACC15`; see 6b).
 - `arLiveLabels: true` now shows product names through the plugin on Android and iOS (needs recognition on and an operations-capable key; see 6b).
 
@@ -395,6 +415,11 @@ Native baseline requirements:
   source/target compatibility to 17 on its own; override the Kotlin version only via a
   `<platform name="android">`-scoped preference, and only to 2.2 or later.
 - iOS: deployment target iOS 17.0+, Xcode 16.4+ recommended (release toolchain baseline).
+  A stock cordova-ios 8.1.1 app sets the deployment target to 13.0, which Xcode 27.1 rejects
+  before any plugin code compiles ("The iOS Simulator deployment target
+  'IPHONEOS_DEPLOYMENT_TARGET' is set to 13.0, but the range of supported deployment target
+  versions is 15.0 to 27.1.x"). Set `<platform name="ios"><preference name="deployment-target"
+  value="17.0" /></platform>` in `config.xml`; the plugin needs iOS 17.0 anyway.
 
 **Android toolchain check (plugin 1.7.20+).** Before the plugin is installed and before every
 Android prepare or build, a plugin hook checks the Android Gradle Plugin, Gradle, compileSdk,
@@ -509,6 +534,7 @@ await Neurolabs.init({
   // retainedPhotoExpiryDays: 14,  // delete kept uploaded photos after N days (default off)
   // captureGeolocation: false,    // location in each capture's metadata; the app owns the permission (see §4a)
   // captureDepth: false,          // AR depth map with each AR capture (see §4a)
+  // theme: 'brand',               // 'brand' (default, ZIA Lens look) | 'neutral' (the look before it); see 6b
   // sentryDsn: 'https://...',     // optional custom Sentry DSN
   // yoloModelVariant: 'all_in_one', // the only detector; see below
 });
@@ -872,7 +898,7 @@ each one in this order:
 3. the SDK default: a **4032 px long edge at JPEG quality 0.9** (native SDK
    1.7.16).
 
-The plugin pins native 1.7.28 (the default dates from 1.7.16), so on both platforms an omitted value means
+The plugin pins native 1.7.29 (the default dates from 1.7.16), so on both platforms an omitted value means
 4032 px at 0.9 unless your organisation overrides it. Invalid values (`<= 0`, or a
 quality outside `0..1`) reject with `INVALID_ARGUMENT` on both platforms.
 
@@ -984,7 +1010,9 @@ Neurolabs.addListener('cameraClosed', ({ sessionId, cancelled, captureCount, mes
     realogram,            // native 1.7.18: shelves -> rows -> slots (optional)
     segments,             // native 1.7.18: [{ fromBay, toBay, trusted, countsByLabel }] (optional)
     countSource,          // native 1.7.24: 'ar_tracklets' when the AR count served countsByLabel (optional)
-    aggregatorCountsByLabel // native 1.7.24: the aggregator's counts beside it (optional)
+    aggregatorCountsByLabel, // native 1.7.24: the aggregator's counts beside it (optional)
+    layout,               // native 1.7.29: 'puzzle' for a puzzle session; absent for a walk (optional)
+    tiles                 // native 1.7.29: [{ captureId, rect, trusted }] with layout (optional)
   } = multiBay;
   console.log('multi-bay summary', baysCount, dedupTrusted, countsByLabel);
 });
@@ -1034,17 +1062,75 @@ it for single-bay.
 
 On the AR camera (`cameraMode: 'ar'`) one more option applies:
 
-- `captureMode: 'guided' | 'continuous'` (case-insensitive, default
+- `captureMode: 'guided' | 'continuous' | 'puzzle'` (case-insensitive, default
   `'guided'`). Guided keeps the shutter and shows side guidelines for the
   next frame; continuous captures on its own as the rep moves along the
-  shelf, with a higher battery and thermal cost. Without a pose (a non-AR
-  camera, or Android without Google Play Services for AR) the camera keeps
-  the shutter and behaves as guided.
+  shelf, with a higher battery and thermal cost; puzzle (native SDK 1.7.29,
+  see "Puzzle capture" below) lets the rep photograph any part of the
+  fixture in any order. Without a pose (a non-AR camera, or Android without
+  Google Play Services for AR) the camera keeps the shutter and behaves as
+  guided.
+- `arProductMarkers: 'boxes' | 'dots'` (case-insensitive, default `'boxes'`;
+  both platforms from native SDK 1.7.29): how the AR camera marks the
+  products it found, the world-locked boxes or one small dot per product. An
+  unknown value is ignored, never rejected. Plain and
+  under the `multiBayAR` preset (a value you set wins over the preset's).
 
 AR detection boxes are always world-locked: they lie on the shelf plane and
 stay put as the rep walks. There is no renderer option. `arBoxRenderer` was
 removed with the native legacy renderer, and a leftover `arBoxRenderer` key
 from older code is ignored on both platforms, not rejected.
+
+### Puzzle capture (native SDK 1.7.29)
+
+`captureMode: 'puzzle'` is for coolers and displays that a left-to-right
+walk does not fit. The rep frames any part of the fixture and presses the
+shutter, in any order: top, bottom, back to the left. Each photo is a tile on
+the fitted shelf plane, the camera points at what is still uncovered and says
+when the fixture looks complete, and the finish counts each facing once
+across overlapping tiles. It needs the AR camera (`cameraMode: 'ar'` or the
+`multiBayAR` preset); without a pose the camera behaves as guided. A puzzle
+plans up to 30 tiles, like a continuous sweep (`multiBay.maxBays` `2..30`).
+
+```js
+await Neurolabs.openCamera({ preset: 'multiBayAR', captureMode: 'puzzle' });
+
+Neurolabs.addListener('cameraClosed', ({ multiBay }) => {
+  if (multiBay && multiBay.layout === 'puzzle') {
+    for (const { captureId, rect, trusted } of multiBay.tiles) {
+      // rect: [minU, maxU, minV, maxV] on the shelf plane in metres, or null
+      // when the tile could not be placed. trusted: placed with a pose the SDK trusts.
+    }
+  }
+});
+```
+
+- `multiBay.layout` is `'puzzle'` for a puzzle session and **absent** for a
+  walk (never `'walk'`); `multiBay.tiles` is one entry per accepted photo and
+  is present, possibly empty, whenever `layout` is. A walk's `multiBay` is
+  unchanged.
+- A tile is `{ captureId, rect, trusted }`. `rect` is the four numbers
+  `[minU, maxU, minV, maxV]` as the SDK holds them (not rounded), or `null`
+  (never missing) for a tile that could not be placed: no camera pose, no
+  fitted shelf, or nothing landed. `trusted` is `false` for such a tile and
+  for one placed without a pose the SDK trusts; its products are then counted
+  once each instead of deduplicated on the plane.
+- Same JSON on both platforms. A whole number prints as `1` on iOS and `1.0`
+  on Android in the raw message; parsed, they are the same value.
+
+### Product markers and theme (native SDK 1.7.29)
+
+- `arProductMarkers: 'dots'` replaces the AR boxes with one small dot per
+  product (a settling product a faint dot, a settled one a larger dot).
+  `arBoxStyle` has no effect while dots are on. Applied on both platforms.
+- `init({ theme: 'neutral' })` keeps the SDK's own screens (entry chooser,
+  review, AR chrome) in the look they had before the ZIA Lens design system.
+  The default, `'brand'`, is the ZIA Lens look. Case-insensitive; anything
+  else is `'brand'`, not an error. iOS sets the SDK theme before any SDK
+  screen appears and otherwise leaves it alone, so a re-init without the key
+  does not undo `'neutral'` within the same process. Android reads the value
+  once the native Android theme preset ships; until then its screens do not
+  change.
 
 ### AR overlay style (native SDK 1.7.16)
 
