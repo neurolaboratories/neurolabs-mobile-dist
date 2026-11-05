@@ -14,6 +14,30 @@ custom-camera flows that need a minimum capture count and a higher
 maximum cap. `showsCapturedCountLabel` hides the `N captured` chip in
 custom camera and multi-capture flow UIs.
 
+### v1.7.30
+No initialiser changes and no removals. New APIs are additive.
+
+New APIs: `NLCameraConfiguration.arTapToName` (experimental, default `false`;
+section 13) with the `arTapToName` key on `NLNativeCaptureConfig` and
+`NLNativeCaptureOptions`; and the mock AR screen's
+`NLARMockScenario.puzzle(columns:order:hasLiDAR:)` with `NLARMockPuzzleOrder`
+(mock only, experimental).
+
+Behaviour changes, with no opt-in:
+- "Review shelf" (walk and puzzle) and the bay pager it opens take the Lens
+  light "Review the photos" look under the default theme (section 14,
+  "Theming the SDK screens"); `NLTheme.current = .neutral` keeps the dark
+  review exactly as before. Copy, accessibility labels, identifiers and the
+  puzzle mosaic image are unchanged.
+- The bay ceiling follows the mode the session runs, not your configured
+  mode: a Guided pick under a continuous default runs 20 bays (it ran 30) and
+  an Auto pick under a guided default runs your `maxBays` up to 30 (it ran
+  20) (section 9). The bridge resolves as before.
+- The hold haptic re-arms only once the phone has left the latch (15° of turn
+  or 18° of tilt), and a cover or a tab switch over the camera during a
+  review no longer brings the level marker and the "Face the shelf" / "Level
+  the phone" instructions back with it.
+
 ### v1.7.29
 No initialiser changes and no removals. New APIs are additive.
 
@@ -1052,8 +1076,10 @@ sdk.openCustomCameraUI(configuration: config, handlers: handlers)
 the AR camera commits a bay on every auto-capture, so it may plan up to
 `NLMultiBayOptions.maxSupportedContinuousBays` (30). `init` still clamps to
 `maxSupportedBays` (8; 20 from v1.7.27); set `maxBays` after init. The
-capture screen clamps it to `minBays...30` for `captureMode == .continuous` on
-the AR camera and to `maxSupportedBays` otherwise, and logs a clamp. From v1.7.17 the bridge
+capture screen clamps it to `minBays...30` for the mode the session runs (the
+rep's pick, else the host's `captureMode`) when that is continuous or puzzle on
+the AR camera and to `maxSupportedBays` otherwise, and logs a clamp. A Guided
+pick holds the plan to 20 whatever the host configured. From v1.7.17 the bridge
 (`NLNativeMultiBayConfig`, used by the WebView bridge and Cordova) resolves
 `maxBays` the same way when the camera opens; in v1.7.16 it clamped to 8 on
 every mode.
@@ -1544,6 +1570,7 @@ config.arProductMarkers = .dots            // .boxes (default), .dots (experimen
 config.arLiveLabels = true                 // experimental, default false
 config.arLiveCount = true                  // experimental, default false
 config.arLiveKPIRings = true               // experimental, default false (AR-4)
+config.arTapToName = true                  // experimental, default false (LI-4)
 config.productDetailsSource = detailsSource // names for arLiveLabels
 ```
 
@@ -1584,6 +1611,22 @@ config.productDetailsSource = detailsSource // names for arLiveLabels
   `NLDetectionInspectorView` takes), else from the SDK's default names
   (v1.7.25, below). Without a provider, or without any name, there are no
   labels.
+- `arTapToName` (experimental, v1.7.30): a tap on a settled product dot or
+  box takes one full-resolution still from the running AR session (no zoom,
+  no lens switch, no AR pause), cuts the product from it through the still's
+  own pose, runs one recognition and shows a small card where you tapped:
+  the name and "NN% match"; "Not sure: X or Y" and "Step closer"; "Not
+  recognised" with the closest item; or "The product is out of view" / "Could
+  not get a close look". Below a score of 0.5 (the review's floor) nothing is
+  named; from there it is named at 0.55 or more, or with a lead of 0.20 or
+  more over the runner-up (only with the organisation's `matchTopK` of 2 or
+  more); signage is never named. It needs a ready recognition provider and
+  stops while the organisation's on-device recognition switch is off, on a
+  critically hot phone, and while a shutter still is on its way. A tap away
+  from the products closes the card and focuses as before, and so does a
+  refused tap; a tap's still
+  holds the shutter for at most 1.5 s. Nothing runs without a tap. Wire key
+  `arTapToName` on `NLNativeCaptureConfig` and `NLNativeCaptureOptions`.
 - **Default names (v1.7.25, experimental).** When the camera has no
   `productDetailsSource`, the SDK names the matched catalog UUIDs itself, for
   the live labels and "On this shelf":
@@ -1719,7 +1762,9 @@ let preview = try await sdk.computeVisitKPIs(forSession: sessionId, context: nil
 
 ### Theming the SDK screens
 
-The SDK's screens read `NLTheme.current`, and its default is the ZIA Lens v3 design system (orange action colour, ink text, 8/16 pt radii); the SDK ships no fonts, so Geist, Geist Mono and Plus Jakarta Sans are used only when your app registers them, and the system faces stand in otherwise. To keep the look from before Lens v3, set `NLTheme.current = .neutral` once at setup, or assign your own `NLTheme`. For a partial override start from a preset, `var t = NLTheme.neutral; t.tint = myColor; NLTheme.current = t`, because `NLTheme(tint: myColor)` fills every other token with the Lens defaults. `success`, `info`, `warning` and `danger` are a separate signal palette (green, blue, orange, red) for detection boxes and status tones, and `NLTypeRole` with `theme.font(.body)` gives the Lens type ramp with Dynamic Type. Text on the action colour follows `onTint` (automatic: ink, or white when ink would not reach 4.5:1 against your `tint`). Your own `textFont` and `monoFont` closures serve the fixed-size calls `textFont(size:weight:)` and `monoFont(size:weight:)`; the Dynamic Type calls (`theme.font(...)` and the `relativeTo:` overloads) never call them: they use the brand faces when registered, or the system faces scaled with Dynamic Type when you set `usesBrandFaces = false`. The AR capture camera follows the theme too: by default it draws the Lens v3 chrome (the `surfaceCamera` plate, the orange CTA with ink text, orange progress and in-position, Lucide glyphs); under `NLTheme.neutral` it restores the previous camera (the `#101215` plate, cyan progress, green ready, the white capsule Finish / Done and the previous radii) with the Lucide glyphs and the system faces. The standard (non-AR) camera's guidance keeps its own colours either way.
+The SDK's screens read `NLTheme.current`, and its default is the ZIA Lens v3 design system (orange action colour, ink text, 8/16 pt radii); the SDK ships no fonts, so Geist, Geist Mono and Plus Jakarta Sans are used only when your app registers them, and the system faces stand in otherwise. To keep the look from before Lens v3, set `NLTheme.current = .neutral` once at setup, or assign your own `NLTheme`. For a partial override start from a preset, `var t = NLTheme.neutral; t.tint = myColor; NLTheme.current = t`, because `NLTheme(tint: myColor)` fills every other token with the Lens defaults. `success`, `info`, `warning` and `danger` are a separate signal palette (green, blue, orange, red) for detection boxes and status tones, and `NLTypeRole` with `theme.font(.body)` gives the Lens type ramp with Dynamic Type. Text on the action colour follows `onTint` (automatic: ink, or white when ink would not reach 4.5:1 against your `tint`). Your own `textFont` and `monoFont` closures serve the fixed-size calls `textFont(size:weight:)` and `monoFont(size:weight:)`; the Dynamic Type calls (`theme.font(...)` and the `relativeTo:` overloads) never call them: they use the brand faces when registered, or the system faces scaled with Dynamic Type when you set `usesBrandFaces = false`. The AR capture camera follows the theme too: by default it draws the Lens v3 chrome (the `surfaceCamera` plate, the orange CTA with ink text, orange progress and in-position, Lucide glyphs); under `NLTheme.neutral` it restores the previous camera (the `#101215` plate, cyan progress, green ready, the white capsule Finish / Done and the previous radii) with the Lucide glyphs and the system faces. The standard (non-AR) camera's guidance keeps its own colours either way. From v1.7.30 the AR review follows the theme too: "Review shelf" for a walk or a puzzle, and the bay pager it opens, draw Lens's light "Review the photos" page by default (Ghost White ground, surface cards, ink text, Submit as the one orange button, outlined secondary buttons), and under `NLTheme.neutral` keep the dark review. The standard camera's final review stays dark either way.
+
+**Fonts come from the host.** The SDK ships no font files. It uses a face only if your app registered it, by these PostScript names: `Geist-Regular`, `Geist-Medium`, `Geist-SemiBold`, `Geist-Bold` (Geist 400/500/600/700), `GeistMono-Regular`, `GeistMono-Medium`, `GeistMono-SemiBold` (Geist Mono 400/500/600) and `PlusJakartaSans-Bold` (Plus Jakarta Sans 700); add the `.ttf` files to your app target and list them under `UIAppFonts` in your Info.plist. The demo app does exactly this (`Examples/NLBDemoApp/NLBDemoApp/Fonts/`, with the families' SIL OFL 1.1 licences beside them); keep each family's licence with the fonts you ship.
 
 ### Telemetry and privacy (Sentry)
 

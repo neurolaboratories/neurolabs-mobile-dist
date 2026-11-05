@@ -11,6 +11,18 @@ listed here come from the underlying `neurolabs-android-sdk` and
 `scripts/prepare-sdk.js` at install time. No public JS API has been broken
 since v1.1.9.
 
+### v1.7.30
+- Plugin pins the native SDKs' 1.7.30 on both platforms. Nothing is removed
+  from the plugin's API, and nothing is required of a host.
+- Look of the SDK's own screens: from native 1.7.30 every Android host gets
+  the ZIA Lens design-system look by default, as iOS did in 1.7.29: the AR
+  capture chrome, the instruction mid-screen with "Step left" / "Step right"
+  / "Capture", and "Review shelf" in the Lens light look (new on both
+  platforms). `init({ theme: 'neutral' })` now keeps the previous look on
+  Android too. The standard (non-AR) camera keeps its own look.
+- Native 1.7.30 also adds an experimental, off-by-default tap-to-name on the
+  AR camera (`arTapToName`). It has no plugin option yet: the key is ignored.
+
 ### v1.7.29
 - Plugin pins the native SDKs' 1.7.29 on both platforms. Nothing is removed
   from the plugin's API, and nothing is required of a host.
@@ -898,7 +910,7 @@ each one in this order:
 3. the SDK default: a **4032 px long edge at JPEG quality 0.9** (native SDK
    1.7.16).
 
-The plugin pins native 1.7.29 (the default dates from 1.7.16), so on both platforms an omitted value means
+The plugin pins native 1.7.30 (the default dates from 1.7.16), so on both platforms an omitted value means
 4032 px at 0.9 unless your organisation overrides it. Invalid values (`<= 0`, or a
 quality outside `0..1`) reject with `INVALID_ARGUMENT` on both platforms.
 
@@ -1128,9 +1140,8 @@ Neurolabs.addListener('cameraClosed', ({ multiBay }) => {
   The default, `'brand'`, is the ZIA Lens look. Case-insensitive; anything
   else is `'brand'`, not an error. iOS sets the SDK theme before any SDK
   screen appears and otherwise leaves it alone, so a re-init without the key
-  does not undo `'neutral'` within the same process. Android reads the value
-  once the native Android theme preset ships; until then its screens do not
-  change.
+  does not undo `'neutral'` within the same process. Android applies it the same
+  way from native 1.7.30 (plugin 1.7.30); before that its screens did not change.
 
 ### AR overlay style (native SDK 1.7.16)
 

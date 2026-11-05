@@ -11,6 +11,33 @@ working as is. Recommended defaults: strict shelf guidance with
 `validationPreset = IOS_PARITY`, `liveQualityChecksEnabled = true`,
 `autoCloseAfterCapture = true` for single-capture parity flows.
 
+### v1.7.30
+No `NLConfiguration` changes and no removals. New APIs are additive and
+binary-compatible (the previous constructor and `copy` of four classes stay as
+hidden overloads); `apiCheck` passes.
+
+New APIs: `arTapToName` on `NLCameraConfiguration` and `CaptureScreenConfig`,
+and as `Boolean?` on `NLNativeCaptureConfig` and `NLNativeCaptureOptions`
+(section 7, "Tap a product to name it"); experimental and off by default.
+
+Behaviour changes, with no opt-in:
+- The default look is the ZIA Lens v3 design system, as on iOS 1.7.29: the AR
+  capture chrome changes colour, shape and glyphs, the instruction sits in the
+  middle of the screen with a level marker, the copy reads "Step left" / "Step
+  right" and "Capture", and "Review shelf" with its bay pager takes the Lens
+  light look. To keep the previous look, set
+  `NLTheme.current = NLTheme.neutral` once at setup, before the first SDK
+  screen (section 7, "Theming the SDK screens"). The WebView bridge has no
+  theme field, so a WebView app opts out in its native layer; the Cordova
+  plugin's `theme` option reaches Android with the plugin's 1.7.30 release.
+  The standard (non-AR) camera keeps its own look.
+- The bay ceiling follows the mode the session runs through every entry
+  point: an Auto pick under a guided default runs your `maxBays` up to 30 (it
+  ran 20); a Guided pick under a continuous default still runs 20 (section 8).
+- The hold haptic re-arms only once the phone has left the latch (15° of turn
+  or 18° of tilt), and the instruction plate's text grows with the system
+  font scale only up to 1.35x.
+
 ### v1.7.29
 No `NLConfiguration` changes and no removals. New APIs are additive and
 binary-compatible (the previous constructor and `copy` of six classes stay as
@@ -30,7 +57,7 @@ counts each facing once across overlapping tiles, reviews as a mosaic of its
 tiles and lets the rep retake a tile in place; it has no walk direction, no
 stitched strip and, untrusted, no `realogram`. Product dots are off unless you
 set `arProductMarkers = DOTS`. iOS 1.7.29 also takes the Lens v3 default look
-and capture chrome; Android takes them in a later release.
+and capture chrome; Android takes them in v1.7.30.
 
 ### v1.7.28
 No `NLConfiguration` changes and no removals. New APIs are additive and
@@ -720,6 +747,34 @@ Names for the live labels come from `NLCameraConfiguration.productDetailsSource`
   - "On this shelf" gets names only from this source; brands read "Unknown brand" unless your own source supplies them.
 - **Your source wins.** A `productDetailsSource` you set is always used instead. To turn the default off (no requests, nothing kept), set `sdk.defaultProductNamesEnabled = false` before opening the camera (it is read when the camera opens) (Java: `NLDefaultProductNamesKt.setDefaultProductNamesEnabled(sdk, false)`). iOS: `NeurolabsSDKCore.defaultProductNamesEnabled`.
 
+### Tap a product to name it (1.7.30, experimental)
+
+`NLCameraConfiguration(arTapToName = true)` (also `CaptureScreenConfig.arTapToName`;
+`Boolean?` of the same name on `NLNativeCaptureConfig` / `NLNativeCaptureOptions`,
+options, then config, then `false`) lets a rep tap a settled product dot or box
+on the AR camera to see a small card naming it, from a close look at that
+product. It is off by default and experimental, and nothing runs per frame: the
+look happens once, on the tap, and without a tap the camera does no extra work.
+With the flag off a tap does nothing.
+
+The card, placed once where the rep tapped, says one of:
+
+- the name and "NN% match";
+- "Not sure: X or Y" with "Step closer", when two catalogue items are too close
+  to call;
+- "Not recognised", with the closest item when it is below the review floor of
+  0.5;
+- "The product is out of view", when the product left the picture while the look
+  was pending;
+- "Could not get a close look", when the look takes longer than its budgets.
+
+It needs a ready recognition provider and stops while the organisation's
+on-device recognition switch is off, on a critically hot phone, and while a
+shutter's photo is on its way. Price tags, promos and posters are never named.
+A tap away from the products closes the card and does nothing else (Android has
+no AR tap-to-focus). The behaviour ships in the same release as the flag; same
+name and bridge key as iOS `NLCameraConfiguration.arTapToName`.
+
 ### AR walks: detector, track budget and the mode chooser (1.7.24)
 
 - **The walk waits for the detector.** On an AR multi-bay session with live
@@ -780,16 +835,36 @@ as iOS `NLCameraConfiguration.arProductMarkers`.
 colours, dp radii and spacing, the `NLTypeRole` type ramp in sp); its default
 is the ZIA Lens v3 design system, with Geist, Geist Mono and Plus Jakarta Sans
 used only when your app ships them as font resources (`geist_regular`, …,
-`plus_jakarta_sans_bold`), and `NLTheme.neutral` is iOS's pre-Lens look (the
-LNS-102 camera look on Android; a later release moves a neutral host's
-off-camera screens onto these values). Assign a new theme to `NLTheme.current`
-once at setup (for example
+`plus_jakarta_sans_bold`). `NLTheme.neutral` is the look from before Lens v3:
+the LNS-102 camera look on the AR capture chrome and the dark review. Assign a
+new theme to `NLTheme.current` once at setup (for example
 `NLTheme.current = NLTheme.neutral.copy { tint = myColor }`) and never mutate
 `current` in place. A reassignment takes effect for SDK screens presented
 after it; a screen already showing is not recomposed by it (as on iOS, where
-`NLTheme.current` is not observed either). No SDK screen reads it yet, so
-nothing on screen changes until the AR capture chrome adopts it in a later
-release.
+`NLTheme.current` is not observed either).
+
+`NLTheme` arrived in v1.7.29, when no screen read it. From v1.7.30 the AR
+screens do. The AR capture chrome draws the Lens v3 look by default: the
+`surfaceCamera` plate, the one orange CTA with ink text, orange progress and
+in-position, Lucide line glyphs and the theme's faces; under `NLTheme.neutral`
+it keeps the LNS-102 camera (the `#101215` plate, cyan progress, green ready,
+the white capsule Done and the previous radii). "Review shelf" (walk and
+puzzle) and the bay pager it opens draw Lens's light "Review the photos" page
+by default (Ghost White ground, surface cards, ink text, Submit as the one
+orange button, outlined secondary buttons); under `NLTheme.neutral` they keep
+the dark review. The standard (non-AR) camera and its final review keep their
+own look either way.
+
+**Fonts come from the host.** The SDK ships no font files. It looks up font
+resources in your app by these exact names and uses a face only if it finds it
+(otherwise the system face stands in): `geist_regular`, `geist_medium`,
+`geist_semibold`, `geist_bold` (Geist 400/500/600/700), `geist_mono_regular`,
+`geist_mono_medium`, `geist_mono_semibold` (Geist Mono 400/500/600) and
+`plus_jakarta_sans_bold` (Plus Jakarta Sans 700). Put the `.ttf` files in
+`res/font/` under those names. The demo app does exactly this: see
+`demo/src/main/res/font/`, with the families' SIL OFL 1.1 licences in
+`demo/src/main/assets/fonts/`. Keep each family's licence with the fonts you
+ship.
 
 ## 8. Multi-Bay Capture (Long Shelves)
 
@@ -824,7 +899,7 @@ sdk.openNativeCaptureUI(
 
 The same `multiBay` field exists on `NLCameraConfiguration` for the custom-camera config path, and on the WebView/Cordova bridge payload (camelCase field names identical across iOS, Android, and Cordova; absent fields take the defaults above).
 
-The bay cap depends on the session's mode: a continuous sweep (`captureMode = NLCaptureMode.CONTINUOUS`) or a puzzle (`NLCaptureMode.PUZZLE`, from v1.7.29; also when the rep picks Puzzle on the entry chooser under a guided default) on the AR camera may plan up to `NLMultiBayOptions.MAX_SUPPORTED_CONTINUOUS_BAYS` (30) bays; every other session (a guided walk, any session on the default camera), and a continuous sweep or a puzzle that falls back to CameraX, may plan up to `NLMultiBayOptions.MAX_SUPPORTED_BAYS` (20 from v1.7.27; 8 before). A value outside the cap is clamped and logged when the camera opens. From v1.7.17 the WebView bridge resolves `maxBays` the same way; in v1.7.16 it clamped to 8 on every mode. Cordova's `NLCaptureActivity` launch already followed the mode in v1.7.16.
+The bay cap follows the mode the session runs, whatever the host's default `captureMode` and whatever the rep picks on the entry chooser (from v1.7.30). On the AR camera a Guided session may plan up to `NLMultiBayOptions.MAX_SUPPORTED_BAYS` (20 from v1.7.27; 8 before), and an Auto (`NLCaptureMode.CONTINUOUS`) or Puzzle (`NLCaptureMode.PUZZLE`, from v1.7.29) session up to `NLMultiBayOptions.MAX_SUPPORTED_CONTINUOUS_BAYS` (30). The standard (default) camera is 20 for every mode, and so is an Auto or Puzzle session that falls back to CameraX. The entry gate resolves your request for the picked mode: an Auto pick under a guided default runs the `maxBays` you asked for, up to 30, and a Guided pick under a continuous default runs 20. Before v1.7.30 an Auto pick under a guided default kept the guided 20. A value outside the cap is clamped and logged when the camera opens. From v1.7.17 the WebView bridge resolves `maxBays` the same way; in v1.7.16 it clamped to 8 on every mode. Cordova's `NLCaptureActivity` launch already followed the mode in v1.7.16.
 
 **Long guided walks (v1.7.27).** A guided (shutter) walk, and any session on the default camera, may plan up to `NLMultiBayOptions.MAX_SUPPORTED_BAYS` (20; 8 before v1.7.27); the default stays 8. A 10 m shelf is about 10–14 bays. The cost of a long walk does not grow with the ceiling: past 8 bays the finish-time dedup decodes each bay smaller so its working set stays at the 8-bay budget, and the AR "Review shelf" pages through segments of up to 8 bays (20 → 7 + 7 + 6), as for a long continuous sweep. `previewImageData` is still the one panorama, so past 8 bays treat it as a thumbnail (about 205 px a bay at 20). The bridge resolves the same 20. Hosts that asked for 9–20 bays on a guided or default-camera session were clamped to 8 and now get that many: check your plan if you relied on the clamp. `MAX_SUPPORTED_BAYS` is a `const val`, inlined where you read it: recompile against v1.7.27 to see 20.
 
