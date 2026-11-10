@@ -14,6 +14,28 @@ custom-camera flows that need a minimum capture count and a higher
 maximum cap. `showsCapturedCountLabel` hides the `N captured` chip in
 custom camera and multi-capture flow UIs.
 
+### v1.7.31
+No initialiser changes and no removals. New APIs are additive.
+
+New APIs: `NLReviewAnalytics.effectiveAcceptFloor`, the org's catalogue accept
+floor as the SDK resolves it (the server's `thresholds.acceptFloor`, 0.50 to
+0.95, default 0.50); the `floor:` overloads of `NLReviewAnalytics.boxState`,
+`facingCounts`, `expectation`, `counters` and `itemPrices`; and
+`NLReviewSession.acceptFloor` (default `NLReviewAnalytics.recognitionFloor`,
+0.5). Hosts that held their own copy of the floor pass
+`NLReviewAnalytics.effectiveAcceptFloor` as the `floor:` of those functions
+and as `NLReviewSession.acceptFloor`.
+
+Behaviour changes, with no opt-in:
+- A walk's bay-to-bay registration matches keypoints, so a handheld photo
+  walk of a wall of repeated facings merges; each adjacent pair registers in
+  the background while the rep walks, and "Review shelf" and the finish no
+  longer register every pair inside the merge budget. A pair that fails a
+  check still breaks the link and its dedup stays untrusted.
+- A puzzle finish asks for at most 20 registrations (it asked for 24).
+- When the org sets no detection floor, the on-device detector uses 0.35 (it
+  used 0.25), as on Android; a floor the org sets still wins.
+
 ### v1.7.30
 No initialiser changes and no removals. New APIs are additive.
 

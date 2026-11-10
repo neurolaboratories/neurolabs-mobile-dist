@@ -11,6 +11,24 @@ working as is. Recommended defaults: strict shelf guidance with
 `validationPreset = IOS_PARITY`, `liveQualityChecksEnabled = true`,
 `autoCloseAfterCapture = true` for single-capture parity flows.
 
+### v1.7.31
+No `NLConfiguration` changes and no removals. New APIs are additive and
+binary-compatible (the previous constructor and `copy` of three classes stay
+as hidden overloads); `apiCheck` passes.
+
+New APIs: `acceptFloor` on `NLRecognitionThresholds`,
+`NLResolvedRecognitionThresholds` and `NLPlanogramSession`, and
+`NLReviewAnalytics.effectiveAcceptFloor`, with a `floor` parameter on the
+`NLReviewAnalytics` functions that decide box states, counts and prices.
+
+Behaviour change, with no opt-in: an organisation's catalogue accept floor is
+read from `thresholds.acceptFloor` (default 0.50, range 0.50-0.95), and the
+SDK's review uses it. With no value set the floor stays 0.50. A host that
+builds its own review passes `NLReviewAnalytics.effectiveAcceptFloor` as the
+`floor` and as `NLPlanogramSession.acceptFloor`, and to the `floor` of
+`NLInspectorMatchPolicy.boxName` and `isRecognised` (existing overloads, not
+new API), so its box names agree with the inspector sheet.
+
 ### v1.7.30
 No `NLConfiguration` changes and no removals. New APIs are additive and
 binary-compatible (the previous constructor and `copy` of four classes stay as
@@ -1146,6 +1164,10 @@ closest catalogue item and its score as a percentage. If you draw names on
 boxes yourself (`DetectionOverlay(detectionLabels = ...)`), take them from
 `NLInspectorMatchPolicy.boxName(match, product)`, which applies the same
 floor; `NLInspectorMatchPolicy.isRecognised(match)` is the test alone.
+From v1.7.31 the sheet uses the organisation's floor; pass
+`NLReviewAnalytics.effectiveAcceptFloor` as the `floor` of
+`NLInspectorMatchPolicy.boxName` and `isRecognised` so your own box names agree
+with it (their `floor` defaults to 0.5).
 
 Matches on the captures (v1.7.22): the SDK recognises a capture where it is
 enqueued, mostly after `onCaptureComplete` (the `NLCaptureActivity` save loop,

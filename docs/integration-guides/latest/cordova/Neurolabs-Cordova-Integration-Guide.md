@@ -11,6 +11,22 @@ listed here come from the underlying `neurolabs-android-sdk` and
 `scripts/prepare-sdk.js` at install time. No public JS API has been broken
 since v1.1.9.
 
+### v1.7.31
+- Plugin pins the native SDKs' 1.7.31 on both platforms. Nothing is removed
+  from the plugin's API, nothing is added to it, and nothing is required of a
+  host.
+- Handheld photo walks of a wall of repeated facings now merge on iOS: the
+  bay-to-bay registration matches keypoints, and adjacent bays register in the
+  background while the rep walks, so "Review shelf" and the finish no longer
+  register every pair at the end.
+- On iOS, on-device detection now drops detections below a 0.35 confidence
+  floor when your organisation sets none (it was 0.25), as on Android. A
+  floor your organisation sets still wins.
+- Your organisation can now set its own catalogue accept floor
+  (`thresholds.acceptFloor`, default 0.50). It needs no call from the plugin.
+- The plugin tarball now carries only what an install needs (97 files, from
+  262): no tests, demo or repo tooling.
+
 ### v1.7.30
 - Plugin pins the native SDKs' 1.7.30 on both platforms. Nothing is removed
   from the plugin's API, and nothing is required of a host.
@@ -910,7 +926,7 @@ each one in this order:
 3. the SDK default: a **4032 px long edge at JPEG quality 0.9** (native SDK
    1.7.16).
 
-The plugin pins native 1.7.30 (the default dates from 1.7.16), so on both platforms an omitted value means
+The plugin pins native 1.7.31 (the default dates from 1.7.16), so on both platforms an omitted value means
 4032 px at 0.9 unless your organisation overrides it. Invalid values (`<= 0`, or a
 quality outside `0..1`) reject with `INVALID_ARGUMENT` on both platforms.
 
