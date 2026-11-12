@@ -10,7 +10,7 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Courier >>
 endobj
 4 0 obj
-<< /Length 4418 >>
+<< /Length 4820 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
@@ -22,8 +22,8 @@ BT /F2 24.00 Tf 1 0 0 1 56.69 771.89 Tm (Neurolabs iOS SDK Integration Guide) Tj
 0.000000 0.000000 0.000000 rg
 BT /F2 14.00 Tf 1 0 0 1 56.69 743.89 Tm (Technical Integration Specification) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 719.89 Tm (Document ID: NLB-IOS-INTEGRATION-GUIDE) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 705.89 Tm (Version: v1.7.31) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 691.89 Tm (Date: 2026-11-10) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 705.89 Tm (Version: v1.7.32) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 691.89 Tm (Date: 2026-11-12) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 677.89 Tm (Status: Partner integration reference) Tj ET
 BT /F1 10.50 Tf 1 0 0 1 56.69 663.89 Tm (Owner: Neurolabs) Tj ET
 BT /F2 13.00 Tf 1 0 0 1 56.69 639.89 Tm (1. Scope) Tj ET
@@ -37,86 +37,95 @@ BT 1 0 0 1 56.69 519.89 Tm /F1 10.50 Tf (single-capture parity flows. `NLCameraC
 BT 1 0 0 1 56.69 505.89 Tm /F1 10.50 Tf (preferred helper for custom-camera flows that need a minimum capture count and a) Tj ET
 BT 1 0 0 1 56.69 491.89 Tm /F1 10.50 Tf (higher maximum cap. `showsCapturedCountLabel` hides the `N captured` chip in custom) Tj ET
 BT 1 0 0 1 56.69 477.89 Tm /F1 10.50 Tf (camera and multi-capture flow UIs.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 457.89 Tm (v1.7.31) Tj ET
-BT 1 0 0 1 56.69 439.89 Tm /F1 10.50 Tf (No initialiser changes and no removals. New APIs are additive.) Tj ET
-BT 1 0 0 1 56.69 419.89 Tm /F1 10.50 Tf (New APIs: `NLReviewAnalytics.effectiveAcceptFloor`, the org's catalogue accept floor) Tj ET
-BT 1 0 0 1 56.69 405.89 Tm /F1 10.50 Tf (as the SDK resolves it \(the server's `thresholds.acceptFloor`, 0.50 to 0.95, default) Tj ET
-BT 1 0 0 1 56.69 391.89 Tm /F1 10.50 Tf (0.50\); the `floor:` overloads of `NLReviewAnalytics.boxState`, `facingCounts`,) Tj ET
-BT 1 0 0 1 56.69 377.89 Tm /F1 10.50 Tf (`expectation`, `counters` and `itemPrices`; and `NLReviewSession.acceptFloor` \(default) Tj ET
-BT 1 0 0 1 56.69 363.89 Tm /F1 10.50 Tf (`NLReviewAnalytics.recognitionFloor`, 0.5\). Hosts that held their own copy of the) Tj ET
-BT 1 0 0 1 56.69 349.89 Tm /F1 10.50 Tf (floor pass `NLReviewAnalytics.effectiveAcceptFloor` as the `floor:` of those functions) Tj ET
-BT 1 0 0 1 56.69 335.89 Tm /F1 10.50 Tf (and as `NLReviewSession.acceptFloor`.) Tj ET
-BT 1 0 0 1 56.69 315.89 Tm /F1 10.50 Tf (Behaviour changes, with no opt-in:) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 295.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 295.89 Tm /F1 10.50 Tf (A walk's bay-to-bay registration matches keypoints, so a handheld photo walk of a) Tj ET
-BT 1 0 0 1 70.69 281.89 Tm /F1 10.50 Tf (wall of repeated facings merges; each adjacent pair registers in the background) Tj ET
-BT 1 0 0 1 70.69 267.89 Tm /F1 10.50 Tf (while the rep walks, and "Review shelf" and the finish no longer register every pair) Tj ET
-BT 1 0 0 1 70.69 253.89 Tm /F1 10.50 Tf (inside the merge budget. A pair that fails a check still breaks the link and its) Tj ET
-BT 1 0 0 1 70.69 239.89 Tm /F1 10.50 Tf (dedup stays untrusted.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 221.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 221.89 Tm /F1 10.50 Tf (A puzzle finish asks for at most 20 registrations \(it asked for 24\).) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 203.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 203.89 Tm /F1 10.50 Tf (When the org sets no detection floor, the on-device detector uses 0.35 \(it used) Tj ET
-BT 1 0 0 1 70.69 189.89 Tm /F1 10.50 Tf (0.25\), as on Android; a floor the org sets still wins.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 171.89 Tm (v1.7.30) Tj ET
-BT 1 0 0 1 56.69 153.89 Tm /F1 10.50 Tf (No initialiser changes and no removals. New APIs are additive.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 457.89 Tm (v1.7.32) Tj ET
+BT 1 0 0 1 56.69 439.89 Tm /F1 10.50 Tf (No initialiser changes, no removals and no new APIs.) Tj ET
+BT 1 0 0 1 56.69 419.89 Tm /F1 10.50 Tf (Behaviour change, with no opt-in: the on-device search window is `topK x 10` rows \(it) Tj ET
+BT 1 0 0 1 56.69 405.89 Tm /F1 10.50 Tf (was `topK x 8`\), so a snapshot whose products carry up to 10 references each still) Tj ET
+BT 1 0 0 1 56.69 391.89 Tm /F1 10.50 Tf (returns `topK` distinct products, each scored by its best reference. Snapshots with) Tj ET
+BT 1 0 0 1 56.69 377.89 Tm /F1 10.50 Tf (one reference per product return the same matches as before. Nothing to change in the) Tj ET
+BT 1 0 0 1 56.69 363.89 Tm /F1 10.50 Tf (host app. An organisation gets more than one reference per product only once its) Tj ET
+BT 1 0 0 1 56.69 349.89 Tm /F1 10.50 Tf (minimum SDK version is 1.7.32 or later, and an older SDK in that organisation skips) Tj ET
+BT 1 0 0 1 56.69 335.89 Tm /F1 10.50 Tf (on-device recognition.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 315.89 Tm (v1.7.31) Tj ET
+BT 1 0 0 1 56.69 297.89 Tm /F1 10.50 Tf (No initialiser changes and no removals. New APIs are additive.) Tj ET
+BT 1 0 0 1 56.69 277.89 Tm /F1 10.50 Tf (New APIs: `NLReviewAnalytics.effectiveAcceptFloor`, the org's catalogue accept floor) Tj ET
+BT 1 0 0 1 56.69 263.89 Tm /F1 10.50 Tf (as the SDK resolves it \(the server's `thresholds.acceptFloor`, 0.50 to 0.95, default) Tj ET
+BT 1 0 0 1 56.69 249.89 Tm /F1 10.50 Tf (0.50\); the `floor:` overloads of `NLReviewAnalytics.boxState`, `facingCounts`,) Tj ET
+BT 1 0 0 1 56.69 235.89 Tm /F1 10.50 Tf (`expectation`, `counters` and `itemPrices`; and `NLReviewSession.acceptFloor` \(default) Tj ET
+BT 1 0 0 1 56.69 221.89 Tm /F1 10.50 Tf (`NLReviewAnalytics.recognitionFloor`, 0.5\). Hosts that held their own copy of the) Tj ET
+BT 1 0 0 1 56.69 207.89 Tm /F1 10.50 Tf (floor pass `NLReviewAnalytics.effectiveAcceptFloor` as the `floor:` of those functions) Tj ET
+BT 1 0 0 1 56.69 193.89 Tm /F1 10.50 Tf (and as `NLReviewSession.acceptFloor`.) Tj ET
+BT 1 0 0 1 56.69 173.89 Tm /F1 10.50 Tf (Behaviour changes, with no opt-in:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 153.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 153.89 Tm /F1 10.50 Tf (A walk's bay-to-bay registration matches keypoints, so a handheld photo walk of a) Tj ET
+BT 1 0 0 1 70.69 139.89 Tm /F1 10.50 Tf (wall of repeated facings merges; each adjacent pair registers in the background) Tj ET
+BT 1 0 0 1 70.69 125.89 Tm /F1 10.50 Tf (while the rep walks, and "Review shelf" and the finish no longer register every pair) Tj ET
+BT 1 0 0 1 70.69 111.89 Tm /F1 10.50 Tf (inside the merge budget. A pair that fails a check still breaks the link and its) Tj ET
+BT 1 0 0 1 70.69 97.89 Tm /F1 10.50 Tf (dedup stays untrusted.) Tj ET
 endstream
 endobj
 5 0 obj
 << /Type /Page /Parent 78 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 4 0 R >>
 endobj
 6 0 obj
-<< /Length 4949 >>
+<< /Length 5567 >>
 stream
 0.929412 0.333333 0.000000 RG
 56.69 43.94 m 538.58 43.94 l S
 BT /F1 9.00 Tf 1 0 0 1 56.69 28.00 Tm (Neurolabs - Confidential Partner Documentation) Tj ET
 BT /F1 9.00 Tf 1 0 0 1 423.58 28.00 Tm (Neurolabs SDK - Page 2) Tj ET
 0.000000 0.000000 0.000000 rg
-BT 1 0 0 1 56.69 771.89 Tm /F1 10.50 Tf (New APIs: `NLCameraConfiguration.arTapToName` \(experimental, default `false`; section) Tj ET
-BT 1 0 0 1 56.69 757.89 Tm /F1 10.50 Tf (13\) with the `arTapToName` key on `NLNativeCaptureConfig` and) Tj ET
-BT 1 0 0 1 56.69 743.89 Tm /F1 10.50 Tf (`NLNativeCaptureOptions`; and the mock AR screen's) Tj ET
-BT 1 0 0 1 56.69 729.89 Tm /F1 10.50 Tf (`NLARMockScenario.puzzle\(columns:order:hasLiDAR:\)` with `NLARMockPuzzleOrder` \(mock) Tj ET
-BT 1 0 0 1 56.69 715.89 Tm /F1 10.50 Tf (only, experimental\).) Tj ET
-BT 1 0 0 1 56.69 695.89 Tm /F1 10.50 Tf (Behaviour changes, with no opt-in:) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 675.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 675.89 Tm /F1 10.50 Tf ("Review shelf" \(walk and puzzle\) and the bay pager it opens take the Lens light) Tj ET
-BT 1 0 0 1 70.69 661.89 Tm /F1 10.50 Tf ("Review the photos" look under the default theme \(section 14, "Theming the SDK) Tj ET
-BT 1 0 0 1 70.69 647.89 Tm /F1 10.50 Tf (screens"\); `NLTheme.current = .neutral` keeps the dark review exactly as before.) Tj ET
-BT 1 0 0 1 70.69 633.89 Tm /F1 10.50 Tf (Copy, accessibility labels, identifiers and the puzzle mosaic image are unchanged.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 615.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 615.89 Tm /F1 10.50 Tf (The bay ceiling follows the mode the session runs, not your configured mode: a) Tj ET
-BT 1 0 0 1 70.69 601.89 Tm /F1 10.50 Tf (Guided pick under a continuous default runs 20 bays \(it ran 30\) and an Auto pick) Tj ET
-BT 1 0 0 1 70.69 587.89 Tm /F1 10.50 Tf (under a guided default runs your `maxBays` up to 30 \(it ran 20\) \(section 9\). The) Tj ET
-BT 1 0 0 1 70.69 573.89 Tm /F1 10.50 Tf (bridge resolves as before.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 555.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 555.89 Tm /F1 10.50 Tf (The hold haptic re-arms only once the phone has left the latch \(15 of turn or 18 of) Tj ET
-BT 1 0 0 1 70.69 541.89 Tm /F1 10.50 Tf (tilt\), and a cover or a tab switch over the camera during a review no longer brings) Tj ET
-BT 1 0 0 1 70.69 527.89 Tm /F1 10.50 Tf (the level marker and the "Face the shelf" / "Level the phone" instructions back with) Tj ET
-BT 1 0 0 1 70.69 513.89 Tm /F1 10.50 Tf (it.) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 495.89 Tm (v1.7.29) Tj ET
-BT 1 0 0 1 56.69 477.89 Tm /F1 10.50 Tf (No initialiser changes and no removals. New APIs are additive.) Tj ET
-BT 1 0 0 1 56.69 457.89 Tm /F1 10.50 Tf (New APIs: `NLCaptureMode.puzzle` \(section 9\); `NLMultiBayResult.layout`) Tj ET
-BT 1 0 0 1 56.69 443.89 Tm /F1 10.50 Tf (\(`NLMultiBayLayout`\) and `.tiles` \(`NLMultiBayTile`, `NLPlaneRect`\) and) Tj ET
-BT 1 0 0 1 56.69 429.89 Tm /F1 10.50 Tf (`NLMergedProduct.sourceDetectionIds` \(section 9\); `layout` and `tiles` on the bridge's) Tj ET
-BT 1 0 0 1 56.69 415.89 Tm /F1 10.50 Tf (`NLNativeMultiBayResultSummary` \(`NLNativeMultiBayTile`\);) Tj ET
-BT 1 0 0 1 56.69 401.89 Tm /F1 10.50 Tf (`NLCameraConfiguration.arProductMarkers` with `NLARProductMarkerStyle` \(section 13\);) Tj ET
-BT 1 0 0 1 56.69 387.89 Tm /F1 10.50 Tf (and the `NLTheme` presets `NLTheme.ziaLens` \(the default\) and `NLTheme.neutral` \(the) Tj ET
-BT 1 0 0 1 56.69 373.89 Tm /F1 10.50 Tf (opt-out\), its tokens, font providers and `NLTypeRole` \(section 14, "Theming the SDK) Tj ET
-BT 1 0 0 1 56.69 359.89 Tm /F1 10.50 Tf (screens"\). A host that switches over `NLCaptureMode` without `@unknown default` needs) Tj ET
-BT 1 0 0 1 56.69 345.89 Tm /F1 10.50 Tf (the `.puzzle` case.) Tj ET
-BT 1 0 0 1 56.69 325.89 Tm /F1 10.50 Tf (Behaviour changes, with no opt-in:) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 305.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 305.89 Tm /F1 10.50 Tf (The default look is the ZIA Lens v3 design system: `NLTheme.current` and the AR) Tj ET
-BT 1 0 0 1 70.69 291.89 Tm /F1 10.50 Tf (capture camera's chrome change colour, shape and glyphs. To keep the previous look,) Tj ET
-BT 1 0 0 1 70.69 277.89 Tm /F1 10.50 Tf (set `NLTheme.current = .neutral` once at setup \(section 14\). The bridge has no theme) Tj ET
-BT 1 0 0 1 70.69 263.89 Tm /F1 10.50 Tf (field, so a WebView or Cordova app opts out in its native layer.) Tj ET
-BT /F1 10.50 Tf 1 0 0 1 56.69 245.89 Tm (-) Tj ET
-BT 1 0 0 1 70.69 245.89 Tm /F1 10.50 Tf (The AR screen takes the recognition lab's guidance chrome: the instruction sits in) Tj ET
-BT 1 0 0 1 70.69 231.89 Tm /F1 10.50 Tf (the middle of the screen, a level marker shows square and level, and the copy reads) Tj ET
-BT 1 0 0 1 70.69 217.89 Tm /F1 10.50 Tf ("Step left" / "Step right" and "Capture".) Tj ET
-BT /F2 11.50 Tf 1 0 0 1 56.69 199.89 Tm (v1.7.28) Tj ET
-BT 1 0 0 1 56.69 181.89 Tm /F1 10.50 Tf (No initialiser changes and no removals. New APIs are additive.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 771.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 771.89 Tm /F1 10.50 Tf (A puzzle finish asks for at most 20 registrations \(it asked for 24\).) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 753.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 753.89 Tm /F1 10.50 Tf (When the org sets no detection floor, the on-device detector uses 0.35 \(it used) Tj ET
+BT 1 0 0 1 70.69 739.89 Tm /F1 10.50 Tf (0.25\), as on Android; a floor the org sets still wins.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 721.89 Tm (v1.7.30) Tj ET
+BT 1 0 0 1 56.69 703.89 Tm /F1 10.50 Tf (No initialiser changes and no removals. New APIs are additive.) Tj ET
+BT 1 0 0 1 56.69 683.89 Tm /F1 10.50 Tf (New APIs: `NLCameraConfiguration.arTapToName` \(experimental, default `false`; section) Tj ET
+BT 1 0 0 1 56.69 669.89 Tm /F1 10.50 Tf (13\) with the `arTapToName` key on `NLNativeCaptureConfig` and) Tj ET
+BT 1 0 0 1 56.69 655.89 Tm /F1 10.50 Tf (`NLNativeCaptureOptions`; and the mock AR screen's) Tj ET
+BT 1 0 0 1 56.69 641.89 Tm /F1 10.50 Tf (`NLARMockScenario.puzzle\(columns:order:hasLiDAR:\)` with `NLARMockPuzzleOrder` \(mock) Tj ET
+BT 1 0 0 1 56.69 627.89 Tm /F1 10.50 Tf (only, experimental\).) Tj ET
+BT 1 0 0 1 56.69 607.89 Tm /F1 10.50 Tf (Behaviour changes, with no opt-in:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 587.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 587.89 Tm /F1 10.50 Tf ("Review shelf" \(walk and puzzle\) and the bay pager it opens take the Lens light) Tj ET
+BT 1 0 0 1 70.69 573.89 Tm /F1 10.50 Tf ("Review the photos" look under the default theme \(section 14, "Theming the SDK) Tj ET
+BT 1 0 0 1 70.69 559.89 Tm /F1 10.50 Tf (screens"\); `NLTheme.current = .neutral` keeps the dark review exactly as before.) Tj ET
+BT 1 0 0 1 70.69 545.89 Tm /F1 10.50 Tf (Copy, accessibility labels, identifiers and the puzzle mosaic image are unchanged.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 527.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 527.89 Tm /F1 10.50 Tf (The bay ceiling follows the mode the session runs, not your configured mode: a) Tj ET
+BT 1 0 0 1 70.69 513.89 Tm /F1 10.50 Tf (Guided pick under a continuous default runs 20 bays \(it ran 30\) and an Auto pick) Tj ET
+BT 1 0 0 1 70.69 499.89 Tm /F1 10.50 Tf (under a guided default runs your `maxBays` up to 30 \(it ran 20\) \(section 9\). The) Tj ET
+BT 1 0 0 1 70.69 485.89 Tm /F1 10.50 Tf (bridge resolves as before.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 467.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 467.89 Tm /F1 10.50 Tf (The hold haptic re-arms only once the phone has left the latch \(15 of turn or 18 of) Tj ET
+BT 1 0 0 1 70.69 453.89 Tm /F1 10.50 Tf (tilt\), and a cover or a tab switch over the camera during a review no longer brings) Tj ET
+BT 1 0 0 1 70.69 439.89 Tm /F1 10.50 Tf (the level marker and the "Face the shelf" / "Level the phone" instructions back with) Tj ET
+BT 1 0 0 1 70.69 425.89 Tm /F1 10.50 Tf (it.) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 407.89 Tm (v1.7.29) Tj ET
+BT 1 0 0 1 56.69 389.89 Tm /F1 10.50 Tf (No initialiser changes and no removals. New APIs are additive.) Tj ET
+BT 1 0 0 1 56.69 369.89 Tm /F1 10.50 Tf (New APIs: `NLCaptureMode.puzzle` \(section 9\); `NLMultiBayResult.layout`) Tj ET
+BT 1 0 0 1 56.69 355.89 Tm /F1 10.50 Tf (\(`NLMultiBayLayout`\) and `.tiles` \(`NLMultiBayTile`, `NLPlaneRect`\) and) Tj ET
+BT 1 0 0 1 56.69 341.89 Tm /F1 10.50 Tf (`NLMergedProduct.sourceDetectionIds` \(section 9\); `layout` and `tiles` on the bridge's) Tj ET
+BT 1 0 0 1 56.69 327.89 Tm /F1 10.50 Tf (`NLNativeMultiBayResultSummary` \(`NLNativeMultiBayTile`\);) Tj ET
+BT 1 0 0 1 56.69 313.89 Tm /F1 10.50 Tf (`NLCameraConfiguration.arProductMarkers` with `NLARProductMarkerStyle` \(section 13\);) Tj ET
+BT 1 0 0 1 56.69 299.89 Tm /F1 10.50 Tf (and the `NLTheme` presets `NLTheme.ziaLens` \(the default\) and `NLTheme.neutral` \(the) Tj ET
+BT 1 0 0 1 56.69 285.89 Tm /F1 10.50 Tf (opt-out\), its tokens, font providers and `NLTypeRole` \(section 14, "Theming the SDK) Tj ET
+BT 1 0 0 1 56.69 271.89 Tm /F1 10.50 Tf (screens"\). A host that switches over `NLCaptureMode` without `@unknown default` needs) Tj ET
+BT 1 0 0 1 56.69 257.89 Tm /F1 10.50 Tf (the `.puzzle` case.) Tj ET
+BT 1 0 0 1 56.69 237.89 Tm /F1 10.50 Tf (Behaviour changes, with no opt-in:) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 217.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 217.89 Tm /F1 10.50 Tf (The default look is the ZIA Lens v3 design system: `NLTheme.current` and the AR) Tj ET
+BT 1 0 0 1 70.69 203.89 Tm /F1 10.50 Tf (capture camera's chrome change colour, shape and glyphs. To keep the previous look,) Tj ET
+BT 1 0 0 1 70.69 189.89 Tm /F1 10.50 Tf (set `NLTheme.current = .neutral` once at setup \(section 14\). The bridge has no theme) Tj ET
+BT 1 0 0 1 70.69 175.89 Tm /F1 10.50 Tf (field, so a WebView or Cordova app opts out in its native layer.) Tj ET
+BT /F1 10.50 Tf 1 0 0 1 56.69 157.89 Tm (-) Tj ET
+BT 1 0 0 1 70.69 157.89 Tm /F1 10.50 Tf (The AR screen takes the recognition lab's guidance chrome: the instruction sits in) Tj ET
+BT 1 0 0 1 70.69 143.89 Tm /F1 10.50 Tf (the middle of the screen, a level marker shows square and level, and the copy reads) Tj ET
+BT 1 0 0 1 70.69 129.89 Tm /F1 10.50 Tf ("Step left" / "Step right" and "Capture".) Tj ET
+BT /F2 11.50 Tf 1 0 0 1 56.69 111.89 Tm (v1.7.28) Tj ET
+BT 1 0 0 1 56.69 93.89 Tm /F1 10.50 Tf (No initialiser changes and no removals. New APIs are additive.) Tj ET
 endstream
 endobj
 7 0 obj
@@ -2361,83 +2370,83 @@ xref
 0000000085 00000 n 
 0000000160 00000 n 
 0000000228 00000 n 
-0000004698 00000 n 
-0000004851 00000 n 
-0000009852 00000 n 
-0000010005 00000 n 
-0000015685 00000 n 
-0000015838 00000 n 
-0000021459 00000 n 
-0000021614 00000 n 
-0000027224 00000 n 
-0000027379 00000 n 
-0000033376 00000 n 
-0000033531 00000 n 
-0000039257 00000 n 
-0000039412 00000 n 
-0000044782 00000 n 
-0000044937 00000 n 
-0000050789 00000 n 
-0000050944 00000 n 
-0000056559 00000 n 
-0000056714 00000 n 
-0000061265 00000 n 
-0000061420 00000 n 
-0000066294 00000 n 
-0000066449 00000 n 
-0000071630 00000 n 
-0000071785 00000 n 
-0000077485 00000 n 
-0000077640 00000 n 
-0000083070 00000 n 
-0000083225 00000 n 
-0000086637 00000 n 
-0000086792 00000 n 
-0000091703 00000 n 
-0000091858 00000 n 
-0000097699 00000 n 
-0000097854 00000 n 
-0000104048 00000 n 
-0000104203 00000 n 
-0000110175 00000 n 
-0000110330 00000 n 
-0000116239 00000 n 
-0000116394 00000 n 
-0000121826 00000 n 
-0000121981 00000 n 
-0000128083 00000 n 
-0000128238 00000 n 
-0000134653 00000 n 
-0000134808 00000 n 
-0000140445 00000 n 
-0000140600 00000 n 
-0000146675 00000 n 
-0000146830 00000 n 
-0000152520 00000 n 
-0000152675 00000 n 
-0000157716 00000 n 
-0000157871 00000 n 
-0000163912 00000 n 
-0000164067 00000 n 
-0000169962 00000 n 
-0000170117 00000 n 
-0000176338 00000 n 
-0000176493 00000 n 
-0000182985 00000 n 
-0000183140 00000 n 
-0000189396 00000 n 
-0000189551 00000 n 
-0000195330 00000 n 
-0000195485 00000 n 
-0000200425 00000 n 
-0000200580 00000 n 
-0000206165 00000 n 
-0000206320 00000 n 
-0000209271 00000 n 
-0000209426 00000 n 
-0000209735 00000 n 
+0000005100 00000 n 
+0000005253 00000 n 
+0000010872 00000 n 
+0000011025 00000 n 
+0000016705 00000 n 
+0000016858 00000 n 
+0000022479 00000 n 
+0000022634 00000 n 
+0000028244 00000 n 
+0000028399 00000 n 
+0000034396 00000 n 
+0000034551 00000 n 
+0000040277 00000 n 
+0000040432 00000 n 
+0000045802 00000 n 
+0000045957 00000 n 
+0000051809 00000 n 
+0000051964 00000 n 
+0000057579 00000 n 
+0000057734 00000 n 
+0000062285 00000 n 
+0000062440 00000 n 
+0000067314 00000 n 
+0000067469 00000 n 
+0000072650 00000 n 
+0000072805 00000 n 
+0000078505 00000 n 
+0000078660 00000 n 
+0000084090 00000 n 
+0000084245 00000 n 
+0000087657 00000 n 
+0000087812 00000 n 
+0000092723 00000 n 
+0000092878 00000 n 
+0000098719 00000 n 
+0000098874 00000 n 
+0000105068 00000 n 
+0000105223 00000 n 
+0000111195 00000 n 
+0000111350 00000 n 
+0000117259 00000 n 
+0000117414 00000 n 
+0000122846 00000 n 
+0000123001 00000 n 
+0000129103 00000 n 
+0000129258 00000 n 
+0000135673 00000 n 
+0000135828 00000 n 
+0000141465 00000 n 
+0000141620 00000 n 
+0000147695 00000 n 
+0000147850 00000 n 
+0000153540 00000 n 
+0000153695 00000 n 
+0000158736 00000 n 
+0000158891 00000 n 
+0000164932 00000 n 
+0000165087 00000 n 
+0000170982 00000 n 
+0000171137 00000 n 
+0000177358 00000 n 
+0000177513 00000 n 
+0000184005 00000 n 
+0000184160 00000 n 
+0000190416 00000 n 
+0000190571 00000 n 
+0000196350 00000 n 
+0000196505 00000 n 
+0000201445 00000 n 
+0000201600 00000 n 
+0000207185 00000 n 
+0000207340 00000 n 
+0000210291 00000 n 
+0000210446 00000 n 
+0000210755 00000 n 
 trailer
 << /Size 80 /Root 79 0 R >>
 startxref
-209786
+210806
 %%EOF

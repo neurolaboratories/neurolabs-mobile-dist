@@ -11,6 +11,23 @@ listed here come from the underlying `neurolabs-android-sdk` and
 `scripts/prepare-sdk.js` at install time. No public JS API has been broken
 since v1.1.9.
 
+### v1.7.32
+- Plugin pins the native SDKs' 1.7.32 on both platforms. Nothing is removed
+  from the plugin's API, nothing is added to it, and nothing is required of a
+  host.
+- On-device recognition now keeps the best products when your organisation
+  uses several reference images per product: the search looks at ten rows per
+  requested match on both platforms. Organisations with one reference per
+  product see the same matches as before.
+- Several reference images per product are switched on by Neurolabs, and only
+  for an organisation whose minimum SDK version is 1.7.32 or later. A device
+  on an older SDK in that organisation skips on-device recognition until it is
+  upgraded; an app built on this plugin version carries SDK 1.7.32.
+- Handheld photo walks of a wall of repeated facings now merge on Android as
+  well, as they did on iOS from 1.7.31: adjacent bays register in the
+  background while the rep walks, so "Review shelf" and the finish no longer
+  register every pair at the end.
+
 ### v1.7.31
 - Plugin pins the native SDKs' 1.7.31 on both platforms. Nothing is removed
   from the plugin's API, nothing is added to it, and nothing is required of a
@@ -926,7 +943,7 @@ each one in this order:
 3. the SDK default: a **4032 px long edge at JPEG quality 0.9** (native SDK
    1.7.16).
 
-The plugin pins native 1.7.31 (the default dates from 1.7.16), so on both platforms an omitted value means
+The plugin pins native 1.7.32 (the default dates from 1.7.16), so on both platforms an omitted value means
 4032 px at 0.9 unless your organisation overrides it. Invalid values (`<= 0`, or a
 quality outside `0..1`) reject with `INVALID_ARGUMENT` on both platforms.
 

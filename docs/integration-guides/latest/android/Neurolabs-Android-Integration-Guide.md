@@ -11,6 +11,19 @@ working as is. Recommended defaults: strict shelf guidance with
 `validationPreset = IOS_PARITY`, `liveQualityChecksEnabled = true`,
 `autoCloseAfterCapture = true` for single-capture parity flows.
 
+### v1.7.32
+No `NLConfiguration` changes, no removals and no new APIs; `apiCheck` passes.
+
+Behaviour changes, with no opt-in: the on-device search window is now
+`topK x 10` rows (it was `topK x 5`), so an organisation whose products carry
+several reference images still gets `topK` distinct matches; an organisation
+gets more than one reference per product only once its minimum SDK version is
+1.7.32 or later, and an older SDK in that organisation skips on-device
+recognition. A multi-bay walk registers each adjacent bay pair in the
+background while the rep walks and matches keypoints on a wall of repeated
+facings; a walk merge that overruns its 4 s budget is discarded in favour of
+the per-bay sums.
+
 ### v1.7.31
 No `NLConfiguration` changes and no removals. New APIs are additive and
 binary-compatible (the previous constructor and `copy` of three classes stay

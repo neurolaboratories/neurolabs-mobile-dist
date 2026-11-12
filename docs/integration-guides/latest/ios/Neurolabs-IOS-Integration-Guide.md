@@ -14,6 +14,18 @@ custom-camera flows that need a minimum capture count and a higher
 maximum cap. `showsCapturedCountLabel` hides the `N captured` chip in
 custom camera and multi-capture flow UIs.
 
+### v1.7.32
+No initialiser changes, no removals and no new APIs.
+
+Behaviour change, with no opt-in: the on-device search window is `topK x 10`
+rows (it was `topK x 8`), so a snapshot whose products carry up to 10
+references each still returns `topK` distinct products, each scored by its
+best reference. Snapshots with one reference per product return the same
+matches as before. Nothing to change in the host app. An organisation gets
+more than one reference per product only once its minimum SDK version is
+1.7.32 or later, and an older SDK in that organisation skips on-device
+recognition.
+
 ### v1.7.31
 No initialiser changes and no removals. New APIs are additive.
 
