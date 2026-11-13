@@ -34,6 +34,17 @@
           "checksum_sha256": "a2f3c39bb97cfd19c7e4f91233367f081cba348103cdb93586994a9fad54b471"
         }
       }
+    },
+    "android": {
+      "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.33/neurolabs-android-sdk-v1.7.33.aar",
+      "checksum_sha256": "870954fb84dfcf0a9ad077f06105c2b19a83906a9faa97e3f9a9f156f32cd602",
+      "maven": {
+        "repository_url": "https://maven.pkg.github.com/neurolaboratories/neurolabs-mobile-dist",
+        "group_id": "ai.neurolabs",
+        "artifact_id": "neurolabs-android-sdk",
+        "version": "1.7.33",
+        "packaging": "aar"
+      }
     }
   }
 }
