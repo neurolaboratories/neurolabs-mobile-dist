@@ -11,6 +11,24 @@ listed here come from the underlying `neurolabs-android-sdk` and
 `scripts/prepare-sdk.js` at install time. No public JS API has been broken
 since v1.1.9.
 
+### v1.7.33
+- Plugin pins the native SDKs' 1.7.33 on both platforms. Nothing is removed
+  from the plugin's API, nothing is added to it, and nothing is required of a
+  host.
+- On Android, a photo upload that the server answers with 413, 422 or another
+  4xx the SDK does not map (408 too) now fails after one attempt instead of
+  backing off and retrying, as it already did on iOS. The `uploadFailed` error
+  code is still `HTTP_ERROR`, and 429 and 5xx are still retried. If your app
+  retried on a 422 itself, check that its handling still fits.
+- On Android, an interrupted upload whose completion the server refuses as
+  `submission_mismatch` or `submission_not_found` now starts a fresh upload on
+  the next attempt instead of replaying the same error, and a session blocked
+  only by an unrelated failed photo now posts at the next upload success.
+  Nothing to change in your app.
+- The native SDKs add a mission-checklist upload API (Android) and a debug
+  capture dump (iOS) for Neurolabs' own apps. Neither is on the plugin's
+  API, and neither changes anything for a Cordova app.
+
 ### v1.7.32
 - Plugin pins the native SDKs' 1.7.32 on both platforms. Nothing is removed
   from the plugin's API, nothing is added to it, and nothing is required of a
@@ -943,7 +961,7 @@ each one in this order:
 3. the SDK default: a **4032 px long edge at JPEG quality 0.9** (native SDK
    1.7.16).
 
-The plugin pins native 1.7.32 (the default dates from 1.7.16), so on both platforms an omitted value means
+The plugin pins native 1.7.33 (the default dates from 1.7.16), so on both platforms an omitted value means
 4032 px at 0.9 unless your organisation overrides it. Invalid values (`<= 0`, or a
 quality outside `0..1`) reject with `INVALID_ARGUMENT` on both platforms.
 

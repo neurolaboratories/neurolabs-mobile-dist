@@ -14,6 +14,16 @@ custom-camera flows that need a minimum capture count and a higher
 maximum cap. `showsCapturedCountLabel` hides the `N captured` chip in
 custom camera and multi-capture flow UIs.
 
+### v1.7.33
+No initialiser changes and no removals. The new API is additive.
+
+New API: `NLSDKDebug.captureDumpDirectory: URL?`, a debug tool for the ML
+team, `nil` by default. While a host sets it, each AR shutter writes one
+folder under it (the still, the video frame, depth, pose and intrinsics), and
+the SDK never prunes those folders. With `nil` nothing is written and the AR
+session requests exactly what it did before. Partner builds do not set it.
+Nothing to change in the host app.
+
 ### v1.7.32
 No initialiser changes, no removals and no new APIs.
 

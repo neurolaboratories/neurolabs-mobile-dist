@@ -11,6 +11,36 @@ working as is. Recommended defaults: strict shelf guidance with
 `validationPreset = IOS_PARITY`, `liveQualityChecksEnabled = true`,
 `autoCloseAfterCapture = true` for single-capture parity flows.
 
+### v1.7.33
+No `NLConfiguration` changes and no removals. New APIs are additive and
+binary-compatible (the previous `NLCaptureContext` and `NLQueuedSession`
+constructors and `copy` stay as hidden overloads); `apiCheck` passes.
+
+Behaviour changes, with no opt-in: a photo upload answered 413, 422 or any
+other unmapped 4xx (408 too) fails after one attempt instead of backing off
+and retrying, and keeps the server's body in the error message, as on iOS; a
+foreground return, a network return or a relaunch can still revive the failed
+photo, one attempt each; a mission submit answered with such a status behaves
+as before; the error code is still `HTTP_ERROR`, and 429 and 5xx stay
+retryable. An interrupted upload's resume state is dropped when its complete
+is answered 403 `submission_mismatch` or 400 `submission_not_found`, so the
+next attempt runs a fresh init-resumable. The resumed complete now also sends
+the init's `subsection_id`, as the fresh complete does. An owed session
+blocked only by an unrelated failed photo now posts at the next upload
+success.
+
+For a host that submits to checklist missions through the SDK:
+`NLCaptureContext.checklistItemId`, the extension functions
+`NeurolabsSDKCore.setChecklistResults(sessionId, results, requestId)` (results
+are `NLChecklistResult`) and `NeurolabsSDKCore.reopenChecklistSession(sessionId)`,
+and the types `NLChecklistResult` and `NLChecklistRefusal` are new, and a final
+checklist refusal shows on `NLQueuedSession.checklistRefusal`. A session
+without checklist results submits the same body as 1.7.32. A host that calls
+`setChecklistResults` has its results, notes and request id kept in
+`session-checklists.json` in the SDK's app-private, backup-excluded queue
+directory until the submit is accepted or the session is discarded; notes are
+never logged. None of this is on the Cordova bridge.
+
 ### v1.7.32
 No `NLConfiguration` changes, no removals and no new APIs; `apiCheck` passes.
 
