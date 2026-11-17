@@ -14,6 +14,36 @@ custom-camera flows that need a minimum capture count and a higher
 maximum cap. `showsCapturedCountLabel` hides the `N captured` chip in
 custom camera and multi-capture flow UIs.
 
+### v1.7.34
+No initialiser changes and no removals. New APIs are additive.
+
+New APIs: `NLCameraConfiguration.hardwareShutterEnabled` (default `true`) and
+`NLNativeCaptureConfig.hardwareShutterEnabled`; `NLNativeCaptureConfig.leftHandedLayout`;
+`NLCaptureMetadata.contractBody()` and `NLCustomCameraCapture.captureMetadataFileURL`;
+`NLFacingCount`; `NLSDKDebug.shelfReviewOrgFloorDetail` (default `false`); and the
+error code `INSUFFICIENT_MEMORY` of `detectWithMasks` (see "Detection with
+segmentation masks"). All of them are new members, new types or a new code,
+and none is an `init` parameter, so no existing call changes.
+
+Behaviour changes, with no opt-in:
+- Public `detect` and `detectWithMasks` run at confidence 0.35 and IoU 0.45 on
+  every call, as on Android. They used to run at the thresholds the last
+  capture set, and at 0.5 and 0.5 before any capture.
+- `NLReviewPanel.kpis(...)` returns `Kpi.label` texts "Fill rate", "Presence",
+  "Slots", "Missing", "Out of stock (items)", "Extra" and "Gaps" (they were
+  lower case, and "OOS"); a host that reads or keys tiles by label must use
+  them.
+- `detectWithMasks` throws `MASKS_NOT_SUPPORTED` for a model without a mask head
+  (it threw `OUTPUT_ERROR`), the retryable `INSUFFICIENT_MEMORY` when the masks
+  would not fit, `INVALID_ARGUMENT` for a negative or oversized size (it
+  crashed), and a non-retryable `MODEL_NOT_LOADED` after a failed load, which
+  `detect` throws too. Cancelling the calling task throws `CancellationError`
+  between masks.
+- The AR "Review shelf" screen's "On this shelf" text says how many facings were
+  recognised, or why none were. Upload payloads are unchanged.
+
+The dot capture mode is not part of this release.
+
 ### v1.7.33
 No initialiser changes and no removals. The new API is additive.
 
@@ -801,7 +831,16 @@ What the operations upload carries:
   `NLConfiguration.captureDepth`. Both default off. It goes up from its own
   retrying outbox and never holds up the photo or the submit. Your app reads
   the same record on `NLNativeCaptureResult.captureMetadata` and
-  `NLCustomCameraCapture.captureMetadata`.
+  `NLCustomCameraCapture.captureMetadata`. An app that uploads the photos
+  itself reads, with `NLCaptureMetadata.contractBody()` (JSON `Data`), exactly
+  the body the SDK's queue would send for that capture: location only when the
+  rep's recorded consent allowed it, and no depth, as the depth reference
+  exists only after the SDK's own depth upload. It finds the same body as a
+  file beside the staged photo at `NLCustomCameraCapture.captureMetadataFileURL`.
+  The file lives in the staged photo's temporary folder as long as that folder
+  does, goes where the SDK deletes the staged photo (retake, delete, Save,
+  Save All), and does not follow a capture the SDK recovers after an app
+  kill. After a crop of an accepted bay it describes the crop.
 - Per session: the mission submit's `client_metadata.device_dedup` summary
   for a multi-bay session (section 9).
 
@@ -918,6 +957,51 @@ config.showsOfflineIndicator = false // default true
 
 On the bridge, `showsOfflineIndicator` (`Bool?`) on `NLNativeCaptureOptions`
 and `NLNativeCaptureConfig` resolves options, then config, then `true`.
+
+### Volume-button shutter: hardwareShutterEnabled
+
+On the AR capture screen, while it shows AR guidance (guided multi-photo or
+multi-bay with alignment guidance, continuous, puzzle), either volume button
+presses the shutter whenever the shutter is on screen (iOS 17.2 and later,
+`AVCaptureEventInteraction`). It works with gloves and in a two-handed grip,
+and fires on release, so a held button takes one photo. The buttons keep
+their volume role:
+
+- on the default camera;
+- on the AR camera without AR guidance (a single-photo plan, or
+  `showAlignmentGuidance = false` outside continuous and puzzle);
+- in continuous mode, unless the shutter comes back because the pose was
+  lost or the phone is critically hot;
+- while a photo is pending, the final review is open or photos are being
+  saved.
+
+Set `hardwareShutterEnabled = false` to keep the volume role on the AR
+guidance screen too.
+
+```swift
+config.hardwareShutterEnabled = false // default true
+```
+
+On the bridge, `hardwareShutterEnabled` (`Bool?`) on `NLNativeCaptureConfig`
+resolves to `true` when absent. It is config only: `NLNativeCaptureOptions`
+does not carry it. Android has the same field with the same default and the
+same wire key on `NLCameraConfiguration` and `NLNativeCaptureConfig`.
+
+### Left-handed layout: leftHandedLayout
+
+`leftHandedLayout` mirrors the capture screen's bottom row for a left-handed
+rep: Done and the thumbnail stack swap sides. The shutter stays centred, and
+the guidance chevrons, guidelines and dock never mirror, because they point
+where the rep has to go.
+
+```swift
+config.leftHandedLayout = true // default false
+```
+
+On the bridge, `leftHandedLayout` (`Bool?`) on `NLNativeCaptureConfig`
+resolves to `false` when absent. It is config only: `NLNativeCaptureOptions`
+does not carry it. Android has the same field with the same default and the
+same wire key on `NLCameraConfiguration` and `NLNativeCaptureConfig`.
 
 ### Capture image size (v1.7.16)
 
@@ -1809,6 +1893,75 @@ let preview = try await sdk.computeVisitKPIs(forSession: sessionId, context: nil
 The SDK's screens read `NLTheme.current`, and its default is the ZIA Lens v3 design system (orange action colour, ink text, 8/16 pt radii); the SDK ships no fonts, so Geist, Geist Mono and Plus Jakarta Sans are used only when your app registers them, and the system faces stand in otherwise. To keep the look from before Lens v3, set `NLTheme.current = .neutral` once at setup, or assign your own `NLTheme`. For a partial override start from a preset, `var t = NLTheme.neutral; t.tint = myColor; NLTheme.current = t`, because `NLTheme(tint: myColor)` fills every other token with the Lens defaults. `success`, `info`, `warning` and `danger` are a separate signal palette (green, blue, orange, red) for detection boxes and status tones, and `NLTypeRole` with `theme.font(.body)` gives the Lens type ramp with Dynamic Type. Text on the action colour follows `onTint` (automatic: ink, or white when ink would not reach 4.5:1 against your `tint`). Your own `textFont` and `monoFont` closures serve the fixed-size calls `textFont(size:weight:)` and `monoFont(size:weight:)`; the Dynamic Type calls (`theme.font(...)` and the `relativeTo:` overloads) never call them: they use the brand faces when registered, or the system faces scaled with Dynamic Type when you set `usesBrandFaces = false`. The AR capture camera follows the theme too: by default it draws the Lens v3 chrome (the `surfaceCamera` plate, the orange CTA with ink text, orange progress and in-position, Lucide glyphs); under `NLTheme.neutral` it restores the previous camera (the `#101215` plate, cyan progress, green ready, the white capsule Finish / Done and the previous radii) with the Lucide glyphs and the system faces. The standard (non-AR) camera's guidance keeps its own colours either way. From v1.7.30 the AR review follows the theme too: "Review shelf" for a walk or a puzzle, and the bay pager it opens, draw Lens's light "Review the photos" page by default (Ghost White ground, surface cards, ink text, Submit as the one orange button, outlined secondary buttons), and under `NLTheme.neutral` keep the dark review. The standard camera's final review stays dark either way.
 
 **Fonts come from the host.** The SDK ships no font files. It uses a face only if your app registered it, by these PostScript names: `Geist-Regular`, `Geist-Medium`, `Geist-SemiBold`, `Geist-Bold` (Geist 400/500/600/700), `GeistMono-Regular`, `GeistMono-Medium`, `GeistMono-SemiBold` (Geist Mono 400/500/600) and `PlusJakartaSans-Bold` (Plus Jakarta Sans 700); add the `.ttf` files to your app target and list them under `UIAppFonts` in your Info.plist. The demo app does exactly this (`Examples/NLBDemoApp/NLBDemoApp/Fonts/`, with the families' SIL OFL 1.1 licences beside them); keep each family's licence with the fonts you ship.
+
+### Detection with segmentation masks
+
+`detectWithMasks(imageData:width:height:)` runs the SDK's detector on an
+encoded image and returns each detection with its instance mask. It is the
+same call as Android `detectWithMasks(imageData, width, height)`, with the
+same inputs, result and error codes.
+
+```swift
+let results: [NLDetectionWithMask] = try await sdk.detectWithMasks(imageData: jpegData, width: width, height: height)
+for item in results {
+    let box = item.detection.polygon.boundingBox  // normalised [0, 1], top-left origin, as detect returns it
+    let mask = item.maskData                      // item.maskWidth * item.maskHeight bytes, row-major
+    let on = mask?.first == 255                   // on is 255, off is 0
+}
+```
+
+- `width` and `height` are the image's stored pixel size. Each mask is that
+  size after the image's EXIF orientation, so an orientation of 5 to 8 swaps
+  them, and the mask lines up with the detection's box.
+- A pixel is on where the mask's sigmoid is above 0.5 inside the detection's
+  box. The mask is computed at the model's prototype resolution and scaled to
+  the image, nearest neighbour. A frame with no detections returns an empty
+  array.
+- Thresholds: confidence 0.35, IoU 0.45 (`NLDetectionOptions.default`), the
+  same as `detect(imageData:width:height:)` and as Android; the capture
+  screen's own thresholds never change them.
+- Inference runs on the detector's actor, off the caller's thread. Cancelling
+  the calling task stops between masks: the call throws Swift
+  `CancellationError`, not an `NLError`.
+- **Memory.** Each mask is `width × height` bytes, so a call needs
+  `detections × width × height` bytes: 4032 × 3024 is about 12.2 MB a mask,
+  20 masks about 244 MB. The masks are nearest-neighbour upscales of a
+  160 × 160 (640 model) or 240 × 240 (960 model) prototype grid, so an image
+  above about 1280 px on its long side adds bytes, not detail. Send a long
+  side of at most 1280 px. Before the first mask the call checks that the
+  masks take at most half the memory the app can still allocate
+  (`os_proc_available_memory()`), and throws `INSUFFICIENT_MEMORY` if not.
+  When available memory is unknown (0 or less; the Simulator reports 0, as it
+  has no memory limit) the check passes.
+
+Errors are thrown as `NLError`; read `error.errorCode`:
+
+| Code | When | Retryable |
+|---|---|---|
+| `MASKS_NOT_SUPPORTED` | The running model has no mask head, on every call | No |
+| `INSUFFICIENT_MEMORY` | The masks would take more than half the available memory (the message gives the arithmetic: send a smaller image; when available memory is unknown, 0 or less, the check passes) | Yes |
+| `DETECTOR_UNAVAILABLE` | The downloaded detector is not on the device yet, including while the SDK downloads it again after it would not load | Yes |
+| `MODEL_NOT_LOADED` | While the detector's model is still loading | Yes |
+| `MODEL_NOT_LOADED` | After the detector failed to load for good ("The detector failed to load") | No |
+| `OUTPUT_ERROR` | The running model has no detection output the SDK recognises | No |
+| `IMAGE_ERROR` | The bytes do not decode as an image | No |
+| `INVALID_ARGUMENT` | `width` or `height` is negative, or `width * height` is over 2,147,483,647 (Android's `Int.MAX_VALUE`) | No |
+
+The checks run in this order, and when more than one condition holds the first is reported: the arguments (`INVALID_ARGUMENT`), then whether the detector can produce masks at all (`MASKS_NOT_SUPPORTED` for a detector with no mask support), then its state (`DETECTOR_UNAVAILABLE`, `MODEL_NOT_LOADED`), then the image bytes (`IMAGE_ERROR`), then the inference (`OUTPUT_ERROR`, `MASKS_NOT_SUPPORTED` for a model without a mask head, `INSUFFICIENT_MEMORY`).
+
+After the detector failed to load for good, `detect` throws the same
+non-retryable `MODEL_NOT_LOADED`, as Android's `detect` does from 1.7.34 for a
+model that failed to load during `initialize`.
+
+On Android `INSUFFICIENT_MEMORY` also covers a frame its detector dropped for
+lack of memory, from `detectWithMasks` and, from 1.7.34, from `detect`. The iOS
+detector never drops a frame, so that case does not arise here.
+
+`MASKS_NOT_SUPPORTED` is not a client-configuration code
+(`isClientConfiguration` is false), as on Android: it can mean the SDK served
+a model without a mask head, which the SDK's Sentry must see.
+`INSUFFICIENT_MEMORY` is one (`isClientConfiguration` is true), like
+`STORAGE_LOW`: a device condition you cure with a smaller image.
 
 ### Telemetry and privacy (Sentry)
 

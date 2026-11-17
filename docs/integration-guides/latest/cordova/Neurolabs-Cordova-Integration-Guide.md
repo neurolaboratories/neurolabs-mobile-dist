@@ -11,6 +11,29 @@ listed here come from the underlying `neurolabs-android-sdk` and
 `scripts/prepare-sdk.js` at install time. No public JS API has been broken
 since v1.1.9.
 
+### v1.7.34
+- Plugin pins the native SDKs' 1.7.34 on both platforms. Nothing is removed
+  from the plugin's API, nothing is added to it, and nothing is required of a
+  host.
+- Optional string options now read the same on both platforms: a JSON `null`,
+  a blank string or a non-string value counts as absent (see "Optional string
+  options" in section 6). On Android, `openCamera({ sessionId: null })` used to
+  open a session called "null" and `taskUUID: null` sent the task "null"; both
+  now behave as if the option were left out, as they always did on iOS. If your
+  app relied on that, check its handling.
+- The SDK's own screens change a little, with no code change on your side: the
+  review strip's tiles use the seven confirmed names ("Fill rate", "Presence",
+  "Slots", "Missing", "Out of stock (items)", "Extra", "Gaps"), the AR "Review
+  shelf" screen's "On this shelf" panel says how many facings were recognised
+  or why none were, and on Android the volume keys behave normally while photos
+  are saving or being reviewed. Events and upload payloads are unchanged.
+- The native SDKs change what their public `detect` call does (Android now
+  reports a dropped frame or a failed load as an error, iOS uses the same
+  default thresholds as Android). The plugin has no `detect` call, so this does
+  not reach a Cordova app. The native debug capture dump (iOS) and the
+  host-upload metadata API are not on the plugin's API either, and the dot
+  capture mode is not in this release.
+
 ### v1.7.33
 - Plugin pins the native SDKs' 1.7.33 on both platforms. Nothing is removed
   from the plugin's API, nothing is added to it, and nothing is required of a
@@ -947,6 +970,47 @@ photos on cellular. It never blocks the shutter, and it hides while the
 network state is unknown or uploads are off. It is on by default;
 `showsOfflineIndicator: false` hides it.
 
+### Capture strip (`showCaptureStrip`)
+
+`showCaptureStrip: true` adds a horizontal strip of thumbnails along the
+bottom of the camera preview. It shows every photo accepted so far in the
+session, and each tile has its own delete button, so a rep can drop a bad shot
+without opening the review. It helps most with `showCapturePreview: false`,
+where there is otherwise no way to discard a photo before the end. It is off by
+default.
+
+```js
+await Neurolabs.openCamera({
+  cameraMode: 'default',
+  showCapturePreview: false,
+  showCaptureStrip: true,
+});
+```
+
+The strip belongs to the default camera, on iOS and Android alike. On the AR
+camera the platforms differ today:
+
+- Android draws the strip on the AR camera too.
+- iOS does not draw it while its AR guidance screen is up: continuous or
+  puzzle capture, or a sequence or multi-bay capture with alignment guidance,
+  except on the ultra-wide (0.5x) lens, where iOS shows the strip. iOS shows
+  its own thumbnail stack instead of the strip while the guidance is up.
+- Both natives' `multiBayAR` preset turns the strip on, and a value you pass
+  wins. The preset's normal guided flow on the main lens is the iOS case
+  above, so with no value passed Android shows the strip and iOS on the main
+  lens does not. Pass `showCaptureStrip: false` to have no strip on Android
+  under the preset.
+
+### Optional string options
+
+Optional string options (`sessionId`, `taskUUID`, `cameraMode`,
+`guidanceMode`, `validationPreset`, `guidanceStyle`, `type` / `captureType` /
+`shelfType`, `init`'s `taskUUID`, and the ids of `getPhoto` / `deletePhoto`)
+read a JSON `null`, a blank (empty or whitespace-only) string or a non-string
+value as absent, the same on iOS and Android. A real `sessionId` or `taskUUID`
+is forwarded exactly as given, not trimmed. `addListener` answers "Event name
+required" for a null, blank or non-string name on both platforms.
+
 ### Image size and quality
 
 `maxImageDimension` (long edge, px), `maxImageWidth`, `maxImageHeight` (px,
@@ -961,7 +1025,7 @@ each one in this order:
 3. the SDK default: a **4032 px long edge at JPEG quality 0.9** (native SDK
    1.7.16).
 
-The plugin pins native 1.7.33 (the default dates from 1.7.16), so on both platforms an omitted value means
+The plugin pins native 1.7.34 (the default dates from 1.7.16), so on both platforms an omitted value means
 4032 px at 0.9 unless your organisation overrides it. Invalid values (`<= 0`, or a
 quality outside `0..1`) reject with `INVALID_ARGUMENT` on both platforms.
 

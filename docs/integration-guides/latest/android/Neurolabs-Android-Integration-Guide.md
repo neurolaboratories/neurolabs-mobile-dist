@@ -11,6 +11,47 @@ working as is. Recommended defaults: strict shelf guidance with
 `validationPreset = IOS_PARITY`, `liveQualityChecksEnabled = true`,
 `autoCloseAfterCapture = true` for single-capture parity flows.
 
+### v1.7.34
+No `NLConfiguration` changes and no removals. New APIs are additive and
+binary-compatible; the previous signatures are unchanged and `apiCheck`
+passes.
+
+New APIs: `NeurolabsSDKCore.detectWithMasks(imageData, width, height)` (with
+the error codes `MASKS_NOT_SUPPORTED` and `INSUFFICIENT_MEMORY`; see "Detection
+with segmentation masks"), `NLCaptureMetadata.contractBody()`,
+`CapturedImageData.captureMetadata` and `CapturedImageData.captureMetadataFilePath`
+(the capture metadata contract body, and the `<image>.metadata.json` file the
+SDK writes beside each capture, for a host that uploads its photos itself),
+`NLFacingCount` (the one facing count of a photo) and
+`NLSDKDebug.shelfReviewOrgFloorDetail` (off by default).
+
+Behaviour changes, with no opt-in:
+
+- `NeurolabsSDKCore.detect` (all four overloads) throws `NLErrorException` with
+  `INSUFFICIENT_MEMORY` (retryable) for a frame the detector dropped for lack of
+  memory, where it returned an empty list, and with a non-retryable
+  `MODEL_NOT_LOADED` after the detector failed to load, where it returned two
+  placeholder detections. The signatures do not change, so your code still
+  compiles; a host that does not catch `NLErrorException` now sees the
+  exception. Wrap the call in a catch, skip the frame on a retryable error and
+  stop calling `detect` on `MODEL_NOT_LOADED`; see "Errors from `detect`".
+  `detectForAR` (experimental) throws the same `MODEL_NOT_LOADED` after a failed
+  load.
+- The `Kpi.label` texts of `NLReviewPanel.kpis(...)` change to the seven
+  confirmed names: "Fill rate", "Presence", "Slots", "Missing", "Out of stock
+  (items)", "Extra" and "Gaps". "OOS" now reads "Out of stock (items)". A host
+  that reads or keys tiles by label text must update it.
+- The volume keys keep their volume role while photos are saving or being
+  reviewed. The AR volume shutter used to consume them in states where it took
+  no photo.
+- The review tells the cases of a recognition pass apart ("R of N facings
+  recognised", "No confident matches", "Recognition did not run") and counts a
+  facing one way on every screen. A pass whose search threw now uploads its
+  detections without matches, as on iOS.
+- Closing the camera deletes the pending files of that session's own captures
+  only, and a constrained commit deletes the full-resolution pending spill once
+  the committed photo is written.
+
 ### v1.7.33
 No `NLConfiguration` changes and no removals. New APIs are additive and
 binary-compatible (the previous `NLCaptureContext` and `NLQueuedSession`
@@ -639,7 +680,7 @@ The queue's WorkManager drain keeps uploading while the app's process lives, als
 
 What the operations upload carries:
 - Per capture: the JPEG (the full frame, sized by `maxImageDimension` / `imageCompressionQuality`), with its task and bay (`subsection_name`).
-- Per capture, after the JPEG uploads: its capture metadata (capture contract v1, `PUT .../images/{imageId}/capture-metadata`), for captures the SDK camera took: shutter time, SDK/device/OS, camera mode, photo size, an EXIF subset (no GPS, no serial numbers), device attitude, camera intrinsics and, on the AR camera, its pose. The detector's boxes only with `sendDetectionsMetadata`. Location only with `NLConfiguration.captureGeolocation` AND a location permission your app declares (`ACCESS_FINE_LOCATION` or `ACCESS_COARSE_LOCATION`) and holds; the SDK declares none and never asks. The ARCore depth map only with `NLConfiguration.captureDepth`. Both default off. It goes up from its own retrying outbox and never holds up the photo or the submit. Your app reads the same record on `NLNativeCaptureResult.captureMetadata`.
+- Per capture, after the JPEG uploads: its capture metadata (capture contract v1, `PUT .../images/{imageId}/capture-metadata`), for captures the SDK camera took: shutter time, SDK/device/OS, camera mode, photo size, an EXIF subset (no GPS, no serial numbers), device attitude, camera intrinsics and, on the AR camera, its pose. The detector's boxes only with `sendDetectionsMetadata`. Location only with `NLConfiguration.captureGeolocation` AND a location permission your app declares (`ACCESS_FINE_LOCATION` or `ACCESS_COARSE_LOCATION`) and holds; the SDK declares none and never asks. The ARCore depth map only with `NLConfiguration.captureDepth`. Both default off. It goes up from its own retrying outbox and never holds up the photo or the submit. Your app reads the same record on `NLNativeCaptureResult.captureMetadata` and `CapturedImageData.captureMetadata`. An app that uploads the photos itself reads, with `NLCaptureMetadata.contractBody()` (UTF-8 bytes), exactly the body the SDK's queue would send for that capture. Location is in it only when the rep's recorded consent allowed it. Depth never is, as the depth reference exists only after the SDK's own depth upload. The app finds the same body as a file beside the photo at `CapturedImageData.captureMetadataFilePath` (`<image>.metadata.json`). Inside `onCapture` the file describes the photo as shot (or its crop) and equals `captureMetadata.contractBody()`. With `sendDetectionsMetadata` on, it lists the detector's boxes the photo was taken with. Copy it there with the photo. After `onCaptureComplete` it sits beside the committed photo and holds the committed record. The SDK deletes it where it deletes or moves the photo (retake, delete, crop, the teardown sweep, `releaseCapture`, `acknowledgeCaptures`, the 24-hour sweep). It does not follow a photo the SDK recovers after the process died. When the camera closes, the SDK deletes only that session's pending files, by capture id, never another session's. It is stored in the app's private storage: Android has no per-file protection class.
 - Per session: the mission submit's `client_metadata.device_dedup` summary for a multi-bay session (section 8).
 
 What stays on the device:
@@ -1338,6 +1379,109 @@ val preview = sdk.computeVisitKpis(sessionId, context = null,  // null: the cont
   fix-adjacency (N5) actions, are pinned byte for byte to zia-operations'
   58 shared layout rows. The engine already matched them, so nothing
   changes.
+
+### Detection with segmentation masks
+
+`detectWithMasks` runs the SDK's detector on an encoded image and returns each
+detection with its instance mask. It is the same call as iOS
+`detectWithMasks(imageData:width:height:)`, with the same inputs, result and
+error code. It is an extension on `NeurolabsSDKCore`
+(`import ai.neurolabs.sdk.core.detectWithMasks`).
+
+```kotlin
+val results: List<NLDetectionWithMask> = sdk.detectWithMasks(jpegBytes, width, height)
+for (item in results) {
+    val box = item.detection.bbox  // normalised [0, 1], top-left origin, as detect() returns it
+    val mask = item.maskData       // item.maskWidth * item.maskHeight bytes, row-major
+    val on = (mask[0].toInt() and 0xFF) == 255  // on is 0xFF.toByte() (-1 signed), off is 0
+}
+```
+
+- `width` and `height` are the image's stored pixel size. Each mask is that
+  size after the image's EXIF orientation, so an orientation of 5 to 8 swaps
+  them, and the mask lines up with the detection's box.
+- A pixel is on where the mask's sigmoid is above 0.5 inside the detection's
+  box. A box that crosses the frame edge is cropped with its full, unclamped
+  extent, as on iOS. The mask is computed at the model's prototype resolution
+  and scaled to the image, nearest neighbour.
+- Thresholds: confidence 0.35, IoU 0.45 (`NLDetectionOptions.DEFAULT`), the
+  same as `detect` and as iOS; the capture screen's own thresholds never change
+  them.
+- Image decoding, inference and mask decoding run on `Dispatchers.Default`.
+  Cancelling the calling coroutine stops between masks: the call throws
+  `CancellationException`, not an `NLErrorException`. A frame with no
+  detections returns an empty list.
+- **Memory.** Each mask is `width × height` bytes, so a call needs
+  `detections × width × height` bytes: 4032 × 3024 is about 12.2 MB a mask,
+  20 masks about 244 MB. The masks are nearest-neighbour upscales of a
+  160 × 160 (640 model) or 240 × 240 (960 model) prototype grid, so an image
+  above about 1280 px on its long side adds bytes, not detail. Send a long
+  side of at most 1280 px. Before the first mask the call checks that the
+  masks take at most half the free heap, and throws `INSUFFICIENT_MEMORY` if
+  not. When free memory is unknown (0 or less) the check passes.
+
+Errors are thrown as `NLErrorException`; read `error.errorCode`:
+
+| Code | When | Retryable |
+|---|---|---|
+| `MASKS_NOT_SUPPORTED` | The running model has no mask head, on every call | No |
+| `INSUFFICIENT_MEMORY` | The masks would take more than half the free heap (the message gives the arithmetic: send a smaller image; when free memory is unknown, 0 or less, the check passes), or the detector dropped the frame for lack of memory (try again) | Yes |
+| `DETECTOR_UNAVAILABLE` | The downloaded detector is not on the device yet, including while the SDK downloads it again after it would not load | Yes |
+| `MODEL_NOT_LOADED` | During a concurrent `initialize`, while the old detector is released and the new one is not in yet | Yes |
+| `MODEL_NOT_LOADED` | Before `initialize`, or after the detector failed to load for good ("The detector failed to load") | No |
+| `IMAGE_ERROR` | The bytes do not decode as an image | No |
+| `INVALID_ARGUMENT` | `width` or `height` is negative, or `width * height` is over `Int.MAX_VALUE` | No |
+
+The checks run in this order, and when more than one condition holds the first is reported: a released instance (`IllegalStateException`), then the arguments (`INVALID_ARGUMENT`), then whether the detector can produce masks at all (`MASKS_NOT_SUPPORTED` for a detector with no mask support), then its state (`DETECTOR_UNAVAILABLE`, `MODEL_NOT_LOADED`), then the image bytes (`IMAGE_ERROR`), then the inference (`MASKS_NOT_SUPPORTED` for a model without a mask head, `INSUFFICIENT_MEMORY`).
+
+After `release()` on this instance, `detectWithMasks` throws
+`IllegalStateException`, as the SDK's other calls do on a released instance; a
+retry cannot succeed, so call `NeurolabsSDK.configure(...)` for a fresh instance.
+
+After the detector failed to load during `initialize`, `detect` and `detectWithMasks` both throw the non-retryable `MODEL_NOT_LOADED` ("The detector failed to load"); neither returns placeholder results. `isDetectorReady` can still read true in that state, so read `modelPreparationState` (`FAILED`) or catch the error.
+
+`MASKS_NOT_SUPPORTED` is not a client-configuration code
+(`isClientConfiguration` is false), as on iOS.
+`INSUFFICIENT_MEMORY` is one (`isClientConfiguration` is true), like
+`STORAGE_LOW`: a device condition you cure with a smaller image.
+
+### Errors from `detect`
+
+`NeurolabsSDKCore.detect` (all four overloads: bytes or `Bitmap`, with or
+without `NLDetectionOptions`) never answers with made-up data. An empty list
+means the frame ran and found nothing. Anything else is an error, thrown as
+`NLErrorException`; read `error.errorCode`:
+
+| Code | When | Retryable |
+|---|---|---|
+| `DETECTOR_UNAVAILABLE` | The downloaded detector is not on the device yet, including while the SDK downloads it again after it would not load | Yes |
+| `MODEL_NOT_LOADED` | Before `initialize` ("Detector not initialized") | No |
+| `MODEL_NOT_LOADED` | The detector failed to load during `initialize` ("The detector failed to load"). It is checked before the image is decoded | No |
+| `INSUFFICIENT_MEMORY` | The detector dropped the frame for lack of memory ("The detector dropped the frame for lack of memory; try again."). A frame that ran is never reported this way | Yes |
+
+Two failures are still not an `NLErrorException`: bytes that do not decode
+throw `IllegalArgumentException` ("Failed to decode image data"), and a
+detector released under the call (a concurrent `initialize`) throws
+`IllegalStateException`. Running out of memory while the image is decoded is
+not caught either: the `OutOfMemoryError` reaches your code, so a smaller image
+is still the first defence. `INSUFFICIENT_MEMORY` is a client-configuration
+code (`isClientConfiguration` is true); `MODEL_NOT_LOADED` is not.
+
+What to do (since 1.7.34, `detect` used to return an empty list for a dropped
+frame and two placeholder detections after a failed load):
+
+- Wrap the call in a catch for `NLErrorException`.
+- When `error.retryable` is true, skip the frame and carry on with a later
+  frame or a smaller image. Never retry in a tight loop.
+- On the non-retryable `MODEL_NOT_LOADED`, stop calling `detect` and show the
+  load failure.
+
+`detectForAR` (experimental) throws the same non-retryable `MODEL_NOT_LOADED`
+after a failed load. A frame it drops for lack of memory is an empty output, as
+in the live camera loop; it does not throw.
+
+The live camera loop, capture, `detectShelf`, a detector you build yourself and
+`NLImageProcessor.process` are unchanged.
 
 ### Telemetry and privacy (Sentry)
 
