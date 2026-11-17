@@ -45,6 +45,10 @@
           "checksum_sha256": "7fca56a1e7025c0a55fb2ef28a0188fa772c97f22d74f060f69d6449951bbfa8"
         }
       }
+    },
+    "cordova": {
+      "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.34/neurolabs-cordova-sdk-v1.7.34.tgz",
+      "checksum_sha256": "7e034f9510965c5fa2d9a9d1391cfd8b9eeef3e7b33918d59d317bb9bc26b842"
     }
   }
 }
