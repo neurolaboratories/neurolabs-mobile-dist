@@ -14,6 +14,31 @@ custom-camera flows that need a minimum capture count and a higher
 maximum cap. `showsCapturedCountLabel` hides the `N captured` chip in
 custom camera and multi-capture flow UIs.
 
+### v1.7.35
+No initialiser changes and no removals. New APIs are additive.
+
+New APIs: `NLCaptureMode.dot` (the dot camera, experimental, iOS only) and
+`NLMultiBayLayout.dot`; `NLCameraConfiguration.photosUsedInVisit`,
+`captureBrands` and `onCaptureHelpRequested`;
+`NLMultiBayResult.retakeMarkedCaptureIds`; and
+`NLCameraConfiguration.showsModelReadinessRings` (default `true`) with
+`NLNativeCaptureConfig.showsModelReadinessRings`. Each is a new member or a new
+enum case, and none is an `init` parameter, so no existing call changes. A host
+that switches exhaustively over `NLCaptureMode` or `NLMultiBayLayout` needs the
+new case. `NLCaptureMode.allCases` now includes `dot`; filter it out if you
+build a mode picker from it.
+
+Behaviour changes, with no opt-in:
+- The AR camera shows the model readiness rings (detector and recogniser) in
+  its bottom-trailing corner; set `showsModelReadinessRings = false` to hide
+  them. The torch switch sits bottom-left, above the shutter row.
+- The recognition bootstrap carries a registry of two embedders, and the
+  organisation's snapshot chooses which one is downloaded. An
+  `expectedEmbedderVersion` other than the default must be registered, and a
+  host's own `embedderModelURL` model with an unregistered version has no
+  offline fallback. An AR session that is open while the organisation's model
+  changes mixes both models until the camera is reopened (fixed in 1.7.36).
+
 ### v1.7.34
 No initialiser changes and no removals. New APIs are additive.
 
@@ -1003,6 +1028,26 @@ resolves to `false` when absent. It is config only: `NLNativeCaptureOptions`
 does not carry it. Android has the same field with the same default and the
 same wire key on `NLCameraConfiguration` and `NLNativeCaptureConfig`.
 
+### Model readiness rings: showsModelReadinessRings
+
+`showsModelReadinessRings` shows two small rings in the AR camera's
+bottom-trailing corner, 8 pt above the shutter row. They tell the rep whether
+the product detector (D) and the product recogniser (E) are on the phone.
+A ring fills as its model downloads, pulses while the model is prepared, and
+hides 2 s after the model is ready. A ring that cannot get its model (for
+example `no_credentials` or `insufficient_storage`) turns red and stays until
+the SDK retries. The rings are on the AR camera only; the standard camera
+keeps its detector chip. They never mirror with `leftHandedLayout`, take no
+touches, and send nothing off the device.
+
+```swift
+config.showsModelReadinessRings = false // default true
+```
+
+On the bridge, `showsModelReadinessRings` (`Bool?`) on `NLNativeCaptureConfig`
+resolves to `true` when absent. It is config only: `NLNativeCaptureOptions`
+does not carry it. Android adds the same option (MR-1a).
+
 ### Capture image size (v1.7.16)
 
 With no `maxImageDimension` / `imageCompressionQuality` set by the host, a
@@ -1260,6 +1305,24 @@ review shows the tiles as a mosaic on the shelf plane, lists the tiles the
 plane could not place in a "Not placed" row and retakes a tile in place.
 Manual (`.guided`) stays the default capture mode.
 
+**Dot mode (v1.7.35, experimental, iOS only).** `NLCaptureMode.dot` (wire name
+`"dot"`) is the dot camera. Turn it on with `config.captureMode = .dot` and
+`cameraMode == .ar`; without AR it runs guided. The first photo sets a shelf
+plane, and each photo's detections become dots on it, one per facing, counted
+once across photos. A session takes at most 20 photos, fewer when the visit
+has used most of its 50: set `photosUsedInVisit` to the photos it has already
+used. There is no SDK review screen: Done returns the result straight away,
+with `NLMultiBayResult.layout == .dot`, one bay and one tile per kept photo,
+and one merged product per dot. A photo the check calls "no shelf" or "too
+far" is kept with a retake mark, and `NLMultiBayResult.retakeMarkedCaptureIds`
+lists those photos in shutter order. Host hooks on `NLCameraConfiguration`:
+`captureBrands` (the brand names shown at the top, empty by default) and
+`onCaptureHelpRequested` (set it and the camera shows a "?" button that calls
+it on the main actor; present your own help). The mode chooser never offers
+it. The submit summary and the bridge payload still send the layout as
+`"puzzle"` until the backend reads the dot layout. On Android, `dot` runs as
+guided and the SDK emits a `capture_mode_fallback` event once.
+
 On the WebView bridge the same options travel as
 `NLNativeCaptureOptions.multiBay` (`NLNativeMultiBayConfig`): every field
 is optional and absent fields take the `NLMultiBayOptions` defaults. The
@@ -1279,12 +1342,12 @@ Reading merged results:
   representative's own included) holds the same ids as the recognition
   result's `detections[].detectionId`, so you can map per-photo recognition
   onto unique facings. Additive.
-- `NLMultiBayResult.layout` (`NLMultiBayLayout`: `.walk` or `.puzzle`) says
+- `NLMultiBayResult.layout` (`NLMultiBayLayout`: `.walk`, `.puzzle` or `.dot`) says
   how the session's photos sit on the shelf, and `tiles`
   (`[NLMultiBayTile]`: `captureId`, `rect`, `trusted`) lists a puzzle
-  session's photos with where each landed on the shelf plane (`NLPlaneRect`,
+  or dot session's photos with where each landed on the shelf plane (`NLPlaneRect`,
   metres; nil when it could not be placed). A walk reads `.walk` with no
-  tiles. A trusted puzzle's `realogram` lays the tiles where the plane put
+  tiles; a dot result has one bay and one tile per kept photo. A trusted puzzle's `realogram` lays the tiles where the plane put
   them, stacked rows above each other. Additive.
 - `countsByLabel` (`counts_by_label` on the wire) is keyed by detector
   class (`sku_single`, `sku_multipack`, price tag, promo, poster), not by

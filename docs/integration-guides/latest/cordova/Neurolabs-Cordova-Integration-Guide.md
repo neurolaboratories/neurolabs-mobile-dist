@@ -11,6 +11,31 @@ listed here come from the underlying `neurolabs-android-sdk` and
 `scripts/prepare-sdk.js` at install time. No public JS API has been broken
 since v1.1.9.
 
+### v1.7.35
+- Plugin pins the native SDKs' 1.7.35 on both platforms. Nothing is removed
+  from the plugin's API and nothing is required of a host. One optional
+  option is added: `showsModelReadinessRings` (see "Model readiness rings").
+- The AR camera now shows two small model readiness rings, on both
+  platforms, with no code change on your side. Set
+  `showsModelReadinessRings: false` to hide them.
+- The AR camera's torch switch moves to the bottom-left, just above the
+  shutter row, so it no longer covers the chips at the top or the multi-bay
+  strip. It does not mirror in the left-handed layout. There is no plugin
+  option for it.
+- The native SDKs add a dot camera (`captureMode: 'dot'`), which the plugin
+  does not offer yet: `openCamera` rejects `captureMode: 'dot'` with
+  `INVALID_ARGUMENT`, and `'guided'`, `'continuous'` and `'puzzle'` are
+  unchanged. When the plugin exposes it, note that the dot camera is
+  iOS-only and experimental in native 1.7.35: on Android a `dot` session runs
+  as guided (the SDK reports a one-time `capture_mode_fallback`) until the
+  Android dot camera ships in native 1.7.36.
+- Recognition can now use either of two registered embedders: the SDK
+  downloads the one the organisation's snapshot names, with no code change on
+  your side and no plugin option to choose it. A device may keep both models
+  on disk. Until native 1.7.36, an AR session that is already open when the
+  organisation's model changes may mix both models until the camera is
+  reopened.
+
 ### v1.7.34
 - Plugin pins the native SDKs' 1.7.34 on both platforms. Nothing is removed
   from the plugin's API, nothing is added to it, and nothing is required of a
@@ -970,6 +995,15 @@ photos on cellular. It never blocks the shutter, and it hides while the
 network state is unknown or uploads are off. It is on by default;
 `showsOfflineIndicator: false` hides it.
 
+### Model readiness rings (`showsModelReadinessRings`, native SDK 1.7.35)
+
+On the AR camera, two small rings in the lower right of the preview show
+whether the on-device detector and the embedder model are ready, so a rep can
+see why recognition has not started yet. They are on by default;
+`showsModelReadinessRings: false` hides them. The plugin release that ships
+the option pins the native SDKs at 1.7.35. It works on both platforms and
+applies plain and under the `multiBayAR` preset.
+
 ### Capture strip (`showCaptureStrip`)
 
 `showCaptureStrip: true` adds a horizontal strip of thumbnails along the
@@ -1025,7 +1059,7 @@ each one in this order:
 3. the SDK default: a **4032 px long edge at JPEG quality 0.9** (native SDK
    1.7.16).
 
-The plugin pins native 1.7.34 (the default dates from 1.7.16), so on both platforms an omitted value means
+The plugin pins native 1.7.35 (the default dates from 1.7.16), so on both platforms an omitted value means
 4032 px at 0.9 unless your organisation overrides it. Invalid values (`<= 0`, or a
 quality outside `0..1`) reject with `INVALID_ARGUMENT` on both platforms.
 
@@ -1197,6 +1231,10 @@ On the AR camera (`cameraMode: 'ar'`) one more option applies:
   fixture in any order. Without a pose (a non-AR camera, or Android without
   Google Play Services for AR) the camera keeps the shutter and behaves as
   guided.
+  The native SDKs also have a `dot` mode (native 1.7.35, iOS only,
+  experimental; on Android it runs as guided until native 1.7.36), which the
+  plugin does not accept yet: `captureMode: 'dot'` is rejected with
+  `INVALID_ARGUMENT`.
 - `arProductMarkers: 'boxes' | 'dots'` (case-insensitive, default `'boxes'`;
   both platforms from native SDK 1.7.29): how the AR camera marks the
   products it found, the world-locked boxes or one small dot per product. An

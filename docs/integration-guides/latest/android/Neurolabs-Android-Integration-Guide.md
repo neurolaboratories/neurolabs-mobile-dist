@@ -11,6 +11,30 @@ working as is. Recommended defaults: strict shelf guidance with
 `validationPreset = IOS_PARITY`, `liveQualityChecksEnabled = true`,
 `autoCloseAfterCapture = true` for single-capture parity flows.
 
+### v1.7.35
+No removals. New APIs are additive and binary-compatible; the previous
+signatures are unchanged and `apiCheck` passes.
+
+New APIs: `NLCaptureMode.DOT` (experimental, wire `"dot"`; see "Dot mode"
+under Multi-Bay Capture) and `NLCameraConfiguration.showsModelReadinessRings`
+with the config-only bridge key of the same name on `NLNativeCaptureConfig`
+(on by default; see "Model readiness rings"). `NLCameraConfiguration` and
+`NLNativeCaptureConfig` keep their previous constructor and `copy` as hidden
+overloads.
+
+Behaviour changes:
+
+- A session that asks for `NLCaptureMode.DOT` runs as Guided and emits
+  `capture_mode_fallback` once. A host with an exhaustive `when` over
+  `NLCaptureMode` needs a branch for `DOT`.
+- The AR camera shows two model readiness rings (detector and recogniser)
+  bottom-right. Turn them off with `showsModelReadinessRings = false`.
+- The AR torch switch sits bottom-left, 8 dp above the shutter row, and no
+  longer covers the chips at the top.
+- The SDK carries two registered embedders: the default, unchanged, and the
+  distilled R3 export. Your org's snapshot names the one to download; a
+  snapshot built with the default loads exactly as before.
+
 ### v1.7.34
 No `NLConfiguration` changes and no removals. New APIs are additive and
 binary-compatible; the previous signatures are unchanged and `apiCheck`
@@ -821,6 +845,10 @@ a fresh run or a ready detector it never fires.
 
 The default and AR camera show a small chip while the upload queue sees no network: "Offline · uploads queued" (or "Offline" with nothing queued), and "Waiting for Wi-Fi · uploads queued" while Wi-Fi-only uploads hold photos on a metered network. It hides while the network is unknown and when the host uploads the photos itself (`uploadsEnabled = false`). It is informational only and never gates the shutter. On by default; turn it off with `NLCameraConfiguration(showsOfflineIndicator = false)`, or on the bridge with `showsOfflineIndicator` (`Boolean?`) on `NLNativeCaptureOptions` / `NLNativeCaptureConfig` (options, then config, then `true`).
 
+### Model readiness rings (MR-1a, from v1.7.35)
+
+The AR camera shows two small rings in its bottom-right corner, 8 dp above the shutter row. They tell the rep whether the product detector (D) and the product recogniser (E) are on the phone. A ring fills as its model downloads, pulses while the model is prepared, and hides 2 s after the model is ready. A ring that cannot get its model (for example `not_entitled` or `insufficient_storage`) turns red and stays until the SDK retries. TalkBack reads each ring's state. The rings are on the AR camera only; the standard camera keeps its detector chip. They never mirror with `leftHandedLayout` or a right-to-left layout, take no touches, and send nothing off the device. On by default; turn them off with `NLCameraConfiguration(showsModelReadinessRings = false)`, or on the bridge with `showsModelReadinessRings` (`Boolean?`) on `NLNativeCaptureConfig` (absent reads as `true`; config only, `NLNativeCaptureOptions` does not carry it). Same option and behaviour as iOS.
+
 ### AR boxes the live labels have not matched (1.7.17)
 
 Under `arBoxStyle = NLARBoxStyle.HIGHLIGHT`, with `arLiveLabels` on and a ready recognition provider, a stable box that has been looked at and has no product name latched on it (no match, or every look below 0.6) is drawn in `arBoxUnmatchedColor` (`#RRGGBB`, default `#FACC15`) instead of `arBoxHighlightColor`. A box not looked at yet keeps the highlight colour. The key is on `NLCameraConfiguration` and, as `String?`, on `NLNativeCaptureConfig` / `NLNativeCaptureOptions` (options, then config, then the default). Nothing changes while `arLiveLabels` is off.
@@ -1002,6 +1030,8 @@ sdk.openNativeCaptureUI(
 The same `multiBay` field exists on `NLCameraConfiguration` for the custom-camera config path, and on the WebView/Cordova bridge payload (camelCase field names identical across iOS, Android, and Cordova; absent fields take the defaults above).
 
 The bay cap follows the mode the session runs, whatever the host's default `captureMode` and whatever the rep picks on the entry chooser (from v1.7.30). On the AR camera a Guided session may plan up to `NLMultiBayOptions.MAX_SUPPORTED_BAYS` (20 from v1.7.27; 8 before), and an Auto (`NLCaptureMode.CONTINUOUS`) or Puzzle (`NLCaptureMode.PUZZLE`, from v1.7.29) session up to `NLMultiBayOptions.MAX_SUPPORTED_CONTINUOUS_BAYS` (30). The standard (default) camera is 20 for every mode, and so is an Auto or Puzzle session that falls back to CameraX. The entry gate resolves your request for the picked mode: an Auto pick under a guided default runs the `maxBays` you asked for, up to 30, and a Guided pick under a continuous default runs 20. Before v1.7.30 an Auto pick under a guided default kept the guided 20. A value outside the cap is clamped and logged when the camera opens. From v1.7.17 the WebView bridge resolves `maxBays` the same way; in v1.7.16 it clamped to 8 on every mode. Cordova's `NLCaptureActivity` launch already followed the mode in v1.7.16.
+
+**Dot mode (`NLCaptureMode.DOT`, wire `"dot"`, experimental; from v1.7.35).** iOS has a dot camera; Android does not yet. A session that asks for `DOT` runs as Guided on every camera, caps its bay plan as Guided (20), is never replaced by the entry chooser, and emits the `capture_mode_fallback` event once with `requested = dot`, `effective = guided` and `reason = dot_camera_not_on_android`. A host with an exhaustive `when` over `NLCaptureMode` needs a branch for `DOT`.
 
 **Long guided walks (v1.7.27).** A guided (shutter) walk, and any session on the default camera, may plan up to `NLMultiBayOptions.MAX_SUPPORTED_BAYS` (20; 8 before v1.7.27); the default stays 8. A 10 m shelf is about 10–14 bays. The cost of a long walk does not grow with the ceiling: past 8 bays the finish-time dedup decodes each bay smaller so its working set stays at the 8-bay budget, and the AR "Review shelf" pages through segments of up to 8 bays (20 → 7 + 7 + 6), as for a long continuous sweep. `previewImageData` is still the one panorama, so past 8 bays treat it as a thumbnail (about 205 px a bay at 20). The bridge resolves the same 20. Hosts that asked for 9–20 bays on a guided or default-camera session were clamped to 8 and now get that many: check your plan if you relied on the clamp. `MAX_SUPPORTED_BAYS` is a `const val`, inlined where you read it: recompile against v1.7.27 to see 20.
 
@@ -1227,8 +1257,10 @@ SDK like the first.
 The embedder `.tflite` (DINOv3 ConvNeXt-Tiny) downloads through the Operations
 API (`GET /v1/device-models/dinov3-convnext-tiny-android-tflite-v1`, sha256 and
 size pinned in the SDK) once recognition-config has enabled recognition for your
-org, and is cached, so later launches need no network. It is the only embedder
-the SDK runs: a model your app ships as an asset is never used. When the model
+org, and is cached, so later launches need no network. The SDK also carries the
+distilled R3 export (`dinov3-convnext-tiny-distilled-r3-android-tflite-v1`): your
+org's snapshot names the model it was built with, and that one is downloaded.
+These are the only embedders the SDK runs: a model your app ships as an asset is never used. When the model
 cannot be had, recognition is off with the reason, for example
 `embedder unavailable (not_entitled)`. The release AAR carries the
 Qdrant Edge native libraries; the default index remains the built-in
