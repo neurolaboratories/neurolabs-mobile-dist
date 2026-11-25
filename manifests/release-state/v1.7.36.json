@@ -3,35 +3,35 @@
   "artifacts": {
     "ios": {
       "asset_url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.36/NeurolabsSDK.xcframework-v1.7.36.zip",
-      "checksum_sha256": "81928677e6579eccc52afb0446cfca68017e90414e8bc384e949f02016b1e433",
+      "checksum_sha256": "85d313ed9c249ce4582e1c21c26fc2100168d3eff95e4d6aa9df23ca5c7341e2",
       "spm_targets": {
         "NeurolabsSDK": {
           "url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.36/NeurolabsSDK.xcframework-v1.7.36.zip",
-          "checksum_sha256": "81928677e6579eccc52afb0446cfca68017e90414e8bc384e949f02016b1e433"
+          "checksum_sha256": "85d313ed9c249ce4582e1c21c26fc2100168d3eff95e4d6aa9df23ca5c7341e2"
         },
         "ProductAuditKit": {
           "url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.36/ProductAuditKit.xcframework-v1.7.36.zip",
-          "checksum_sha256": "fe9033e7b88038c8372729376ed3de36df7d789326827fbb5bc3c17f50f2d255"
+          "checksum_sha256": "6bab395891c6d327698e0f9d0f80a20dc839badce8b435b6513a5b22858ed6a6"
         },
         "RecognitionInterface": {
           "url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.36/RecognitionInterface.xcframework-v1.7.36.zip",
-          "checksum_sha256": "b9a15250a84a78945e78db917620c8909d28fb8682653d35e9cff89c7ae80500"
+          "checksum_sha256": "4947e08312cdba7d4933deff79f96c8988d60cf4d87c559d1603f5cd47ed412b"
         },
         "RecognitionEngine": {
           "url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.36/RecognitionEngine.xcframework-v1.7.36.zip",
-          "checksum_sha256": "35788f538c7fb96a87ec3f69ae03482303a00bef6ea6c69a6f3421dc64434752"
+          "checksum_sha256": "da535dc4252d6bb0d0af486cabb217a8783fedf6aa3d07ab11ae4dc97d011be2"
         },
         "RecognitionEngineQdrant": {
           "url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.36/RecognitionEngineQdrant.xcframework-v1.7.36.zip",
-          "checksum_sha256": "a3ef9f741ed847c7000efc08dfd5630ee54197540793b402fe1b6151e9a462b6"
+          "checksum_sha256": "85cd4075bad39e0c81bd4d3582a42629ee6ef81253f769a3bdf5129df7a9e96c"
         },
         "RecognitionBootstrap": {
           "url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.36/RecognitionBootstrap.xcframework-v1.7.36.zip",
-          "checksum_sha256": "80195e4c06e665fd39cc7ac20751efc62111bb497fc0816cdfab8cfd3d9c43bd"
+          "checksum_sha256": "f2aed650a8b7b2f2c2a193e06fb82c77da61397fca8574608034bb234d2e58e9"
         },
         "NLQdrantEdgeFFI": {
           "url": "https://github.com/neurolaboratories/neurolabs-mobile-dist/releases/download/v1.7.36/NLQdrantEdgeFFI.xcframework-v1.7.36.zip",
-          "checksum_sha256": "8be3169f7b8e31c6a011f14cedea26d5378f2d645b51e80697e4d2a2d8758c70"
+          "checksum_sha256": "d4aaec42fc9b53168cdb39cea009f840e61d882669792ce6a8cdfca99fcc6c06"
         }
       }
     }
