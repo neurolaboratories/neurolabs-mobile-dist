@@ -11,6 +11,54 @@ working as is. Recommended defaults: strict shelf guidance with
 `validationPreset = IOS_PARITY`, `liveQualityChecksEnabled = true`,
 `autoCloseAfterCapture = true` for single-capture parity flows.
 
+### v1.7.36
+No removals. New APIs are additive and binary-compatible; the previous
+signatures are unchanged and `apiCheck` passes.
+
+New APIs (experimental unless noted): `NLMultiBayLayout.DOT` and
+`NLMultiBayResult.retakeMarkedCaptureIds`; the dot camera's host fields
+`photosUsedInVisit`, `captureBrands` and `onCaptureHelpRequested` on
+`NLCameraConfiguration`; on the bridge, `photosUsedInVisit`, `captureBrands`
+and `captureHelpEnabled` on `NLNativeCaptureConfig`,
+`NeurolabsSDKCore.onCaptureHelpRequested` and
+`NLNativeMultiBayResultSummary.retakeMarkedCaptureIds`; and, for debugging,
+`NLSDKDebug.captureDumpDirectory` and `NLSDKDebug.captureDumpIncludesDepth`
+(see "Capture dump"). `NLCameraConfiguration`, `NLNativeCaptureConfig` and
+`NLNativeMultiBayResultSummary` keep their previous constructor and `copy` as
+hidden overloads.
+
+Behaviour changes:
+
+- A session that asks for `NLCaptureMode.DOT` on the AR camera runs the dot
+  camera, as on iOS, and `capture_mode_fallback` is no longer emitted. Off the
+  AR camera it runs as Guided. A host with an exhaustive `when` over
+  `NLMultiBayLayout` needs a branch for `DOT`. If the dot camera gives you
+  trouble, `System.setProperty("NLDotCamera", "false")` in
+  `Application.onCreate` brings Guided back for a `DOT` request (temporary;
+  see "Dot mode" under Multi-Bay Capture).
+- Price, promo and poster detections are no longer embedded and have no entry
+  in `recognitionMatches`; row, strip, shelf and gap boxes are no longer sent
+  to the recogniser. See "On-Device Recognition".
+- The detector suppresses overlapping boxes across classes, as on iOS, so a
+  frame may return fewer boxes.
+- A photo that lands after Done gave up on it, after a host close or after
+  the session ended is dropped, with no `onCapture`. Done waits up to 3 s for
+  a photo still being taken. A ✕ tapped while a session is finishing or saving
+  no longer closes the camera under the save.
+- In the dot camera, a photo judged "No shelf found" or "Too far" is dropped:
+  you hear its `onCapture`, then one `onCaptureDeleted` with source `RETAKE`,
+  and `retakeMarkedCaptureIds` is always empty. The dot camera also drops its
+  edge glow, shows a full-screen live preview and draws no starting sparkle
+  or plane grid.
+- A session that ends on its own (`autoCloseAfterCapture` on, no Done button)
+  shows the "Processing your captures…" scrim from the last photo until the
+  result is delivered, and ✕ and the back button do nothing meanwhile. A
+  continuous walk's auto-captures no longer play the white capture flash.
+- An AR session recording waits up to 4 s for the last recognition pass, so
+  `onFinish` can arrive later.
+- A session open across a recognition model change no longer compares
+  appearance vectors made by two models.
+
 ### v1.7.35
 No removals. New APIs are additive and binary-compatible; the previous
 signatures are unchanged and `apiCheck` passes.
@@ -959,6 +1007,27 @@ config, then boxes. An unknown or non-string value is ignored and falls
 through to the next level instead of failing the config. Same name and values
 as iOS `NLCameraConfiguration.arProductMarkers`.
 
+### Capture dump (debug, experimental, from v1.7.36)
+
+A debug tool for collecting photos with depth and camera pose. Set
+`NLSDKDebug.captureDumpDirectory` to a folder your app owns before the camera
+opens; every AR photo then writes one folder there. Leave it `null` in
+production builds: nothing is written and nothing changes. Set
+`NLSDKDebug.captureDumpIncludesDepth = false` to keep the dot camera's session
+exactly as in production; its folders then have no depth files. The folders
+hold unblurred photos: choosing the location, how long they are kept and who
+can read them is the host's job. The SDK never deletes a complete folder. A
+folder without `capture.json` is incomplete and should be skipped. The format
+is the one the iOS SDK writes (`nl-capture-dump/1`); the Android differences
+are: `platform` is `"android"`; depth comes from ARCore (motion, or a depth
+sensor), in metres, with 0 meaning no estimate; confidence is 0 to 255 and
+exists for the raw plane only; depth planes belong to the video frame;
+`photo.jpg` is the camera's own JPEG. Experimental: the camera-axis convention
+has not been confirmed against iOS on a phone, and depth from motion has not
+been measured for range or noise.
+
+On Android, a dot dump's `blur` and the still's exposure are written only while a session recording also runs; `device_motion` is always null; and a photo that never reaches the session (a strict similar-shot reject, or a dot photo with no verdict) writes no folder.
+
 ### Theming the SDK screens (1.7.30)
 
 `ai.neurolabs.sdk.ui.theme.NLTheme` holds the SDK's design tokens (ARGB
@@ -1031,13 +1100,21 @@ The same `multiBay` field exists on `NLCameraConfiguration` for the custom-camer
 
 The bay cap follows the mode the session runs, whatever the host's default `captureMode` and whatever the rep picks on the entry chooser (from v1.7.30). On the AR camera a Guided session may plan up to `NLMultiBayOptions.MAX_SUPPORTED_BAYS` (20 from v1.7.27; 8 before), and an Auto (`NLCaptureMode.CONTINUOUS`) or Puzzle (`NLCaptureMode.PUZZLE`, from v1.7.29) session up to `NLMultiBayOptions.MAX_SUPPORTED_CONTINUOUS_BAYS` (30). The standard (default) camera is 20 for every mode, and so is an Auto or Puzzle session that falls back to CameraX. The entry gate resolves your request for the picked mode: an Auto pick under a guided default runs the `maxBays` you asked for, up to 30, and a Guided pick under a continuous default runs 20. Before v1.7.30 an Auto pick under a guided default kept the guided 20. A value outside the cap is clamped and logged when the camera opens. From v1.7.17 the WebView bridge resolves `maxBays` the same way; in v1.7.16 it clamped to 8 on every mode. Cordova's `NLCaptureActivity` launch already followed the mode in v1.7.16.
 
-**Dot mode (`NLCaptureMode.DOT`, wire `"dot"`, experimental; from v1.7.35).** iOS has a dot camera; Android does not yet. A session that asks for `DOT` runs as Guided on every camera, caps its bay plan as Guided (20), is never replaced by the entry chooser, and emits the `capture_mode_fallback` event once with `requested = dot`, `effective = guided` and `reason = dot_camera_not_on_android`. A host with an exhaustive `when` over `NLCaptureMode` needs a branch for `DOT`.
-
 **Long guided walks (v1.7.27).** A guided (shutter) walk, and any session on the default camera, may plan up to `NLMultiBayOptions.MAX_SUPPORTED_BAYS` (20; 8 before v1.7.27); the default stays 8. A 10 m shelf is about 10–14 bays. The cost of a long walk does not grow with the ceiling: past 8 bays the finish-time dedup decodes each bay smaller so its working set stays at the 8-bay budget, and the AR "Review shelf" pages through segments of up to 8 bays (20 → 7 + 7 + 6), as for a long continuous sweep. `previewImageData` is still the one panorama, so past 8 bays treat it as a thumbnail (about 205 px a bay at 20). The bridge resolves the same 20. Hosts that asked for 9–20 bays on a guided or default-camera session were clamped to 8 and now get that many: check your plan if you relied on the clamp. `MAX_SUPPORTED_BAYS` is a `const val`, inlined where you read it: recompile against v1.7.27 to see 20.
 
 ```kotlin
 val options = NLMultiBayOptions(minBays = 2, maxBays = 20) // guided: up to 20
 ```
+
+### Dot mode (`NLCaptureMode.DOT`, experimental; the mode from v1.7.35, on by default from v1.7.36)
+
+`NLCaptureMode.DOT` (wire name `"dot"`) is the dot camera, as on iOS. It is experimental: expect changes in any release. On `NLNativeCameraMode.AR` with ARCore running, a session that asks for `DOT` runs it. The first photo sets a shelf plane, and each photo's detections become dots on it, one per facing, counted once across photos. A session takes at most 20 photos, fewer when the visit has used most of its 50: set `photosUsedInVisit` to the photos it has already used. There is no SDK review screen: Done returns the result straight away, with `NLMultiBayResult.layout == NLMultiBayLayout.DOT` (the submit summary and the bridge payload still say `"puzzle"` until the backend reads the dot layout). A photo the detector judges "No shelf found" or "Too far" is dropped: the card and the warning haptic still show, and the photo leaves the session, its count, the thumbnail stack and Done's result, and its files are deleted from the phone. You hear its `onCapture` first and then one `onCaptureDeleted` with source `NLCaptureDeletionSource.RETAKE`; drop the photo from your own list, as for any retake. A photo taken while the detector is still warming up is kept, unmarked, so `NLMultiBayResult.retakeMarkedCaptureIds` is always empty in a dot session (the field is kept for compatibility). The dot camera draws no yellow or red edge glow, no starting sparkle and no plane grid, and its live preview covers the screen at the camera frame's aspect, centred, with its sides clipped (the photo is still the whole frame). On the AR camera, Done is always shown, whatever `allowManualFinish` and `showsSequenceCounterLabel` say, and the session never ends on its photo count. A dot session asks ARCore for its Shared Camera for the stills, even when `arHighResolutionStills` is off.
+
+Host fields on `NLCameraConfiguration`: `photosUsedInVisit` (default 0), `captureBrands` (the brand names shown at the top, empty by default) and `onCaptureHelpRequested` (set it and the camera shows a "?" button that calls it; present your own help; in-process only). On the WebView bridge, `NLNativeCaptureConfig` carries `photosUsedInVisit`, `captureBrands` and `captureHelpEnabled`, `NeurolabsSDKCore.onCaptureHelpRequested` is called with the session id when the rep taps "?", and `NLNativeMultiBayResultSummary.retakeMarkedCaptureIds` is present for a dot result only, and always empty today. The Cordova plugin does not send the keys yet. The entry chooser never offers `DOT` or replaces it. A host with an exhaustive `when` over `NLCaptureMode` or `NLMultiBayLayout` needs a branch for `DOT`.
+
+Where it does not run as dot: on the default camera it runs as Guided under your own Done rule, and when the AR camera falls back to CameraX (a phone without ARCore, or ARCore failing to start) it runs as Guided with Done still shown. Neither case emits an event: v1.7.35 ran every `DOT` request as Guided and emitted `capture_mode_fallback` once, and that event is removed.
+
+**Temporary rollback.** To get Guided back for a `DOT` request on every camera, call `System.setProperty("NLDotCamera", "false")` once, in `Application.onCreate`, before any camera opens. The dot camera is on unless the property is exactly `"false"`; any other value, or none, leaves it on. A camera reads the property when it opens and keeps that value until it closes, including after the system restores the screen, so changing it while a camera is open does nothing to that session. With it set, a `DOT` request gets the config a Guided pick gets: the per-photo review preview on, even when the host turned it off, and the bay limit stays 20. The property is not public API and is temporary: it will be removed in a later release.
 
 ### "Review shelf" for long sweeps and "On this shelf" (1.7.17)
 
@@ -1272,6 +1349,8 @@ Tap-to-product-card: captures expose per-detection matches via
 `NLDetectionInspectorSheet(detection, match, resolver, onDismiss)` and an
 `NLProductDetailsResolver` built over `NLOperationsCatalogClient`.
 Offline or unresolved products fall back to a UUID + similarity row.
+From 1.7.36 price, promo and poster detections carry no entry in
+`recognitionMatches(forCaptureId:)`: the on-device provider no longer embeds them.
 
 Inspector floor (v1.7.24): `NLDetectionInspectorSheet` names a box only when
 its match is at or above `NLReviewAnalytics.RECOGNITION_FLOOR` (0.5). Below

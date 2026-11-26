@@ -14,6 +14,47 @@ custom-camera flows that need a minimum capture count and a higher
 maximum cap. `showsCapturedCountLabel` hides the `N captured` chip in
 custom camera and multi-capture flow UIs.
 
+### v1.7.36
+No initialiser changes and no removals. New APIs are additive.
+
+New APIs: `NLSDKDebug.captureDumpIncludesDepth` (debug only, default `true`); on
+the WebView bridge, `NLNativeCaptureConfig.photosUsedInVisit`, `captureBrands`
+and `captureHelpEnabled`, `NeurolabsSDKCore.onCaptureHelpRequested` and
+`NLNativeMultiBayResultSummary.retakeMarkedCaptureIds`. Each is a new member and
+none is an `init` parameter, so no existing call changes. No enum gains a case.
+
+Behaviour changes, with no opt-in:
+- A cancelled close (the close button, or "Discard photos" in the dot camera)
+  delivers `onFinish` with `cancelled == true` first and `onClose` a few hundred
+  milliseconds later, as after Done; `onClose` used to come first. Make
+  `onClose` safe to call twice.
+- A photo that lands after the session has ended is dropped, with its files
+  deleted and no `onCapture`: after Done, after a close, and after the host's
+  `closeNativeCaptureUI`. Done waits up to 3 s for a photo still being taken, so
+  it joins the result.
+- On-device recognition no longer embeds price, promo or poster crops: they
+  stay in the payload with `matches: []` and have no entry in
+  `recognitionMatches(forCapture:)`. Row, strip, shelf and gap boxes are no
+  longer sent to the recogniser, so they no longer appear in
+  `recognitionMatches` or in the payload's `detections`.
+- A host that arms an AR recording may get its `onFinish` up to 4 s later.
+- The dot camera (experimental) always shows Done on the AR camera,
+  holds its shutter until the phone turns slower than about 10 degrees per
+  second, and shows its tilt hint past 33 degrees from the horizon. An AR world
+  restart no longer loses its count: the close button still asks before it
+  discards photos, the photo limit counts the session's photos, and a result
+  that has lost photos it once held is not trusted.
+
+Fixed, v1.7.35's known limitation: a session that is open while the
+organisation's recognition model changes no longer compares vectors from both
+models. The AR camera (Manual, Continuous, Puzzle) starts its appearance
+prototypes over and keeps its boxes and counts. The Review screen never groups
+unknown products across the two models: once a photo taken after the change has
+stored unknown-product vectors, earlier photos show their unknown facings
+ungrouped and `unknownEmbeddings(forCapture:)` returns nil for them. A provider
+whose recognition results name no `embedderVersion` is not covered by the
+Review part.
+
 ### v1.7.35
 No initialiser changes and no removals. New APIs are additive.
 
@@ -1305,7 +1346,7 @@ review shows the tiles as a mosaic on the shelf plane, lists the tiles the
 plane could not place in a "Not placed" row and retakes a tile in place.
 Manual (`.guided`) stays the default capture mode.
 
-**Dot mode (v1.7.35, experimental, iOS only).** `NLCaptureMode.dot` (wire name
+**Dot mode (v1.7.35, experimental).** `NLCaptureMode.dot` (wire name
 `"dot"`) is the dot camera. Turn it on with `config.captureMode = .dot` and
 `cameraMode == .ar`; without AR it runs guided. The first photo sets a shelf
 plane, and each photo's detections become dots on it, one per facing, counted
@@ -1313,15 +1354,29 @@ once across photos. A session takes at most 20 photos, fewer when the visit
 has used most of its 50: set `photosUsedInVisit` to the photos it has already
 used. There is no SDK review screen: Done returns the result straight away,
 with `NLMultiBayResult.layout == .dot`, one bay and one tile per kept photo,
-and one merged product per dot. A photo the check calls "no shelf" or "too
-far" is kept with a retake mark, and `NLMultiBayResult.retakeMarkedCaptureIds`
-lists those photos in shutter order. Host hooks on `NLCameraConfiguration`:
+and one merged product per dot. A photo a ready detector calls "no shelf"
+or "too far" leaves the session: after its `onCapture` the host gets
+`onCaptureDeleted` with source `.retake` and drops it, and it is not in the
+result. So `NLMultiBayResult.retakeMarkedCaptureIds` stays empty for a dot
+session (the field is kept for compatibility). A photo taken while the
+detector warms up is kept, unmarked. Host hooks on `NLCameraConfiguration`:
 `captureBrands` (the brand names shown at the top, empty by default) and
 `onCaptureHelpRequested` (set it and the camera shows a "?" button that calls
 it on the main actor; present your own help). The mode chooser never offers
 it. The submit summary and the bridge payload still send the layout as
-`"puzzle"` until the backend reads the dot layout. On Android, `dot` runs as
-guided and the SDK emits a `capture_mode_fallback` event once.
+`"puzzle"` until the backend reads the dot layout. From v1.7.36 Done is always
+shown on the AR camera, whatever `allowManualFinish` says, and the session never
+ends on its photo count. If the AR world restarts (tracking lost for good, or
+the camera view rebuilt) the dots are cleared, the close button still asks
+"Discard N photos?", the photo limit counts the session's photos, and a result that has
+lost photos it once held is not trusted. On the WebView bridge,
+`NLNativeCaptureConfig` carries `photosUsedInVisit`, `captureBrands` and
+`captureHelpEnabled`; `NeurolabsSDKCore.onCaptureHelpRequested` is called with
+the session id when the rep taps "?"; and `NLNativeMultiBayResultSummary.retakeMarkedCaptureIds`
+is present, possibly empty, for a dot result only. Android runs the dot camera
+too from v1.7.36, on its AR camera with ARCore running (off the AR camera it
+runs guided). Neither platform emits a `capture_mode_fallback` event: Android
+v1.7.35 ran `dot` as guided and emitted it once, and it no longer exists.
 
 On the WebView bridge the same options travel as
 `NLNativeCaptureOptions.multiBay` (`NLNativeMultiBayConfig`): every field
@@ -1719,6 +1774,8 @@ Tap-to-product-card: captures expose per-detection matches via
 screen and feed it an `NLProductDetailsSource` wrapping ProductAuditKit's
 `NLProductDetailsResolver` (one-liner on the source type's docs). Offline
 or unresolved products fall back to a UUID + similarity row automatically.
+From 1.7.36 price, promo and poster detections carry no entry in
+`recognitionMatches(forCapture:)`: the on-device provider no longer embeds them.
 From v1.7.24 the inspector names a product only when its match scores 0.5
 or more. Below that, the box keeps its class look and the detail says "Not
 recognised", with the closest item and its score as secondary text.

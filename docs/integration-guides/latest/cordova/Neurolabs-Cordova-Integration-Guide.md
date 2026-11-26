@@ -11,6 +11,43 @@ listed here come from the underlying `neurolabs-android-sdk` and
 `scripts/prepare-sdk.js` at install time. No public JS API has been broken
 since v1.1.9.
 
+### v1.7.36
+- Plugin pins the native SDKs' 1.7.36 on both platforms. Nothing is removed
+  from the plugin's API and nothing is required of a host. The plugin's own
+  new options in this release are `hardwareShutterEnabled` and
+  `leftHandedLayout` (see "Volume-key shutter and left-handed layout").
+- The native dot camera (`captureMode: 'dot'`) is on both native SDKs now,
+  but the plugin does not offer it: `openCamera` still rejects
+  `captureMode: 'dot'` with `INVALID_ARGUMENT`, and `'guided'`, `'continuous'`
+  and `'puzzle'` are unchanged. Native 1.7.35 ran a `dot` session as guided on
+  Android; that fallback is gone with the Android dot camera, and the plugin
+  never forwarded `dot` in any case.
+- On-device recognition no longer embeds price, promo or poster crops, and
+  row, strip, shelf and gap boxes are no longer sent to the recogniser. Those
+  detections therefore have no entry in `captureResult.recognitionMatches`,
+  and the row, strip, shelf and gap boxes also leave the recognition payload
+  the SDK uploads. Products are unchanged. If your app reads
+  `recognitionMatches` for those classes, check that it copes with their
+  absence.
+- On Android, crops now round each box edge outward to whole pixels, as on
+  iOS: a product box whose rounded-out side reaches 8 px is now embedded, and
+  a price, promo or poster box of that size is now kept in the result. Android
+  also now suppresses overlapping boxes across classes, as iOS does, so you
+  may see fewer boxes where two classes fired on one product.
+- A photo that lands after the session has ended, or after Done gave up on it,
+  is dropped, and Done waits up to 3 seconds for a photo still being taken. A
+  recorded AR session (`arSessionRecording`) can take up to 4 seconds longer
+  to finish, while it waits for the last photo's recognition. On Android, a
+  session that ends on its own (`autoCloseAfterCapture` with no Done button)
+  now shows the "Processing your captures" screen until the result is
+  delivered, and the close button does nothing meanwhile. A cancel tapped
+  while the last photo of such a session is still saving now wins: the
+  session is cancelled and no completed result follows. A continuous walk's
+  automatic photos no longer play the white flash.
+- Fixed natively: an AR session that is open while the organisation's
+  recognition model changes no longer compares appearance vectors from the
+  two models. Nothing to do.
+
 ### v1.7.35
 - Plugin pins the native SDKs' 1.7.35 on both platforms. Nothing is removed
   from the plugin's API and nothing is required of a host. One optional
@@ -1004,6 +1041,16 @@ see why recognition has not started yet. They are on by default;
 the option pins the native SDKs at 1.7.35. It works on both platforms and
 applies plain and under the `multiBayAR` preset.
 
+### Volume-key shutter and left-handed layout (`hardwareShutterEnabled`, `leftHandedLayout`, native SDK 1.7.34)
+
+Two optional booleans for the AR camera screen only. By default the volume
+keys take a photo while the screen uses its shutter (never in continuous
+mode) and the bottom row is laid out for the right hand.
+`hardwareShutterEnabled: false` leaves the volume keys to the system volume,
+for a host that needs them. `leftHandedLayout: true` mirrors the bottom row
+for a left-handed rep. Leaving a key out changes nothing. Both work on both
+platforms, plain and under the `multiBayAR` preset.
+
 ### Capture strip (`showCaptureStrip`)
 
 `showCaptureStrip: true` adds a horizontal strip of thumbnails along the
@@ -1059,7 +1106,7 @@ each one in this order:
 3. the SDK default: a **4032 px long edge at JPEG quality 0.9** (native SDK
    1.7.16).
 
-The plugin pins native 1.7.35 (the default dates from 1.7.16), so on both platforms an omitted value means
+The plugin pins native 1.7.36 (the default dates from 1.7.16), so on both platforms an omitted value means
 4032 px at 0.9 unless your organisation overrides it. Invalid values (`<= 0`, or a
 quality outside `0..1`) reject with `INVALID_ARGUMENT` on both platforms.
 
@@ -1231,10 +1278,9 @@ On the AR camera (`cameraMode: 'ar'`) one more option applies:
   fixture in any order. Without a pose (a non-AR camera, or Android without
   Google Play Services for AR) the camera keeps the shutter and behaves as
   guided.
-  The native SDKs also have a `dot` mode (native 1.7.35, iOS only,
-  experimental; on Android it runs as guided until native 1.7.36), which the
-  plugin does not accept yet: `captureMode: 'dot'` is rejected with
-  `INVALID_ARGUMENT`.
+  The native SDKs also have an experimental `dot` mode (native 1.7.35 on
+  iOS, 1.7.36 on Android), which the plugin does not accept yet:
+  `captureMode: 'dot'` is rejected with `INVALID_ARGUMENT`.
 - `arProductMarkers: 'boxes' | 'dots'` (case-insensitive, default `'boxes'`;
   both platforms from native SDK 1.7.29): how the AR camera marks the
   products it found, the world-locked boxes or one small dot per product. An
